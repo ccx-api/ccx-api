@@ -51,4 +51,12 @@ pub enum LibError {
     WsClientError(#[from] WsClientError),
     #[error("Websocket Protocol Error: {0}")]
     WsProtocolError(#[from] WsProtocolError),
+    #[error("Other Error: {0}")]
+    Other(String),
+}
+
+impl LibError {
+    pub fn other(s: impl Into<String>) -> Self {
+        Self::Other(s.into())
+    }
 }

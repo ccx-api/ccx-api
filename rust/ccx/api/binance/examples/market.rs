@@ -1,5 +1,6 @@
 #[allow(unused_imports)]
 use ccx_binance::{client::ApiCred, Api, ChartInterval};
+use ccx_binance::OrderBookLimit;
 
 const SYMBOL: &str = "BNBBTC";
 
@@ -10,8 +11,9 @@ async fn main() {
 
     let binance = Api::with_cred(ApiCred::from_env());
 
+    let future = binance.depth(SYMBOL, OrderBookLimit::N1000);
     // let future = binance.depth(SYMBOL, None);
-    let future = binance.trades(SYMBOL, None);
+    // let future = binance.trades(SYMBOL, None);
     // let future = binance.historical_trades(SYMBOL, None, None);
     // let future = binance.agg_trades(SYMBOL, None, None, None, None);
     // let future = binance.klines(SYMBOL, ChartInterval::Minute1, None, None, None);

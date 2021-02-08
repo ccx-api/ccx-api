@@ -10,13 +10,12 @@ use awc::BoxedSocket;
 use futures::channel::mpsc;
 use futures::stream::SplitSink;
 use serde::{Deserialize, Serialize};
-use string_cache::DefaultAtom as Atom;
 use url::Url;
 
 use crate::client::RestClient;
 use crate::error::LibResult;
 use crate::util::Seq;
-use crate::{LibError, UpstreamApiRequest, WsCommand, WsEvent, WsStream, WsSubscription, UpstreamWebsocketMessage};
+use crate::{LibError, UpstreamApiRequest, WsCommand, WsEvent, WsSubscription, UpstreamWebsocketMessage};
 
 /// How often heartbeat pings are sent.
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -187,8 +186,17 @@ impl std::ops::Deref for WebsocketStream {
 }
 
 impl WebsocketStreamTx {
-    pub async fn subscribe(&self, market: impl Into<Atom>, stream: WsStream) -> LibResult<()> {
-        let cmd = WsCommand::Subscribe1([WsSubscription::new(market, stream)]);
+    pub async fn subscribe_one(&self, subscription: impl Into<WsSubscription>) -> LibResult<()> {
+        let cmd = WsCommand::Subscribe1([subscription.into()]);
+        Ok(self
+            .addr
+            .send(M(cmd))
+            .await
+            .map_err(|_e| LibError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
+    }
+
+    pub async fn subscribe_list(&self, subscriptions: Box<[WsSubscription]>) -> LibResult<()> {
+        let cmd = WsCommand::Subscribe(subscriptions);
         Ok(self
             .addr
             .send(M(cmd))

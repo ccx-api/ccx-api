@@ -200,28 +200,33 @@ pub enum OrderBookLimit {
     N100 = 100,
     N500 = 500,
     N1000 = 1000,
+    N5000 = 5000,
 }
 
 impl OrderBookLimit {
     pub fn weight(self) -> u32 {
-        use OrderBookLimit::*;
+        use OrderBookLimit as OBL;
+
         match self {
-            N5 | N10 | N20 | N50 | N100 => 1,
-            N500 => 5,
-            N1000 => 10,
+            OBL::N5 | OBL::N10 | OBL::N20 | OBL::N50 | OBL::N100 => 1,
+            OBL::N500 => 5,
+            OBL::N1000 => 10,
+            OBL::N5000 => 50,
         }
     }
 
     pub fn as_str(self) -> &'static str {
-        use OrderBookLimit::*;
+        use OrderBookLimit as OBL;
+
         match self {
-            N5 => "5",
-            N10 => "10",
-            N20 => "20",
-            N50 => "50",
-            N100 => "100",
-            N500 => "500",
-            N1000 => "1000",
+            OBL::N5 => "5",
+            OBL::N10 => "10",
+            OBL::N20 => "20",
+            OBL::N50 => "50",
+            OBL::N100 => "100",
+            OBL::N500 => "500",
+            OBL::N1000 => "1000",
+            OBL::N5000 => "5000",
         }
     }
 }
@@ -873,11 +878,11 @@ pub enum WsEvent {
 #[serde(tag = "method", content = "params")]
 pub enum WsCommand {
     #[serde(rename = "SUBSCRIBE")]
-    Subscribe(Vec<WsSubscription>),
+    Subscribe(Box<[WsSubscription]>),
     #[serde(rename = "SUBSCRIBE")]
     Subscribe1([WsSubscription; 1]),
     #[serde(rename = "UNSUBSCRIBE")]
-    Unsubscribe(Vec<WsSubscription>),
+    Unsubscribe(Box<[WsSubscription]>),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -890,6 +895,15 @@ impl WsSubscription {
     pub fn new(market: impl Into<Atom>, stream: WsStream) -> Self {
         let market = market.into();
         WsSubscription { market, stream }
+    }
+}
+
+impl<A> From<(A, WsStream)> for WsSubscription
+where
+    A: Into<Atom>,
+{
+    fn from((market, stream): (A, WsStream)) -> Self {
+        WsSubscription::new(market, stream)
     }
 }
 

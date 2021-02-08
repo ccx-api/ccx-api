@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use actix_http::encoding::Decoder;
 use actix_http::{Payload, PayloadStream};
-use awc::http::{HeaderValue, Method};
+use awc::http::{HeaderValue, Method, Uri};
 use awc::Connector;
 use awc::{Client, ClientRequest, ClientResponse};
 use serde::Serialize;
@@ -68,7 +68,7 @@ impl RestClient {
 
     pub fn request(&self, method: Method, endpoint: &str) -> LibResult<RequestBuilder> {
         let url = self.inner.config.api_base.join(endpoint)?;
-        println!("Requesting: {}", url.as_str());
+        log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
         let request = self.client().request(method, url.as_str());
         Ok(RequestBuilder {
@@ -105,6 +105,10 @@ impl RestClient {
 }
 
 impl RequestBuilder {
+    pub fn uri(&self) -> String {
+        self.request.get_uri().to_string()
+    }
+
     pub fn query_args<T: Serialize>(mut self, query: &T) -> LibResult<Self> {
         self.request = self.request.query(query)?;
         Ok(self)
@@ -115,19 +119,36 @@ impl RequestBuilder {
         name: S,
         query: &T,
     ) -> LibResult<Self> {
-        self.request = self.request.query(&[(name.as_ref(), query)])?;
+        let mut parts = self.request.get_uri().clone().into_parts();
+
+        if let Some(path_and_query) = parts.path_and_query {
+            let mut buf = path_and_query.path().to_string();
+            buf.push('?');
+            match path_and_query.query().unwrap_or("") {
+                "" => {},
+                old_query => {
+                    buf.push_str(old_query);
+                    buf.push('&');
+                }
+            }
+            buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
+            parts.path_and_query = buf.parse().ok();
+            let uri = Uri::from_parts(parts).map_err(|e| LibError::other(format!("{:?}", e)))?;
+            self.request = self.request.uri(uri);
+        }
+
         Ok(self)
     }
 
     pub fn try_query_arg<S: AsRef<str>, T: Serialize>(
-        mut self,
+        self,
         name: S,
         query: &Option<T>,
     ) -> LibResult<Self> {
-        if let Some(val) = query {
-            self.request = self.request.query(&[(name.as_ref(), val)])?;
+        match query {
+            Some(val) => self.query_arg(name, val),
+            None => Ok(self),
         }
-        Ok(self)
     }
 
     pub fn auth_header(mut self) -> LibResult<Self> {

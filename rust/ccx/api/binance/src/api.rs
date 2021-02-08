@@ -1,4 +1,4 @@
-use crate::client::{Config, ApiCred, RestClient, WebsocketStream};
+use crate::client::{ApiCred, Config, RestClient, WebsocketStream};
 use crate::error::*;
 use crate::proto::*;
 
@@ -73,8 +73,9 @@ impl Api {
     pub async fn depth<S: AsRef<str>>(
         &self,
         symbol: S,
-        limit: Option<OrderBookLimit>,
+        limit: impl Into<Option<OrderBookLimit>>,
     ) -> LibResult<OrderBook> {
+        let limit = limit.into();
         self.client
             .get(V1_DEPTH)?
             .query_arg("symbol", symbol.as_ref())?
