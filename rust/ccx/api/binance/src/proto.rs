@@ -704,26 +704,37 @@ pub struct AggTradeEvent {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub struct TradeEvent {
+    /// Event type.
     #[serde(skip, rename = "e")]
     pub event_type: (),
+    /// Event time.
     #[serde(rename = "E")]
     pub event_time: u64,
+    /// Symbol.
     #[serde(rename = "s")]
     pub symbol: Atom,
+    /// Trade ID.
     #[serde(rename = "t")]
     pub id: u64,
+    /// Price.
     #[serde(rename = "p")]
     pub price: Decimal,
+    /// Quantity.
     #[serde(rename = "q")]
     pub qty: Decimal,
+    /// Buyer order ID.
     #[serde(rename = "b")]
     pub buyer_order_id: u64,
+    /// Seller order ID.
     #[serde(rename = "a")]
     pub seller_order_id: u64,
+    /// Trade time.
     #[serde(rename = "T")]
     pub time: u64,
+    /// Is the buyer the market maker?
     #[serde(rename = "m")]
     pub is_buyer_maker: bool,
+    /// Ignore.
     #[serde(rename = "M")]
     pub is_best_match: bool,
 }
@@ -871,6 +882,7 @@ pub struct DiffOrderBookEvent {
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum WsEvent {
+    Trade(TradeEvent),
     DiffOrderBook(DiffOrderBookEvent),
 }
 
@@ -910,20 +922,28 @@ where
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum WsStream {
     Depth,
+    Depth100ms,
+    Trade,
 }
 
 impl WsStream {
     const DEPTH: &'static str = "depth";
+    const DEPTH_100MS: &'static str = "depth@100ms";
+    const TRADE: &'static str = "trade";
 
     pub fn as_str(self) -> &'static str {
         match self {
             WsStream::Depth => Self::DEPTH,
+            WsStream::Depth100ms => Self::DEPTH_100MS,
+            WsStream::Trade => Self::TRADE,
         }
     }
 
     pub fn from_str(s: &str) -> Option<Self> {
         Some(match s {
             Self::DEPTH => Self::Depth,
+            Self::DEPTH_100MS => Self::Depth100ms,
+            Self::TRADE => Self::Trade,
             _ => None?,
         })
     }
@@ -1110,7 +1130,12 @@ mod deser {
                             .as_ref()
                             .ok_or_else(|| de::Error::missing_field(WsEventField::STREAM))?;
                         result = Some(match stream {
-                            WsStream::Depth => WsEvent::DiffOrderBook(map.next_value()?),
+                            WsStream::Depth | WsStream::Depth100ms => {
+                                WsEvent::DiffOrderBook(map.next_value()?)
+                            }
+                            WsStream::Trade => {
+                                WsEvent::Trade(map.next_value()?)
+                            }
                         });
                     }
                 }

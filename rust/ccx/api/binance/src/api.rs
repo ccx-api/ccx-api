@@ -16,7 +16,7 @@ const V3_TICKER_PRICE: &str = "/api/v3/ticker/price";
 const V3_TICKER_BOOK_TICKER: &str = "/api/v3/ticker/bookTicker";
 const V1_USER_DATA_STREAM: &str = "/api/v1/userDataStream";
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Api {
     pub client: RestClient,
 }
@@ -24,6 +24,10 @@ pub struct Api {
 impl Api {
     pub fn new() -> Self {
         Api::default()
+    }
+
+    pub fn from_env() -> Self {
+        Api::with_cred(ApiCred::from_env())
     }
 
     pub fn with_cred(cred: ApiCred) -> Self {

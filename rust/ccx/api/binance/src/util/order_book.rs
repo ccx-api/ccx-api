@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
+use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
 
-use crate::{DiffOrderBookEvent, OrderBook};
-use rust_decimal::prelude::Zero;
+use crate::{DiffOrderBookEvent, LibError, LibResult, OrderBook};
 
 pub enum OrderBookUpdater {
     Preparing { buffer: Vec<DiffOrderBookEvent> },
@@ -15,6 +15,12 @@ pub struct OrderBookState {
     dirty: bool,
     asks: BTreeMap<Decimal, Decimal>,
     bids: BTreeMap<Decimal, Decimal>,
+}
+
+pub struct Fill {
+    pub base_value: Decimal,
+    pub quote_value: Decimal,
+    pub exhausted: bool,
 }
 
 impl OrderBookUpdater {
@@ -29,7 +35,7 @@ impl OrderBookUpdater {
         }
     }
 
-    pub fn push_diff(&mut self, update: DiffOrderBookEvent) -> Result<(), ()> {
+    pub fn push_diff(&mut self, update: DiffOrderBookEvent) -> LibResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => buffer.push(update),
             OrderBookUpdater::Ready { state } => state.update(update)?,
@@ -37,7 +43,7 @@ impl OrderBookUpdater {
         Ok(())
     }
 
-    pub fn init(&mut self, snapshot: OrderBook) -> Result<(), ()> {
+    pub fn init(&mut self, snapshot: OrderBook) -> LibResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => {
                 let mut state = OrderBookState::new(snapshot);
@@ -80,7 +86,45 @@ impl OrderBookState {
         &self.asks
     }
 
-    pub fn update(&mut self, diff: DiffOrderBookEvent) -> Result<(), ()> {
+    pub fn next_bid(&self) -> Option<(&Decimal, &Decimal)> {
+        self.bids.iter().next_back()
+    }
+
+    pub fn next_ask(&self) -> Option<(&Decimal, &Decimal)> {
+        self.asks.iter().next()
+    }
+
+    pub fn bid_volume(&self, price_limit: &Decimal) -> Fill {
+        let mut base_value = Decimal::zero();
+        let mut quote_value = Decimal::zero();
+        let mut exhausted = true;
+        for (price, volume) in self.bids.iter().rev() {
+            if price_limit < price {
+                exhausted = false;
+                break;
+            }
+            base_value += volume;
+            quote_value += volume * price;
+        }
+        Fill { base_value, quote_value, exhausted }
+    }
+
+    pub fn ask_volume(&self, price_limit: &Decimal) -> Fill {
+        let mut base_value = Decimal::zero();
+        let mut quote_value = Decimal::zero();
+        let mut exhausted = true;
+        for (price, volume) in self.asks.iter() {
+            if price_limit > price {
+                exhausted = false;
+                break;
+            }
+            base_value += volume;
+            quote_value += volume * price;
+        }
+        Fill { base_value, quote_value, exhausted }
+    }
+
+    pub fn update(&mut self, diff: DiffOrderBookEvent) -> LibResult<()> {
         /*
            Drop any event where final_update_id is <= lastUpdateId in the snapshot.
 
@@ -100,18 +144,24 @@ impl OrderBookState {
         );
 
         if self.dirty {
-            if diff.final_update_id <= next_id {
+            if diff.final_update_id < next_id {
                 // Ignore an old update.
                 return Ok(());
             }
             if diff.first_update_id > next_id {
-                Err(())?
+                Err(LibError::other(format!(
+                    "first_update_id > next_id:   {};   {}",
+                    diff.first_update_id, next_id
+                )))?
             }
             // ^^ ensures diff.first_update_id <= next_id && diff.final_update_id > next_id
             self.dirty = false;
         } else {
             if diff.first_update_id != next_id {
-                Err(())?
+                Err(LibError::other(format!(
+                    "first_update_id != next_id:   {};   {}",
+                    diff.first_update_id, next_id
+                )))?
             }
         }
 

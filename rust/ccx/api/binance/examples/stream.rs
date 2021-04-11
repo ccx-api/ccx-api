@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use futures::{stream, FutureExt, StreamExt};
 use string_cache::DefaultAtom as Atom;
@@ -33,13 +33,17 @@ async fn main() {
         ];
 
         sink.subscribe_list(
-            listen.iter().map(|v| (v.to_lowercase(), WsStream::Depth).into()).collect::<Vec<_>>().into()
+            listen
+                .iter()
+                .map(|v| (v.to_lowercase(), WsStream::Depth100ms).into())
+                .collect::<Vec<_>>()
+                .into(),
         )
         .await
         .unwrap();
         println!("Subscribed");
 
-        let mut state = HashMap::new();
+        let mut state = BTreeMap::new();
         let mut snapshots = Vec::new();
 
         for symbol in &listen {
@@ -73,8 +77,6 @@ async fn main() {
                 }
             }
         }));
-        //
-        // let mut stream = stream::select(&mut stream, f1);
         let mut stream = stream::select(&mut stream, stream::select_all(snapshots));
 
         while let Some(e) = stream.next().await {

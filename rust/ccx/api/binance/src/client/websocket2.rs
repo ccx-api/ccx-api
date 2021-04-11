@@ -13,9 +13,9 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::client::RestClient;
-use crate::error::LibResult;
+use crate::error::{LibError, LibResult};
 use crate::util::Seq;
-use crate::{LibError, UpstreamApiRequest, WsCommand, WsEvent, WsSubscription, UpstreamWebsocketMessage};
+use crate::{UpstreamApiRequest, UpstreamWebsocketMessage, WsCommand, WsEvent, WsSubscription};
 
 /// How often heartbeat pings are sent.
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -77,10 +77,18 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
                 log::warn!("unexpected binary message (ignored)");
             }
             ws::Frame::Text(msg) => {
-                log::debug!("json message from server: {:?}", msg);
-                match serde_json::from_slice(&msg) {
+                use log::Level::*;
+
+                let res = serde_json::from_slice(&msg);
+                let l = if res.is_err() { Error } else { Debug };
+                log::log!(
+                    l,
+                    "json message from server: {}",
+                    String::from_utf8_lossy(&msg)
+                );
+                match res {
                     Err(e) => {
-                        log::warn!("Failed to deserialize server message: {:?}", e);
+                        log::error!("Failed to deserialize server message: {:?}", e);
                     }
                     Ok(msg) => {
                         if let Err(e) = self.tx.unbounded_send(msg) {
