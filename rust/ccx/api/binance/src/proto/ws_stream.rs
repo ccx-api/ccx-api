@@ -1,537 +1,16 @@
 use rust_decimal::Decimal;
 use string_cache::DefaultAtom as Atom;
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Pong {}
+use super::*;
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-#[serde(rename_all = "camelCase")]
-pub struct ServerTime {
-    pub server_time: u64,
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum WsEvent {
+    AggTrade(AggTradeEvent),
+    DiffOrderBook(DiffOrderBookEvent),
+    Kline(KlineEvent),
+    Trade(TradeEvent),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct ExchangeInformation {
-    pub timezone: Atom,
-    pub server_time: u64,
-    pub rate_limits: Vec<RateLimit>,
-    pub symbols: Vec<Symbol>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-pub struct RateLimit {
-    pub rate_limit_type: RateLimitType,
-    pub interval: RateLimitInterval,
-    pub interval_num: u32,
-    pub limit: u32,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-pub enum RateLimitType {
-    #[serde(rename = "REQUEST_WEIGHT")]
-    RequestWeight,
-    #[serde(rename = "ORDERS")]
-    Orders,
-    #[serde(rename = "RAW_REQUESTS")]
-    RawRequests,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum RateLimitInterval {
-    #[serde(rename = "SECOND")]
-    Second,
-    #[serde(rename = "MINUTE")]
-    Minute,
-    #[serde(rename = "DAY")]
-    Day,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct Symbol {
-    pub symbol: Atom,
-    pub status: SymbolStatus,
-    pub base_asset: Atom,
-    pub base_asset_precision: u16,
-    pub quote_asset: Atom,
-    pub quote_precision: u16,
-    pub quote_asset_precision: u16,
-    pub base_commission_precision: u16,
-    pub quote_commission_precision: u16,
-    pub order_types: Vec<OrderType>,
-    pub iceberg_allowed: bool,
-    pub oco_allowed: bool,
-    pub quote_order_qty_market_allowed: bool,
-    pub is_spot_trading_allowed: bool,
-    pub is_margin_trading_allowed: bool,
-    pub filters: Vec<Filter>,
-    pub permissions: Vec<SymbolPermission>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-pub enum SymbolStatus {
-    #[serde(rename = "PRE_TRADING")]
-    PreTrading,
-    #[serde(rename = "TRADING")]
-    Trading,
-    #[serde(rename = "POST_TRADING")]
-    PostTrading,
-    #[serde(rename = "END_OF_DAY")]
-    EndOfDay,
-    #[serde(rename = "HALT")]
-    Halt,
-    #[serde(rename = "AUCTION_MATCH")]
-    AuctionMatch,
-    #[serde(rename = "BREAK")]
-    Break,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-#[repr(u8)]
-pub enum OrderType {
-    #[serde(rename = "LIMIT")]
-    Limit = 1,
-    #[serde(rename = "MARKET")]
-    Market = 2,
-    #[serde(rename = "STOP_LOSS")]
-    StopLoss = 4,
-    #[serde(rename = "STOP_LOSS_LIMIT")]
-    StopLossLimit = 8,
-    #[serde(rename = "TAKE_PROFIT")]
-    TakeProfit = 16,
-    #[serde(rename = "TAKE_PROFIT_LIMIT")]
-    TakeProfitLimit = 32,
-    #[serde(rename = "LIMIT_MAKER")]
-    LimitMaker = 64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum SymbolPermission {
-    #[serde(rename = "SPOT")]
-    Spot,
-    #[serde(rename = "MARGIN")]
-    Margin,
-    #[serde(rename = "LEVERAGED")]
-    Leveraged,
-}
-
-/// Filters define trading rules on a symbol or an exchange. Filters come in two forms:
-/// symbol filters and exchange filters.
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(tag = "filterType")]
-pub enum Filter {
-    /// The PRICE_FILTER defines the price rules for a symbol. There are 3 parts:
-    ///
-    /// * `min_price` defines the minimum `price`/`stop_price` allowed;
-    ///   disabled on `min_price` == 0.
-    /// * `max_price` defines the maximum `price`/`stop_price` allowed;
-    ///   disabled on `max_price` == 0.
-    /// * `tick_size` defines the intervals that a `price`/`stop_price`
-    ///   can be increased/decreased by; disabled on `tick_size` == 0.
-    ///
-    /// Any of the above variables can be set to 0, which disables that rule in the price filter.
-    /// In order to pass the price filter, the following must be true for `price`/`stop_price`
-    /// of the enabled rules:
-    ///
-    /// * `price` >= `min_price`
-    /// * `price` <= `max_price`
-    /// * (`price` - `min_price`) % `tick_size` == 0
-    #[serde(rename = "PRICE_FILTER")]
-    #[serde(rename_all = "camelCase")]
-    PriceFilter {
-        min_price: Decimal,
-        max_price: Decimal,
-        tick_size: Decimal,
-    },
-    #[serde(rename = "PERCENT_PRICE")]
-    #[serde(rename_all = "camelCase")]
-    PercentPrice {
-        multiplier_up: Decimal,
-        multiplier_down: Decimal,
-        avg_price_mins: u64,
-    },
-    #[serde(rename = "LOT_SIZE")]
-    #[serde(rename_all = "camelCase")]
-    LotSize {
-        min_qty: Decimal,
-        max_qty: Decimal,
-        step_size: Decimal,
-    },
-    #[serde(rename = "MIN_NOTIONAL")]
-    #[serde(rename_all = "camelCase")]
-    MinNotional {
-        min_notional: Decimal,
-        apply_to_market: bool,
-        avg_price_mins: u64,
-    },
-    #[serde(rename = "ICEBERG_PARTS")]
-    #[serde(rename_all = "camelCase")]
-    IcebergParts { limit: u64 },
-    #[serde(rename = "MARKET_LOT_SIZE")]
-    #[serde(rename_all = "camelCase")]
-    MarketLotSize {
-        min_qty: Decimal,
-        max_qty: Decimal,
-        step_size: Decimal,
-    },
-    #[serde(rename = "MAX_NUM_ORDERS")]
-    #[serde(rename_all = "camelCase")]
-    MaxNumOrders { max_num_orders: u64 },
-    #[serde(rename = "MAX_NUM_ALGO_ORDERS")]
-    #[serde(rename_all = "camelCase")]
-    MaxNumAlgoOrders { max_num_algo_orders: u64 },
-    #[serde(rename = "MAX_NUM_ICEBERG_ORDERS")]
-    #[serde(rename_all = "camelCase")]
-    MaxNumIcebergOrders { max_num_iceberg_orders: u64 },
-}
-
-// FIXME clarify: the documentation is ambiguous; only these values are listed as valid,
-//       but below it has a caution about value 0.
-//       [https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book]
-//       If 0 is valid, add it and specify its weight.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum OrderBookLimit {
-    N5 = 5,
-    N10 = 10,
-    N20 = 20,
-    N50 = 50,
-    N100 = 100,
-    N500 = 500,
-    N1000 = 1000,
-    N5000 = 5000,
-}
-
-impl OrderBookLimit {
-    pub fn weight(self) -> u32 {
-        use OrderBookLimit as OBL;
-
-        match self {
-            OBL::N5 | OBL::N10 | OBL::N20 | OBL::N50 | OBL::N100 => 1,
-            OBL::N500 => 5,
-            OBL::N1000 => 10,
-            OBL::N5000 => 50,
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        use OrderBookLimit as OBL;
-
-        match self {
-            OBL::N5 => "5",
-            OBL::N10 => "10",
-            OBL::N20 => "20",
-            OBL::N50 => "50",
-            OBL::N100 => "100",
-            OBL::N500 => "500",
-            OBL::N1000 => "1000",
-            OBL::N5000 => "5000",
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum OrderBookStreamLimit {
-    N5 = 5,
-    N10 = 10,
-    N20 = 20,
-}
-
-impl OrderBookStreamLimit {
-    pub fn as_str(self) -> &'static str {
-        use OrderBookStreamLimit::*;
-        match self {
-            N5 => "5",
-            N10 => "10",
-            N20 => "20",
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct OrderBook {
-    pub last_update_id: u64,
-    pub bids: Vec<Bid>,
-    pub asks: Vec<Ask>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct Bid {
-    pub price: Decimal,
-    pub qty: Decimal,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct Ask {
-    pub price: Decimal,
-    pub qty: Decimal,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct Trade {
-    pub id: u64,
-    pub price: Decimal,
-    pub qty: Decimal,
-    pub time: u64,
-    pub is_buyer_maker: bool,
-    pub is_best_match: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct AggTrade {
-    #[serde(rename = "a")]
-    pub id: u64,
-    #[serde(rename = "p")]
-    pub price: Decimal,
-    #[serde(rename = "q")]
-    pub qty: Decimal,
-    #[serde(rename = "f")]
-    pub first_trade_id: u64,
-    #[serde(rename = "l")]
-    pub last_trade_id: u64,
-    #[serde(rename = "T")]
-    pub time: u64,
-    #[serde(rename = "m")]
-    pub is_buyer_maker: bool,
-    #[serde(rename = "M")]
-    pub is_best_match: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum ChartInterval {
-    #[serde(rename = "1m")]
-    Minute1,
-    #[serde(rename = "3m")]
-    Minute3,
-    #[serde(rename = "5m")]
-    Minute5,
-    #[serde(rename = "15m")]
-    Minute15,
-    #[serde(rename = "30m")]
-    Minute30,
-    #[serde(rename = "1h")]
-    Hour1,
-    #[serde(rename = "2h")]
-    Hour2,
-    #[serde(rename = "4h")]
-    Hour4,
-    #[serde(rename = "6h")]
-    Hour6,
-    #[serde(rename = "8h")]
-    Hour8,
-    #[serde(rename = "12h")]
-    Hour12,
-    #[serde(rename = "1d")]
-    Day1,
-    #[serde(rename = "3d")]
-    Day3,
-    #[serde(rename = "1w")]
-    Week1,
-    #[serde(rename = "1M")]
-    Month1,
-}
-
-impl ChartInterval {
-    pub fn as_str(self) -> &'static str {
-        use ChartInterval::*;
-        match self {
-            Minute1 => "1m",
-            Minute3 => "3m",
-            Minute5 => "5m",
-            Minute15 => "15m",
-            Minute30 => "30m",
-            Hour1 => "1h",
-            Hour2 => "2h",
-            Hour4 => "4h",
-            Hour6 => "6h",
-            Hour8 => "8h",
-            Hour12 => "12h",
-            Day1 => "1d",
-            Day3 => "3d",
-            Week1 => "1w",
-            Month1 => "1M",
-        }
-    }
-}
-
-// FIXME serialize as tuple
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct Kline {
-    pub open_time: u64,
-    pub open: Decimal,
-    pub high: Decimal,
-    pub low: Decimal,
-    pub close: Decimal,
-    pub volume: Decimal,
-    pub close_time: u64,
-    pub quote_asset_volume: Decimal,
-    pub number_of_trades: u64,
-    pub taker_buy_base_asset_volume: Decimal,
-    pub taker_buy_quote_asset_volume: Decimal,
-    pub ignore: Decimal,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct AvgPrice {
-    pub mins: u16,
-    pub price: Decimal,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-pub struct TickerStats {
-    pub symbol: Atom,
-    pub price_change: Decimal,
-    pub price_change_percent: Decimal,
-    pub weighted_avg_price: Decimal,
-    pub prev_close_price: Decimal,
-    pub last_price: Decimal,
-    pub last_qty: Decimal,
-    pub bid_price: Decimal,
-    pub ask_price: Decimal,
-    pub open_price: Decimal,
-    pub high_price: Decimal,
-    pub low_price: Decimal,
-    pub volume: Decimal,
-    pub open_time: u64,
-    pub close_time: u64,
-    // FIXME Option<u64> when value is -1
-    pub first_id: i64,
-    // FIXME Option<u64> when value is -1
-    pub last_id: i64,
-    pub count: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
-pub struct PriceTicker {
-    pub symbol: Atom,
-    pub price: Decimal,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-pub struct BookTicker {
-    pub symbol: Atom,
-    pub bid_price: Decimal,
-    pub bid_qty: Decimal,
-    pub ask_price: Decimal,
-    pub ask_qty: Decimal,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-pub struct ListenKey {
-    pub listen_key: String,
-}
-
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//pub struct TradeHistory {
-//    pub id: u64,
-//    pub price: Decimal,
-//    pub qty: Decimal,
-//    pub commission: String,
-//    pub commission_asset: String,
-//    pub time: u64,
-//    pub is_buyer: bool,
-//    pub is_maker: bool,
-//    pub is_best_match: bool,
-//}
-
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//pub struct AccountInformation {
-//    pub maker_commission: f32,
-//    pub taker_commission: f32,
-//    pub buyer_commission: f32,
-//    pub seller_commission: f32,
-//    pub can_trade: bool,
-//    pub can_withdraw: bool,
-//    pub can_deposit: bool,
-//    pub balances: Vec<Balance>,
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//pub struct Balance {
-//    pub asset: String,
-//    pub free: String,
-//    pub locked: String,
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//pub struct Order {
-//    pub symbol: String,
-//    pub order_id: u64,
-//    pub client_order_id: String,
-//    #[serde(with = "string_or_float")] pub price: f64,
-//    pub orig_qty: String,
-//    pub executed_qty: String,
-//    pub status: String,
-//    pub time_in_force: String,
-//    #[serde(rename = "type")] pub type_name: String,
-//    pub side: String,
-//    #[serde(with = "string_or_float")] pub stop_price: f64,
-//    pub iceberg_qty: String,
-//    pub time: u64,
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//pub struct OrderCanceled {
-//    pub symbol: String,
-//    pub orig_client_order_id: String,
-//    pub order_id: u64,
-//    pub client_order_id: String,
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//pub struct Transaction {
-//    pub symbol: String,
-//    pub order_id: u64,
-//    pub client_order_id: String,
-//    pub transact_time: u64,
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//pub struct UserDataStream {
-//    pub listen_key: String,
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//pub struct Success {}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//#[serde(untagged)]
-//pub enum Prices {
-//    AllPrices(Vec<SymbolPrice>),
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//pub struct SymbolPrice {
-//    pub symbol: String,
-//    #[serde(with = "string_or_float")] pub price: f64,
-//}
-//
-//#[derive(Debug, Serialize, Deserialize, Clone)]
-//#[serde(rename_all = "camelCase")]
-//#[serde(untagged)]
-//pub enum BookTickers {
-//    AllBookTickers(Vec<Tickers>),
-//}
-//
-//#[derive(Debug, Clone)]
-//pub enum KlineSummaries {
-//    AllKlineSummaries(Vec<KlineSummary>),
-//}
-//
 //#[derive(Debug, Serialize, Deserialize, Clone)]
 //#[serde(rename_all = "camelCase")]
 //pub struct AccountUpdateEvent {
@@ -669,12 +148,6 @@ pub struct ListenKey {
 //    #[serde(rename = "n")] pub num_trades: u64,
 //}
 //
-
-pub enum StreamEvent {
-    AggTrade(AggTradeEvent),
-    Trade(TradeEvent),
-    Kline(KlineEvent),
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub struct AggTradeEvent {
@@ -880,12 +353,6 @@ pub struct DiffOrderBookEvent {
     pub asks: Vec<Ask>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum WsEvent {
-    Trade(TradeEvent),
-    DiffOrderBook(DiffOrderBookEvent),
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 #[serde(tag = "method", content = "params")]
 pub enum WsCommand {
@@ -911,8 +378,8 @@ impl WsSubscription {
 }
 
 impl<A> From<(A, WsStream)> for WsSubscription
-where
-    A: Into<Atom>,
+    where
+        A: Into<Atom>,
 {
     fn from((market, stream): (A, WsStream)) -> Self {
         WsSubscription::new(market, stream)
@@ -1006,8 +473,8 @@ mod deser {
 
     impl Serialize for WsSubscription {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+            where
+                S: Serializer,
         {
             let mut buffer = String::with_capacity(32);
             buffer.push_str(&self.market);
@@ -1019,8 +486,8 @@ mod deser {
 
     impl<'de> Deserialize<'de> for WsSubscription {
         fn deserialize<D>(deserializer: D) -> Result<WsSubscription, D::Error>
-        where
-            D: Deserializer<'de>,
+            where
+                D: Deserializer<'de>,
         {
             deserializer.deserialize_str(WsSubscriptionVisitor)
         }
@@ -1036,8 +503,8 @@ mod deser {
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where
-            E: de::Error,
+            where
+                E: de::Error,
         {
             let parse = |s: &str| -> Option<Self::Value> {
                 let n = s.find('@')?;
@@ -1050,8 +517,8 @@ mod deser {
         }
 
         fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-        where
-            E: de::Error,
+            where
+                E: de::Error,
         {
             self.visit_str(&value)
         }
@@ -1078,8 +545,8 @@ mod deser {
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where
-            E: de::Error,
+            where
+                E: de::Error,
         {
             Ok(match value {
                 WsEventField::STREAM => WsEventField::Stream,
@@ -1091,8 +558,8 @@ mod deser {
 
     impl<'de> Deserialize<'de> for WsEventField {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+            where
+                D: Deserializer<'de>,
         {
             deserializer.deserialize_identifier(WsEventFieldVisitor)
         }
@@ -1108,8 +575,8 @@ mod deser {
         }
 
         fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
-        where
-            V: MapAccess<'de>,
+            where
+                V: MapAccess<'de>,
         {
             let mut stream = None;
             let mut result = None;
@@ -1147,8 +614,8 @@ mod deser {
 
     impl<'de> Deserialize<'de> for WsEvent {
         fn deserialize<D>(deserializer: D) -> Result<WsEvent, D::Error>
-        where
-            D: Deserializer<'de>,
+            where
+                D: Deserializer<'de>,
         {
             deserializer.deserialize_map(WsEventVisitor)
         }

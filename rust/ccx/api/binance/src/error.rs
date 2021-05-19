@@ -1,13 +1,22 @@
+use std::borrow::Cow;
 use std::{io, time};
 
-use thiserror::Error;
-// use reqwest;
 use serde_json;
+use thiserror::Error;
 use url;
+
 #[cfg(feature = "with_network")]
-use awc::error::{SendRequestError, JsonPayloadError, WsClientError, WsProtocolError};
+use self::with_network::*;
+
 #[cfg(feature = "with_network")]
-use awc::http::header::InvalidHeaderValue;
+mod with_network {
+    pub use awc::error::JsonPayloadError;
+    pub use awc::error::PayloadError;
+    pub use awc::error::SendRequestError;
+    pub use awc::error::WsClientError;
+    pub use awc::error::WsProtocolError;
+    pub use awc::http::header::InvalidHeaderValue;
+}
 
 #[derive(Clone, Debug, Error)]
 pub enum ServiceError {
@@ -21,6 +30,16 @@ pub enum ServiceError {
 pub enum ApiError {
     #[error("Unauthorized")]
     Unauthorized,
+    #[error("Mandatory field(s) omitted: {0}")]
+    MandatoryFieldOmitted(Cow<'static, str>),
+    #[error("Argument is out of bounds")]
+    OutOfBounds,
+}
+
+impl ApiError {
+    pub fn mandatory_field_omitted(field: impl Into<Cow<'static, str>>) -> Self {
+        ApiError::MandatoryFieldOmitted(field.into())
+    }
 }
 
 pub type LibResult<T> = std::result::Result<T, LibError>;
@@ -49,8 +68,11 @@ pub enum LibError {
     #[error("Json Error: {0}")]
     Json(#[from] serde_json::Error),
     #[cfg(feature = "with_network")]
-    #[error("Json2 Error: {0}")]
-    Json2(#[from] JsonPayloadError),
+    #[error("Payload Error: {0}")]
+    Payload(#[from] PayloadError),
+    #[cfg(feature = "with_network")]
+    #[error("Json Payload Error: {0}")]
+    JsonPayload(#[from] JsonPayloadError),
     #[error("Time Error: {0}")]
     TimestampError(#[from] time::SystemTimeError),
     #[cfg(feature = "with_network")]

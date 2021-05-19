@@ -1,13 +1,16 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use futures::{stream, FutureExt, StreamExt};
 use string_cache::DefaultAtom as Atom;
 
 use ccx_binance::util::OrderBookUpdater;
-use ccx_binance::{
-    client::ApiCred, Api, LibError, OrderBook, OrderBookLimit, UpstreamWebsocketMessage, WsEvent,
-    WsStream,
-};
+use ccx_binance::Api;
+use ccx_binance::LibError;
+use ccx_binance::OrderBook;
+use ccx_binance::OrderBookLimit;
+use ccx_binance::UpstreamWebsocketMessage;
+use ccx_binance::WsEvent;
+use ccx_binance::WsStream;
 
 enum X {
     Snapshot((Atom, OrderBook)),
@@ -19,7 +22,7 @@ async fn main() {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance = Api::with_cred(ApiCred::from_env());
+    let binance = Api::from_env();
 
     let res = async move {
         let (sink, stream) = binance.ws().await?.split();

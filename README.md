@@ -6,7 +6,7 @@ exchange markets and merchant APIs.
 Partially inspired by the [ccxt](https://github.com/ccxt/ccxt) library and intended to be a native and
 idiomatic implementation for Rust-based systems.
 
-Currently it is at a very early stage of development.
+Currently, it is at a very early stage of development.
 
 ## License
 

@@ -1,22 +1,26 @@
-use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
+use std::time::Instant;
 
 use actix_http::encoding::Decoder;
 use actix_http::{Payload, PayloadStream};
 use awc::http::{HeaderValue, Method, Uri};
 use awc::Connector;
 use awc::{Client, ClientRequest, ClientResponse};
+use hmac::{Hmac, Mac, NewMac};
 use serde::Serialize;
+use sha2::Sha256;
 
-use super::config::*;
+use super::*;
+use crate::client::limits::UsedRateLimits;
 use crate::client::{WebsocketClient, WebsocketStream};
 use crate::error::*;
+use crate::proto::TimeWindow;
 
 /// API client.
 #[derive(Clone, Default)]
 pub struct RestClient {
-    inner: Rc<ClientInner>,
+    inner: Arc<ClientInner>,
 }
 
 #[derive(Default)]
@@ -27,6 +31,8 @@ struct ClientInner {
 pub struct RequestBuilder {
     api_client: RestClient,
     request: ClientRequest,
+    sign: Option<TimeWindow>,
+    secret: Vec<u8>,
 }
 
 impl RestClient {
@@ -35,7 +41,7 @@ impl RestClient {
     }
 
     pub fn with_config(config: Config) -> Self {
-        let inner = Rc::new(ClientInner { config });
+        let inner = Arc::new(ClientInner { config });
         RestClient { inner }
     }
 
@@ -71,9 +77,12 @@ impl RestClient {
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
         let request = self.client().request(method, url.as_str());
+        let secret = api_client.inner.config.cred.secret.as_bytes().to_vec();
         Ok(RequestBuilder {
             api_client,
             request,
+            sign: None,
+            secret,
         })
     }
 
@@ -125,7 +134,7 @@ impl RequestBuilder {
             let mut buf = path_and_query.path().to_string();
             buf.push('?');
             match path_and_query.query().unwrap_or("") {
-                "" => {},
+                "" => {}
                 old_query => {
                     buf.push_str(old_query);
                     buf.push('&');
@@ -159,20 +168,112 @@ impl RequestBuilder {
         Ok(self)
     }
 
-    pub async fn send<V>(self) -> LibResult<V>
+    pub fn signed(mut self, time_window: impl Into<TimeWindow>) -> LibResult<Self> {
+        self.sign = Some(time_window.into());
+        self.auth_header()
+    }
+
+    pub async fn send<V>(mut self) -> LibResult<V>
     where
         V: serde::de::DeserializeOwned,
     {
-        let res = self.request.send().await?;
-        let mut res = check_response(res)?;
-        Ok(res.json().limit(16 * 1024 * 1024).await?)
+        self = if let Some(sign) = self.sign.clone() {
+            self = self.query_arg("timestamp", &sign.timestamp())?;
+            let recv_window = sign.recv_window();
+            if !recv_window.is_default() {
+                self = self.query_arg("recvWindow", &*recv_window)?;
+            }
+            self.sign()?
+        } else {
+            self
+        };
+        log::debug!(
+            "{}  {}",
+            self.request.get_method(),
+            self.request.get_uri(),
+        );
+        let tm = Instant::now();
+        let mut res = self.request.send().await?;
+        let d1 = tm.elapsed();
+        let resp = res.body().limit(16 * 1024 * 1024).await?;
+        let d2 = tm.elapsed() - d1;
+        log::debug!(
+            "Request time elapsed:  {:0.1}ms + {:0.1}ms",
+            d1.as_secs_f64() * 1000.0,
+            d2.as_secs_f64() * 1000.0,
+        );
+        log::debug!("Response: {} «{}»", res.status(), String::from_utf8_lossy(&resp));
+        if let Err(err) = check_response(res) {
+            // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
+            Err(err)?
+        };
+        match serde_json::from_slice(&resp) {
+            Ok(json) => Ok(json),
+            Err(err) => {
+                // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
+                Err(err)?
+            }
+        }
     }
+
+    pub async fn send_no_responce(mut self) -> LibResult<()>
+    {
+        self = if let Some(sign) = self.sign.clone() {
+            self = self.query_arg("timestamp", &sign.timestamp())?;
+            let recv_window = sign.recv_window();
+            if !recv_window.is_default() {
+                self = self.query_arg("recvWindow", &*recv_window)?;
+            }
+            self.sign()?
+        } else {
+            self
+        };
+        log::debug!(
+            "{}  {}",
+            self.request.get_method(),
+            self.request.get_uri(),
+        );
+        let tm = Instant::now();
+        let mut res = self.request.send().await?;
+        let d1 = tm.elapsed();
+        let resp = res.body().limit(16 * 1024 * 1024).await?;
+        let d2 = tm.elapsed() - d1;
+        log::debug!(
+            "Request time elapsed:  {:0.1}ms + {:0.1}ms",
+            d1.as_secs_f64() * 1000.0,
+            d2.as_secs_f64() * 1000.0,
+        );
+        log::debug!("Response: {} «{}»", res.status(), String::from_utf8_lossy(&resp));
+        if let Err(err) = check_response(res) {
+            // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
+            Err(err)?
+        };
+        Ok(())
+    }
+
+    fn sign(self) -> LibResult<Self> {
+        let query = self.request.get_uri().query().unwrap_or("");
+        let signature = sign(query, &self.secret);
+        self.query_arg("signature", &signature)
+    }
+}
+
+fn sign(query: &str, secret: &[u8]) -> String {
+    let mut mac = Hmac::<Sha256>::new_varkey(secret).expect("HMAC can take key of any size");
+    mac.update(query.as_bytes());
+
+    let res = mac.finalize().into_bytes();
+    format!("{:x}", res)
 }
 
 type AwcClientResponse = ClientResponse<Decoder<Payload<PayloadStream>>>;
 
 fn check_response(res: AwcClientResponse) -> LibResult<AwcClientResponse> {
     use awc::http::StatusCode;
+
+    let used_rate_limits = UsedRateLimits::from_headers(res.headers());
+
+    log::debug!("  used_rate_limits:  {:?}", used_rate_limits);
 
     match res.status() {
         StatusCode::OK => Ok(res),
@@ -185,5 +286,22 @@ fn check_response(res: AwcClientResponse) -> LibResult<AwcClientResponse> {
         //     Err(ErrorKind::BinanceError(error_json.code, error_json.msg, response).into())
         // }
         s => Err(LibError::UnknownStatus(s))?,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_should_sign() {
+        let query = "symbol=LTCBTC&side=BUY&type=LIMIT&timeInForce=GTC&quantity=1&price=0.1&\
+                    recvWindow=5000&timestamp=1499827319559";
+        let key = "NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j";
+        let res = sign(query, key.as_bytes());
+        assert_eq!(
+            res,
+            "c8db56825ae71d6d79447849e617115f4a920fa2acdcab2b053c4b2838bd6b71"
+        )
     }
 }

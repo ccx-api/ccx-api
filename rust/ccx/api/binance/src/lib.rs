@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate serde;
+#[macro_use]
+extern crate serde_repr;
 
+pub use rust_decimal::Decimal;
 pub use string_cache::DefaultAtom as Atom;
 
 #[cfg(feature = "with_network")]

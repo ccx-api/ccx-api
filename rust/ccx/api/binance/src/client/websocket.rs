@@ -3,13 +3,13 @@ use std::io;
 use actix_web::rt::Arbiter;
 use awc::ws;
 use futures::channel::mpsc;
+use futures::SinkExt;
 use string_cache::DefaultAtom as Atom;
 use url::Url;
 
 use super::*;
 use crate::error::*;
 use crate::{WsCommand, WsEvent, WsStream, WsSubscription};
-use futures::SinkExt;
 
 pub struct WebsocketClient {
     tx: WebsocketClientTx,
