@@ -78,7 +78,7 @@ pub struct Trade {
     pub id: u64,
     pub price: Decimal,
     pub qty: Decimal,
-    pub quoteQty: Decimal,
+    pub quote_qty: Decimal,
     pub time: u64,
     pub is_buyer_maker: bool,
     pub is_best_match: bool,

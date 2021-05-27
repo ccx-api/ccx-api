@@ -195,72 +195,139 @@ pub enum SymbolPermission {
 
 /// Filters define trading rules on a symbol or an exchange. Filters come in two forms:
 /// symbol filters and exchange filters.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(tag = "filterType")]
 pub enum Filter {
-    /// The PRICE_FILTER defines the price rules for a symbol. There are 3 parts:
-    ///
-    /// * `min_price` defines the minimum `price`/`stop_price` allowed;
-    ///   disabled on `min_price` == 0.
-    /// * `max_price` defines the maximum `price`/`stop_price` allowed;
-    ///   disabled on `max_price` == 0.
-    /// * `tick_size` defines the intervals that a `price`/`stop_price`
-    ///   can be increased/decreased by; disabled on `tick_size` == 0.
-    ///
-    /// Any of the above variables can be set to 0, which disables that rule in the price filter.
-    /// In order to pass the price filter, the following must be true for `price`/`stop_price`
-    /// of the enabled rules:
-    ///
-    /// * `price` >= `min_price`
-    /// * `price` <= `max_price`
-    /// * (`price` - `min_price`) % `tick_size` == 0
     #[serde(rename = "PRICE_FILTER")]
-    #[serde(rename_all = "camelCase")]
-    PriceFilter {
-        min_price: Decimal,
-        max_price: Decimal,
-        tick_size: Decimal,
-    },
+    Price(PriceFilter),
     #[serde(rename = "PERCENT_PRICE")]
-    #[serde(rename_all = "camelCase")]
-    PercentPrice {
-        multiplier_up: Decimal,
-        multiplier_down: Decimal,
-        avg_price_mins: u64,
-    },
+    PercentPrice(PercentPriceFilter),
     #[serde(rename = "LOT_SIZE")]
-    #[serde(rename_all = "camelCase")]
-    LotSize {
-        min_qty: Decimal,
-        max_qty: Decimal,
-        step_size: Decimal,
-    },
+    LotSize(LotSizeFilter),
     #[serde(rename = "MIN_NOTIONAL")]
-    #[serde(rename_all = "camelCase")]
-    MinNotional {
-        min_notional: Decimal,
-        apply_to_market: bool,
-        avg_price_mins: u64,
-    },
+    MinNotional(MinNotionalFilter),
     #[serde(rename = "ICEBERG_PARTS")]
-    #[serde(rename_all = "camelCase")]
-    IcebergParts { limit: u64 },
+    IcebergParts(IcebergPartsFilter),
     #[serde(rename = "MARKET_LOT_SIZE")]
-    #[serde(rename_all = "camelCase")]
-    MarketLotSize {
-        min_qty: Decimal,
-        max_qty: Decimal,
-        step_size: Decimal,
-    },
+    MarketLotSize(MarketLotSizeFilter),
     #[serde(rename = "MAX_NUM_ORDERS")]
-    #[serde(rename_all = "camelCase")]
-    MaxNumOrders { max_num_orders: u64 },
+    MaxNumOrders(MaxNumOrdersFilter),
     #[serde(rename = "MAX_NUM_ALGO_ORDERS")]
-    #[serde(rename_all = "camelCase")]
-    MaxNumAlgoOrders { max_num_algo_orders: u64 },
+    MaxNumAlgoOrders(MaxNumAlgoOrdersFilter),
     #[serde(rename = "MAX_NUM_ICEBERG_ORDERS")]
-    #[serde(rename_all = "camelCase")]
-    MaxNumIcebergOrders { max_num_iceberg_orders: u64 },
+    MaxNumIcebergOrders(MaxNumIcebergOrdersFilter),
+}
+
+/// The PRICE_FILTER defines the price rules for a symbol. There are 3 parts:
+///
+/// * `min_price` defines the minimum `price`/`stop_price` allowed;
+///   disabled on `min_price` == 0.
+/// * `max_price` defines the maximum `price`/`stop_price` allowed;
+///   disabled on `max_price` == 0.
+/// * `tick_size` defines the intervals that a `price`/`stop_price`
+///   can be increased/decreased by; disabled on `tick_size` == 0.
+///
+/// Any of the above variables can be set to 0, which disables that rule in the price filter.
+/// In order to pass the price filter, the following must be true for `price`/`stop_price`
+/// of the enabled rules:
+///
+/// * `price` >= `min_price`
+/// * `price` <= `max_price`
+/// * (`price` - `min_price`) % `tick_size` == 0
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct PriceFilter {
+    pub min_price: Decimal,
+    pub max_price: Decimal,
+    pub tick_size: Decimal,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct PercentPriceFilter {
+    pub multiplier_up: Decimal,
+    pub multiplier_down: Decimal,
+    pub avg_price_mins: u64,
+}
+
+/// The LOT_SIZE filter defines the quantity (aka "lots" in auction terms) rules for a symbol.
+/// There are 3 parts:
+///
+/// * `minQty` defines the minimum `quantity`/`icebergQty` allowed.
+/// * `maxQty` defines the maximum `quantity`/`icebergQty` allowed.
+/// * `stepSize` defines the intervals that a `quantity`/`icebergQty` can be increased/decreased by.
+///
+/// In order to pass the lot size, the following must be true for `quantity`/`icebergQty`:
+///
+/// * `quantity` >= `minQty`
+/// * `quantity` <= `maxQty`
+/// * (`quantity` - `minQty`) % `stepSize` == `0`
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct LotSizeFilter {
+    pub min_qty: Decimal,
+    pub max_qty: Decimal,
+    pub step_size: Decimal,
+}
+
+/// The MIN_NOTIONAL filter defines the minimum notional value allowed for an order on a symbol.
+/// An order's notional value is the `price` * `quantity`. If the order is an Algo order
+/// (e.g. STOP_LOSS_LIMIT), then the notional value of the `stopPrice` * `quantity` will also be
+/// evaluated. If the order is an Iceberg Order, then the notional value of the
+/// `price` * `icebergQty` will also be evaluated. `applyToMarket` determines whether or not the
+/// MIN_NOTIONAL filter will also be applied to MARKET orders. Since MARKET orders have no `price`,
+/// the average price is used over the last `avgPriceMins` minutes. `avgPriceMins` is the number
+/// of minutes the average price is calculated over. `0` means the last price is used.
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct MinNotionalFilter {
+    pub min_notional: Decimal,
+    pub apply_to_market: bool,
+    pub avg_price_mins: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct IcebergPartsFilter {
+    pub limit: u64,
+}
+
+/// The MARKET_LOT_SIZE filter defines the quantity (aka "lots" in auction terms) rules for MARKET
+/// orders on a symbol. There are 3 parts:
+///
+/// * `minQty` defines the minimum `quantity`/`icebergQty` allowed.
+/// * `maxQty` defines the maximum `quantity`/`icebergQty` allowed.
+/// * `stepSize` defines the intervals that a `quantity`/`icebergQty` can be increased/decreased by.
+///
+/// In order to pass the lot size, the following must be true for `quantity`/`icebergQty`:
+///
+/// * `quantity` >= `minQty`
+/// * `quantity` <= `maxQty`
+/// * (`quantity` - `minQty`) % `stepSize` == `0`
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct MarketLotSizeFilter {
+    pub min_qty: Decimal,
+    pub max_qty: Decimal,
+    pub step_size: Decimal,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct MaxNumOrdersFilter {
+    pub max_num_orders: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct MaxNumAlgoOrdersFilter {
+    pub max_num_algo_orders: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct MaxNumIcebergOrdersFilter {
+    pub max_num_iceberg_orders: u64,
 }
 
 // FIXME clarify: the documentation is ambiguous; only these values are listed as valid,
