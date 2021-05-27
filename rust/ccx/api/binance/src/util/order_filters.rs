@@ -1,6 +1,6 @@
 use crate::proto::*;
 
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct OrderFilters {
     pub price: Option<PriceFilter>,
     pub percent_price: Option<PercentPriceFilter>,
