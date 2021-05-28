@@ -824,8 +824,8 @@ impl Api {
         status: Option<WithdrawStatus>,
         offset: Option<u16>,
         limit: Option<u16>,
-        start_time: Option<u32>,
-        end_time: Option<u32>,
+        start_time: Option<u64>,
+        end_time: Option<u64>,
         time_window: impl Into<TimeWindow>,
     ) -> LibResult<Vec<Withdraw>> {
         self.client
