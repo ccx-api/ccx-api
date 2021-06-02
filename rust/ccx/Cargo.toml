@@ -3,6 +3,7 @@ name = "ccx"
 version = "0.1.0"
 authors = ["Alexander Irbis <irbis.labs@gmail.com>"]
 edition = "2018"
+resolver = "2"
 
 [workspace]
 members = [

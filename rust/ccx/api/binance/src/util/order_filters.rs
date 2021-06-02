@@ -1,4 +1,4 @@
-use crate::proto::*;
+use crate::api::*;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct OrderFilters {

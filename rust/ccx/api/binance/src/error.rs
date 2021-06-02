@@ -27,7 +27,7 @@ pub enum ServiceError {
 }
 
 #[derive(Clone, Debug, Error)]
-pub enum ApiError {
+pub enum RequestError {
     #[error("Unauthorized")]
     Unauthorized,
     #[error("Mandatory field(s) omitted: {0}")]
@@ -36,9 +36,9 @@ pub enum ApiError {
     OutOfBounds,
 }
 
-impl ApiError {
+impl RequestError {
     pub fn mandatory_field_omitted(field: impl Into<Cow<'static, str>>) -> Self {
-        ApiError::MandatoryFieldOmitted(field.into())
+        RequestError::MandatoryFieldOmitted(field.into())
     }
 }
 
@@ -47,7 +47,7 @@ pub type LibResult<T> = std::result::Result<T, LibError>;
 #[derive(Debug, Error)]
 pub enum LibError {
     #[error("Client Error: {0}")]
-    ApiError(#[from] ApiError),
+    ApiError(#[from] RequestError),
     #[error("Service Error: {0}")]
     ServiceError(#[from] ServiceError),
     #[cfg(feature = "with_network")]

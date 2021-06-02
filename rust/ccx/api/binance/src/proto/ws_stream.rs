@@ -2,6 +2,7 @@ use rust_decimal::Decimal;
 use string_cache::DefaultAtom as Atom;
 
 use super::*;
+use crate::api::{Ask, Bid};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum WsEvent {
@@ -378,8 +379,8 @@ impl WsSubscription {
 }
 
 impl<A> From<(A, WsStream)> for WsSubscription
-    where
-        A: Into<Atom>,
+where
+    A: Into<Atom>,
 {
     fn from((market, stream): (A, WsStream)) -> Self {
         WsSubscription::new(market, stream)
@@ -473,8 +474,8 @@ mod deser {
 
     impl Serialize for WsSubscription {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer,
+        where
+            S: Serializer,
         {
             let mut buffer = String::with_capacity(32);
             buffer.push_str(&self.market);
@@ -486,8 +487,8 @@ mod deser {
 
     impl<'de> Deserialize<'de> for WsSubscription {
         fn deserialize<D>(deserializer: D) -> Result<WsSubscription, D::Error>
-            where
-                D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
         {
             deserializer.deserialize_str(WsSubscriptionVisitor)
         }
@@ -503,8 +504,8 @@ mod deser {
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
+        where
+            E: de::Error,
         {
             let parse = |s: &str| -> Option<Self::Value> {
                 let n = s.find('@')?;
@@ -517,8 +518,8 @@ mod deser {
         }
 
         fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-            where
-                E: de::Error,
+        where
+            E: de::Error,
         {
             self.visit_str(&value)
         }
@@ -545,8 +546,8 @@ mod deser {
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
+        where
+            E: de::Error,
         {
             Ok(match value {
                 WsEventField::STREAM => WsEventField::Stream,
@@ -558,8 +559,8 @@ mod deser {
 
     impl<'de> Deserialize<'de> for WsEventField {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
         {
             deserializer.deserialize_identifier(WsEventFieldVisitor)
         }
@@ -575,8 +576,8 @@ mod deser {
         }
 
         fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
-            where
-                V: MapAccess<'de>,
+        where
+            V: MapAccess<'de>,
         {
             let mut stream = None;
             let mut result = None;
@@ -600,9 +601,7 @@ mod deser {
                             WsStream::Depth | WsStream::Depth100ms => {
                                 WsEvent::DiffOrderBook(map.next_value()?)
                             }
-                            WsStream::Trade => {
-                                WsEvent::Trade(map.next_value()?)
-                            }
+                            WsStream::Trade => WsEvent::Trade(map.next_value()?),
                         });
                     }
                 }
@@ -614,8 +613,8 @@ mod deser {
 
     impl<'de> Deserialize<'de> for WsEvent {
         fn deserialize<D>(deserializer: D) -> Result<WsEvent, D::Error>
-            where
-                D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
         {
             deserializer.deserialize_map(WsEventVisitor)
         }

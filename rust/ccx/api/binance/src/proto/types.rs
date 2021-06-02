@@ -2,7 +2,7 @@ use std::ops;
 
 use chrono::Utc;
 
-use crate::{ApiError, LibResult};
+use crate::{RequestError, LibResult};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct TimeWindow {
@@ -54,7 +54,7 @@ impl RecvWindow {
 
     pub fn new(window: u32) -> LibResult<Self> {
         match () {
-            () if window > 60000 => Err(ApiError::OutOfBounds)?,
+            () if window > 60000 => Err(RequestError::OutOfBounds)?,
             () => Ok(RecvWindow(window)),
         }
     }
