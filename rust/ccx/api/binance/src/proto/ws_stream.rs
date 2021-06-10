@@ -1,8 +1,9 @@
 use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 use string_cache::DefaultAtom as Atom;
 
 use super::*;
-use crate::api::{Ask, Bid};
+use crate::util::{Ask, Bid};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum WsEvent {

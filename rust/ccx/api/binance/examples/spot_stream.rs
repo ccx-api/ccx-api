@@ -3,14 +3,15 @@ use std::collections::BTreeMap;
 use futures::{stream, FutureExt, StreamExt};
 use string_cache::DefaultAtom as Atom;
 
+use ccx_binance::api::spot::OrderBookLimit;
+use ccx_binance::util::OrderBook;
 use ccx_binance::util::OrderBookUpdater;
-use ccx_binance::Api;
 use ccx_binance::LibError;
-use ccx_binance::OrderBook;
-use ccx_binance::OrderBookLimit;
+use ccx_binance::SpotApi;
 use ccx_binance::UpstreamWebsocketMessage;
 use ccx_binance::WsEvent;
 use ccx_binance::WsStream;
+// use ccx_binance_examples_util::*;
 
 enum X {
     Snapshot((Atom, OrderBook)),
@@ -22,10 +23,10 @@ async fn main() {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance = Api::from_env();
+    let binance_spot = SpotApi::from_env();
 
     let res = async move {
-        let (sink, stream) = binance.ws().await?.split();
+        let (sink, stream) = binance_spot.ws().await?.split();
         println!("Connected");
 
         let listen: Vec<Atom> = vec![
@@ -53,7 +54,7 @@ async fn main() {
             state.insert(symbol.clone(), OrderBookUpdater::new());
 
             let f = Box::pin(
-                binance
+                binance_spot
                     .depth(symbol.clone(), OrderBookLimit::N1000)
                     .into_stream()
                     .filter_map({
@@ -62,7 +63,7 @@ async fn main() {
                             let symbol = symbol.clone();
                             async move {
                                 println!("Received {}", symbol);
-                                r.ok().map(|v| (X::Snapshot((symbol, v))))
+                                r.ok().map(|v| (X::Snapshot((symbol, v.into()))))
                             }
                         }
                     }),

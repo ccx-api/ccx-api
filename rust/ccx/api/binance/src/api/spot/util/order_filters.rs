@@ -1,4 +1,4 @@
-use crate::api::*;
+use super::super::*;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct OrderFilters {
@@ -8,9 +8,10 @@ pub struct OrderFilters {
     pub min_notional: Option<MinNotionalFilter>,
     pub icebert_parts: Option<IcebergPartsFilter>,
     pub market_lot_size: Option<MarketLotSizeFilter>,
-    pub max_num_orders_filter: Option<MaxNumOrdersFilter>,
+    pub max_num_orders: Option<MaxNumOrdersFilter>,
     pub max_num_algo_orders: Option<MaxNumAlgoOrdersFilter>,
-    pub max_num_iceberg_filter: Option<MaxNumIcebergOrdersFilter>,
+    pub max_num_iceberg: Option<MaxNumIcebergOrdersFilter>,
+    pub max_position: Option<MaxPositionFilter>,
 }
 
 impl OrderFilters {
@@ -24,9 +25,10 @@ impl OrderFilters {
                 Filter::MinNotional(filter) => this.min_notional = Some(filter),
                 Filter::IcebergParts(filter) => this.icebert_parts = Some(filter),
                 Filter::MarketLotSize(filter) => this.market_lot_size = Some(filter),
-                Filter::MaxNumOrders(filter) => this.max_num_orders_filter = Some(filter),
+                Filter::MaxNumOrders(filter) => this.max_num_orders = Some(filter),
                 Filter::MaxNumAlgoOrders(filter) => this.max_num_algo_orders = Some(filter),
-                Filter::MaxNumIcebergOrders(filter) => this.max_num_iceberg_filter = Some(filter),
+                Filter::MaxNumIcebergOrders(filter) => this.max_num_iceberg = Some(filter),
+                Filter::MaxPosition(filter) => this.max_position = Some(filter),
             }
         }
         this

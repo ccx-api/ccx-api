@@ -2,8 +2,9 @@ use std::collections::BTreeMap;
 
 use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 
-use crate::{DiffOrderBookEvent, LibError, LibResult, OrderBook};
+use crate::{DiffOrderBookEvent, LibError, LibResult};
 
 pub enum OrderBookUpdater {
     Preparing { buffer: Vec<DiffOrderBookEvent> },
@@ -21,6 +22,25 @@ pub struct Fill {
     pub base_value: Decimal,
     pub quote_value: Decimal,
     pub exhausted: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct OrderBook {
+    pub last_update_id: u64,
+    pub bids: Box<[Bid]>,
+    pub asks: Box<[Ask]>,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
+pub struct Bid {
+    pub price: Decimal,
+    pub qty: Decimal,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
+pub struct Ask {
+    pub price: Decimal,
+    pub qty: Decimal,
 }
 
 impl OrderBookUpdater {
@@ -106,7 +126,11 @@ impl OrderBookState {
             base_value += volume;
             quote_value += volume * price;
         }
-        Fill { base_value, quote_value, exhausted }
+        Fill {
+            base_value,
+            quote_value,
+            exhausted,
+        }
     }
 
     pub fn ask_volume(&self, price_limit: &Decimal) -> Fill {
@@ -121,7 +145,11 @@ impl OrderBookState {
             base_value += volume;
             quote_value += volume * price;
         }
-        Fill { base_value, quote_value, exhausted }
+        Fill {
+            base_value,
+            quote_value,
+            exhausted,
+        }
     }
 
     pub fn update(&mut self, diff: DiffOrderBookEvent) -> LibResult<()> {

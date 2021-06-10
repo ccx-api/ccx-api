@@ -8,6 +8,7 @@ resolver = "2"
 [workspace]
 members = [
     "api/binance",
+    "api/binance/examples/util",
 ]
 
 [dependencies]

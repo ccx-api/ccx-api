@@ -1,13 +1,12 @@
 use std::fmt;
 
-use ccx_binance::client::Config;
-use ccx_binance::Api;
+use ccx_binance::api::spot::NewOrder;
+use ccx_binance::api::spot::OrderResponseType;
+use ccx_binance::api::spot::OrderSide;
+use ccx_binance::api::spot::OrderType;
 use ccx_binance::Decimal;
 use ccx_binance::LibResult;
-use ccx_binance::NewOrder;
-use ccx_binance::OrderResponseType;
-use ccx_binance::OrderSide;
-use ccx_binance::OrderType;
+use ccx_binance::SpotApi;
 use ccx_binance::TimeWindow;
 
 const BTCBUSD: &str = "BTCBUSD";
@@ -22,7 +21,7 @@ async fn main_() -> LibResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance = Api::with_config(Config::from_env());
+    let binance = SpotApi::from_env();
 
     // let book = print_res(binance.ticker_book(BTCBUSD).await)?;
     // let time = print_res(binance.time().await)?;
@@ -113,7 +112,7 @@ fn d(v: &'static str) -> Decimal {
 }
 
 async fn limit_order(
-    binance: &Api,
+    binance: &SpotApi,
     symbol: &str,
     side: OrderSide,
     price: Decimal,
@@ -141,7 +140,7 @@ async fn limit_order(
 }
 
 async fn market_order(
-    binance: &Api,
+    binance: &SpotApi,
     symbol: &str,
     side: OrderSide,
     quantity: Quantity,

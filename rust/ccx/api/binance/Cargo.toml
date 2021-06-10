@@ -1,6 +1,6 @@
 [package]
 name = "ccx-binance"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Alexander Irbis <irbis.labs@gmail.com>"]
 edition = "2018"
 
@@ -36,3 +36,4 @@ webpki-roots = { version = "0.21", optional = true }
 actix-rt = "1.0"
 env_logger = "0.8"
 dotenv = "0.15"
+ccx-binance-examples-util = { path = "examples/util" }

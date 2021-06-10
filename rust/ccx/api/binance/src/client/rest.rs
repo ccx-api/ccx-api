@@ -18,12 +18,11 @@ use crate::error::*;
 use crate::proto::TimeWindow;
 
 /// API client.
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct RestClient {
     inner: Arc<ClientInner>,
 }
 
-#[derive(Default)]
 struct ClientInner {
     config: Config,
 }
@@ -36,11 +35,7 @@ pub struct RequestBuilder {
 }
 
 impl RestClient {
-    pub fn new() -> Self {
-        RestClient::default()
-    }
-
-    pub fn with_config(config: Config) -> Self {
+    pub fn new(config: Config) -> Self {
         let inner = Arc::new(ClientInner { config });
         RestClient { inner }
     }
