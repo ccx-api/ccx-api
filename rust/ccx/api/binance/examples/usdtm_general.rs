@@ -1,4 +1,4 @@
-use ccx_binance::api::usdtm::UsdtmApi;
+use ccx_binance::api::um::UmApi;
 use ccx_binance::LibResult;
 use ccx_binance_examples_util::*;
 
@@ -11,7 +11,7 @@ async fn main_() -> LibResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance_usdtm = UsdtmApi::from_env();
+    let binance_usdtm = UmApi::from_env();
 
     println!("Running...");
 

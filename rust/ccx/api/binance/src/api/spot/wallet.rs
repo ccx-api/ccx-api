@@ -1,9 +1,84 @@
 use super::prelude::*;
 
+pub const SAPI_V1_SYSTEM_STATUS: &str = "/sapi/v1/system/status";
+pub const SAPI_V1_CAPITAL_CONFIG_GETALL: &str = "/sapi/v1/capital/config/getall";
+// TODO pub const SAPI_V1_ACCOUNT_SNAPSHOT: &str = "/sapi/v1/accountSnapshot";
+pub const SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW: &str = "/sapi/v1/account/disableFastWithdrawSwitch";
 pub const SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW: &str = "/sapi/v1/account/enableFastWithdrawSwitch";
-pub const SAPI_V1_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/address";
 pub const SAPI_V1_CAPITAL_WITHDRAW_APPLY: &str = "/sapi/v1/capital/withdraw/apply";
+// TODO pub const SAPI_V1_CAPITAL_DEPOSIT_HISTORY: &str = "/sapi/v1/capital/deposit/history";
 pub const SAPI_V1_CAPITAL_WITHDRAW_HISTORY: &str = "/sapi/v1/capital/withdraw/history";
+pub const SAPI_V1_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/address";
+// TODO pub const SAPI_V1_ACCOUNT_STATUS: &str = "/sapi/v1/account/status";
+// TODO pub const SAPI_V1_ACCOUNT_TRADING_STATUS: &str = "/sapi/v1/account/apiTradingStatus";
+// TODO pub const SAPI_V1_ASSET_DRIBLET: &str = "/sapi/v1/asset/dribblet";
+// TODO pub const SAPI_V1_ASSET_DUST: &str = "/sapi/v1/asset/dust";
+// TODO pub const SAPI_V1_ASSET_DIVIDEND: &str = "/sapi/v1/asset/assetDividend";
+// TODO pub const SAPI_V1_ASSET_DETAIL: &str = "/sapi/v1/asset/assetDetail";
+// TODO pub const SAPI_V1_ASSET_TRADE_FEE: &str = "/sapi/v1/asset/tradeFee";
+// TODO pub const SAPI_V1_ASSET_TRANSFER: &str = "/sapi/v1/asset/transfer";
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemStatus {
+    pub status: SystemMaintenanceStatus,
+    pub msg: String,
+}
+
+#[derive(
+    Clone, Copy, Debug, Serialize_repr, Deserialize_repr, Eq, Ord, PartialOrd, PartialEq, Hash,
+)]
+#[repr(u32)]
+pub enum SystemMaintenanceStatus {
+    Normal = 0,
+    SystemMaintenance = 1,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CoinInformation {
+    pub coin: Atom,
+    pub deposit_all_enable: bool,
+    pub free: Decimal,
+    pub freeze: Decimal,
+    pub ipoable: Decimal,
+    pub ipoing: Decimal,
+    pub is_legal_money: bool,
+    pub locked: Decimal,
+    pub name: Atom,
+    pub network_list: Vec<NetworkInformation>,
+    pub storage: Decimal,
+    pub trading: bool,
+    pub withdraw_all_enable: bool,
+    pub withdrawing: Decimal,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkInformation {
+    pub address_regex: Atom,
+    pub coin: Atom,
+    /// Shown only when "depositEnable" is false.
+    pub deposit_desc: Option<Atom>,
+    pub deposit_enable: bool,
+    pub insert_time: Option<u64>,
+    pub is_default: bool,
+    pub memo_regex: Atom,
+    /// Min number for balance confirmation.
+    pub min_confirm: i32,
+    pub name: Atom,
+    pub network: Atom,
+    pub reset_address_status: bool,
+    pub special_tips: Option<Atom>,
+    /// Confirmation number for balance unlock.
+    pub un_lock_confirm: i32,
+    pub update_time: Option<u64>,
+    /// Shown only when "withdrawEnable" is false.
+    pub withdraw_desc: Option<Atom>,
+    pub withdraw_enable: bool,
+    pub withdraw_fee: Decimal,
+    pub withdraw_min: Decimal,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -96,6 +171,53 @@ mod with_network {
     use super::*;
 
     impl SpotApi {
+        /// System Status (System)
+        ///
+        /// Fetch system status.
+        pub async fn system_status(
+            &self,
+        ) -> LibResult<SystemStatus> {
+            self.client
+                .get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
+                .send()
+                .await
+        }
+
+        /// All Coins' Information (USER_DATA)
+        ///
+        /// Get information of coins (available for deposit and withdraw) for user.
+        ///
+        /// Weight: 1
+        pub async fn all_coins_information(
+            &self,
+            time_window: impl Into<TimeWindow>,
+        ) -> LibResult<Vec<CoinInformation>> {
+            self.client
+                .get(SAPI_V1_CAPITAL_CONFIG_GETALL)?
+                .signed(time_window)?
+                .send()
+                .await
+        }
+
+        /// Disable Fast Withdraw Switch (USER_DATA)
+        ///
+        /// Weight: 1
+        ///
+        /// Caution:
+        ///
+        /// * This request will disable fastwithdraw switch under your account.
+        /// * You need to enable "trade" option for the api key which requests this endpoint.
+        pub async fn disable_fast_withdraw_switch(
+            &self,
+            time_window: impl Into<TimeWindow>,
+        ) -> LibResult<()> {
+            self.client
+                .post(SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW)?
+                .signed(time_window)?
+                .send_no_responce()
+                .await
+        }
+
         /// Enable Fast Withdraw Switch (USER_DATA)
         ///
         /// Weight: 1
