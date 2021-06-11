@@ -74,6 +74,7 @@ pub struct NewTestOrder {}
 pub enum NewOrder {
     Ack(NewOrderAck),
     Result(NewOrderResult),
+    Full(NewOrderFull),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -102,9 +103,37 @@ pub struct NewOrderResult {
     pub cummulative_quote_qty: Decimal,
     pub status: OrderStatus,
     pub time_in_force: TimeInForce,
-    #[serde(rename = "type")]
-    pub type_: OrderType,
+    pub r#type: OrderType,
     pub side: OrderSide,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NewOrderFull {
+    pub symbol: Atom,
+    pub order_id: u64,
+    // FIXME make None when -1.
+    pub order_list_id: i64,
+    pub client_order_id: String,
+    pub transact_time: u64,
+    pub price: Decimal,
+    pub orig_qty: Decimal,
+    pub executed_qty: Decimal,
+    pub cummulative_quote_qty: Decimal,
+    pub status: OrderStatus,
+    pub time_in_force: TimeInForce,
+    pub r#type: OrderType,
+    pub side: OrderSide,
+    pub fills: Vec<OrderFill>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct OrderFill {
+    pub price: Decimal,
+    pub qty: Decimal,
+    pub commission: Decimal,
+    pub commission_asset: Atom,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
@@ -150,8 +179,7 @@ pub struct CancelledOrder {
     pub cummulative_quote_qty: Decimal,
     pub status: OrderStatus,
     pub time_in_force: TimeInForce,
-    #[serde(rename = "type")]
-    pub type_: OrderType,
+    pub r#type: OrderType,
     pub side: OrderSide,
 }
 
@@ -170,8 +198,7 @@ pub struct Order {
     pub cummulative_quote_qty: Decimal,
     pub status: OrderStatus,
     pub time_in_force: TimeInForce,
-    #[serde(rename = "type")]
-    pub type_: OrderType,
+    pub r#type: OrderType,
     pub side: OrderSide,
     pub stop_price: Decimal,
     pub iceberg_qty: Decimal,
@@ -232,6 +259,18 @@ pub struct MyTrade {
 }
 
 impl NewOrder {
+    pub fn is_ack(&self) -> bool {
+        self.as_ack().is_some()
+    }
+
+    pub fn is_result(&self) -> bool {
+        self.as_result().is_some()
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.as_full().is_some()
+    }
+
     pub fn as_ack(&self) -> Option<&NewOrderAck> {
         match self {
             NewOrder::Ack(order) => Some(order),
@@ -242,6 +281,13 @@ impl NewOrder {
     pub fn as_result(&self) -> Option<&NewOrderResult> {
         match self {
             NewOrder::Result(order) => Some(order),
+            _ => None,
+        }
+    }
+
+    pub fn as_full(&self) -> Option<&NewOrderFull> {
+        match self {
+            NewOrder::Full(order) => Some(order),
             _ => None,
         }
     }
@@ -269,7 +315,7 @@ mod with_network {
             &self,
             symbol: impl Serialize,
             side: OrderSide,
-            type_: OrderType,
+            r#type: OrderType,
             time_in_force: Option<TimeInForce>,
             quantity: Option<Decimal>,
             quote_order_qty: Option<Decimal>,
@@ -283,7 +329,7 @@ mod with_network {
             let request = self.prepare_order_request(
                 symbol,
                 side,
-                type_,
+                r#type,
                 time_in_force,
                 quantity,
                 quote_order_qty,
@@ -310,7 +356,7 @@ mod with_network {
             &self,
             symbol: impl Serialize,
             side: OrderSide,
-            type_: OrderType,
+            r#type: OrderType,
             time_in_force: Option<TimeInForce>,
             quantity: Option<Decimal>,
             quote_order_qty: Option<Decimal>,
@@ -324,7 +370,7 @@ mod with_network {
             let request = self.prepare_order_request(
                 symbol,
                 side,
-                type_,
+                r#type,
                 time_in_force,
                 quantity,
                 quote_order_qty,
@@ -337,7 +383,7 @@ mod with_network {
                 time_window,
             )?;
 
-            let new_order_resp_type = new_order_resp_type.unwrap_or_else(|| match type_ {
+            let new_order_resp_type = new_order_resp_type.unwrap_or_else(|| match r#type {
                 OrderType::Limit | OrderType::Market => OrderResponseType::Full,
                 _ => OrderResponseType::Ack,
             });
@@ -345,7 +391,7 @@ mod with_network {
             Ok(match new_order_resp_type {
                 OrderResponseType::Ack => NewOrder::Ack(request.send().await?),
                 OrderResponseType::Result => NewOrder::Result(request.send().await?),
-                OrderResponseType::Full => todo!(),
+                OrderResponseType::Full => NewOrder::Full(request.send().await?),
             })
         }
 
@@ -353,7 +399,7 @@ mod with_network {
             &self,
             symbol: impl Serialize,
             side: OrderSide,
-            type_: OrderType,
+            r#type: OrderType,
             time_in_force: Option<TimeInForce>,
             quantity: Option<Decimal>,
             quote_order_qty: Option<Decimal>,
@@ -370,7 +416,7 @@ mod with_network {
             } else {
                 API_V3_ORDER
             };
-            match type_ {
+            match r#type {
                 OrderType::Limit => {
                     if time_in_force.is_none() || quantity.is_none() || price.is_none() {
                         Err(RequestError::mandatory_field_omitted(
@@ -433,7 +479,7 @@ mod with_network {
                 .signed(time_window)?
                 .query_arg("symbol", &symbol)?
                 .query_arg("side", &side)?
-                .query_arg("type", &type_)?
+                .query_arg("type", &r#type)?
                 .try_query_arg("timeInForce", &time_in_force)?
                 .try_query_arg("quantity", &quantity)?
                 .try_query_arg("quoteOrderQty", &quote_order_qty)?
