@@ -110,7 +110,8 @@ pub struct Withdraw {
     pub network: Option<String>,
     pub transfer_type: TransferType,
     pub status: WithdrawStatus,
-    pub tx_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tx_id: Option<String>,
 }
 
 #[derive(
