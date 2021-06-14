@@ -34,6 +34,37 @@ pub enum ClearjunctionWithdrawStatus {
     Failed,
 }
 
+impl ClearjunctionWithdrawStatus {
+    pub fn is_finished(&self) -> bool {
+        use ClearjunctionWithdrawStatus as WS;
+        matches!(
+            self,
+            WS::Succeed | WS::Failed
+        )
+    }
+
+    pub fn is_succeed(&self) -> bool {
+        use ClearjunctionWithdrawStatus as WS;
+        matches!(
+            self,
+            WS::Succeed
+        )
+    }
+
+    pub fn is_failed(&self) -> bool {
+        use ClearjunctionWithdrawStatus as WS;
+        matches!(
+            self,
+            WS::Failed
+        )
+    }
+
+    pub fn is_pending(&self) -> bool {
+        use ClearjunctionWithdrawStatus as WS;
+        matches!(self, WS::Pending)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ClearjunctionTransactionList {
