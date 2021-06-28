@@ -80,3 +80,57 @@ impl OrderBookStreamLimit {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
+pub enum TransferKind {
+    #[serde(rename = "MAIN_C2C")]
+    MainC2C, // Spot account transfer to C2C account
+    #[serde(rename = "MAIN_UMFUTURE")]
+    MainUmFuture, // Spot account transfer to USDⓈ-M Futures account
+    #[serde(rename = "MAIN_CMFUTURE")]
+    MainCmFuture, // Spot account transfer to COIN-M Futures account
+    #[serde(rename = "MAIN_MARGIN")]
+    MainMargin, // Spot account transfer to Margin（cross）account
+    #[serde(rename = "MAIN_MINING")]
+    MainMining, // Spot account transfer to Mining account
+    #[serde(rename = "C2C_MAIN")]
+    C2CMain, // C2C account transfer to Spot account
+    #[serde(rename = "C2C_UMFUTURE")]
+    C2CUmFuture, // C2C account transfer to USDⓈ-M Futures account
+    #[serde(rename = "C2C_MINING")]
+    C2CMining, // C2C account transfer to Mining account
+    #[serde(rename = "C2C_MARGIN")]
+    C2CMargin, // C2C account transfer to Margin(cross) account
+    #[serde(rename = "UMFUTURE_MAIN")]
+    UmFutureMain, // USDⓈ-M Futures account transfer to Spot account
+    #[serde(rename = "UMFUTURE_C2C")]
+    UmFutureC2C, // USDⓈ-M Futures account transfer to C2C account
+    #[serde(rename = "UMFUTURE_MARGIN")]
+    UmFutureMargin, // USDⓈ-M Futures account transfer to Margin（cross）account
+    #[serde(rename = "CMFUTURE_MAIN")]
+    CmFutureMain, // COIN-M Futures account transfer to Spot account
+    #[serde(rename = "CMFUTURE_MARGIN")]
+    CmFutureMargin, // COIN-M Futures account transfer to Margin(cross) account
+    #[serde(rename = "MARGIN_MAIN")]
+    MarginMain, // Margin（cross）account transfer to Spot account
+    #[serde(rename = "MARGIN_UMFUTURE")]
+    MarginUmFuture, // Margin（cross）account transfer to USDⓈ-M Futures
+    #[serde(rename = "MARGIN_CMFUTURE")]
+    MarginCmFuture, // Margin（cross）account transfer to COIN-M Futures
+    #[serde(rename = "MARGIN_MINING")]
+    MarginMining, // Margin（cross）account transfer to Mining account
+    #[serde(rename = "MARGIN_C2C")]
+    MarginC2C, // Margin（cross）account transfer to C2C account
+    #[serde(rename = "MINING_MAIN")]
+    MiningMain, // Mining account transfer to Spot account
+    #[serde(rename = "MINING_UMFUTURE")]
+    MiningUmFuture, // Mining account transfer to USDⓈ-M Futures account
+    #[serde(rename = "MINING_C2C")]
+    MiningC2C, // Mining account transfer to C2C account
+    #[serde(rename = "MINING_MARGIN")]
+    MiningMargin, // Mining account transfer to Margin(cross) account
+    #[serde(rename = "MAIN_PAY")]
+    MainPay, // Spot account transfer to Pay account
+    #[serde(rename = "PAY_MAIN")]
+    PayMain, // Pay account transfer to Spot account
+}

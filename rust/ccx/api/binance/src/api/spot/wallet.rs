@@ -16,7 +16,7 @@ pub const SAPI_V1_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/addr
 // TODO pub const SAPI_V1_ASSET_DIVIDEND: &str = "/sapi/v1/asset/assetDividend";
 // TODO pub const SAPI_V1_ASSET_DETAIL: &str = "/sapi/v1/asset/assetDetail";
 // TODO pub const SAPI_V1_ASSET_TRADE_FEE: &str = "/sapi/v1/asset/tradeFee";
-// TODO pub const SAPI_V1_ASSET_TRANSFER: &str = "/sapi/v1/asset/transfer";
+pub const SAPI_V1_ASSET_TRANSFER: &str = "/sapi/v1/asset/transfer";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -167,11 +167,35 @@ impl TransferType {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Transfer {
+    #[serde(rename = "tranId")]
+    transfer_id: u64,
+}
+
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
 
     impl SpotApi {
+
+        pub async fn asset_transfer(
+            &self,
+            transfer_type: TransferKind,
+            asset: impl Serialize,
+            amount: impl Serialize,
+            time_window: impl Into<TimeWindow>,
+        ) -> LibResult<Transfer> {
+            self.client
+                .post(SAPI_V1_ASSET_TRANSFER)?
+                .signed(time_window)?
+                .query_arg("type", &transfer_type)?
+                .query_arg("asset", &asset)?
+                .query_arg("amount", &amount)?
+                .send()
+                .await
+        }
+
         /// System Status (System)
         ///
         /// Fetch system status.
