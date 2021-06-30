@@ -3,6 +3,7 @@ mod limits;
 mod rest;
 mod websocket;
 mod websocket2;
+mod connector;
 use serde::Deserialize;
 
 pub use self::config::*;

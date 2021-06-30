@@ -6,7 +6,7 @@ edition = "2018"
 
 [features]
 default = ["with_network"]
-with_network = ["awc", "actix", "actix-codec", "actix-http", "actix-web", "actix-web-actors", "rustls", "webpki-roots"]
+with_network = ["awc", "actix", "actix-codec", "actix-http", "actix-web", "actix-web-actors", "rustls", "webpki-roots", "actix-connect", "tokio-socks", "actix-service"]
 experimental = []
 
 [dependencies]
@@ -31,6 +31,10 @@ string_cache = "0.8"
 thiserror = "1"
 url = { version = "2", features = ["serde"] }
 webpki-roots = { version = "0.21", optional = true }
+
+actix-connect = { version = "2.0", optional = true }
+tokio-socks = { version = "0.2.2", optional = true }
+actix-service = { version = "1.0.6", optional = true }
 
 [dev-dependencies]
 actix-rt = "1.0"
