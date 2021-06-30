@@ -17,8 +17,6 @@ use crate::client::{WebsocketClient, WebsocketStream};
 use crate::error::*;
 use crate::proto::TimeWindow;
 
-const CLIENT_TIMEOUT: u64 = 60;
-
 /// API client.
 #[derive(Clone)]
 pub struct RestClient {
@@ -43,35 +41,10 @@ impl RestClient {
     }
 
     pub(super) fn client(&self) -> Client {
-        match self.inner.config.proxy.as_ref() {
-            Some(proxy) => self.client_with_proxy(proxy),
-            None => {
-                let timeout = Duration::from_secs(5);
-                let connector = Connector::new().timeout(timeout).finish();
-                Client::builder()
-                    .connector(connector)
-                    .timeout(timeout)
-                    .finish()
-            },
-        }
-    }
-
-    fn client_with_proxy(&self, proxy: &Proxy) -> Client {
-        fn string_to_static_str(s: String) -> &'static str {
-            Box::leak(s.into_boxed_str())
-        }
-
-        let proxy_addr = proxy.addr();
-        let timeout = Duration::from_secs(CLIENT_TIMEOUT);
-        awc::ClientBuilder::new()
-            .connector(
-                actix_web::client::Connector::new()
-                    .connector(crate::client::connector::SocksConnector(
-                        string_to_static_str(proxy_addr),
-                    ))
-                    .timeout(std::time::Duration::from_secs(60))
-                    .finish(),
-            )
+        let timeout = Duration::from_secs(5);
+        let connector = Connector::new().timeout(timeout).finish();
+        Client::builder()
+            .connector(connector)
             .timeout(timeout)
             .finish()
     }

@@ -1,6 +1,6 @@
 use url::Url;
 
-use crate::client::{ApiCred, Config, RestClient, WebsocketStream, Proxy};
+use crate::client::{ApiCred, Config, RestClient, WebsocketStream};
 use crate::error::*;
 
 mod market_data;
@@ -40,7 +40,7 @@ mod with_network {
     }
 
     impl UmApi {
-        pub fn new(cred: ApiCred, testnet: bool, proxy: Option<Proxy>) -> Self {
+        pub fn new(cred: ApiCred, testnet: bool) -> Self {
             let (api_base, stream_base) = if testnet {
                 (
                     Url::parse(API_BASE_TESTNET).unwrap(),
@@ -52,23 +52,21 @@ mod with_network {
                     Url::parse(STREAM_BASE).unwrap(),
                 )
             };
-            UmApi::with_config(Config::new(cred, api_base, stream_base, proxy))
+            UmApi::with_config(Config::new(cred, api_base, stream_base))
         }
 
         /// Reads config from env vars with names like:
         /// "CCX_BINANCE_API_KEY", "CCX_BINANCE_API_SECRET", and "CCX_BINANCE_API_TESTNET"
         pub fn from_env() -> Self {
             let testnet = Config::env_var("TESTNET").as_deref() == Some("1");
-            let proxy = Proxy::from_env();
-            UmApi::new(ApiCred::from_env(), testnet, proxy)
+            UmApi::new(ApiCred::from_env(), testnet)
         }
 
         /// Reads config from env vars with names like:
         /// "${prefix}_KEY", "${prefix}_SECRET", and "${prefix}_TESTNET"
         pub fn from_env_with_prefix(prefix: &str) -> Self {
             let testnet = Config::env_var_with_prefix(prefix, "TESTNET").as_deref() == Some("1");
-            let proxy = Proxy::from_env_with_prefix(prefix);
-            UmApi::new(ApiCred::from_env_with_prefix(prefix), testnet, proxy)
+            UmApi::new(ApiCred::from_env_with_prefix(prefix), testnet)
         }
 
         pub fn with_config(config: Config) -> Self {

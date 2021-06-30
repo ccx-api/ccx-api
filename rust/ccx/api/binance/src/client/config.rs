@@ -9,45 +9,12 @@ pub static CCX_BINANCE_API_KEY: &str = "CCX_BINANCE_API_KEY";
 pub static CCX_BINANCE_API_SECRET: &str = "CCX_BINANCE_API_SECRET";
 pub static CCX_BINANCE_API_TESTNET: &str = "CCX_BINANCE_API_TESTNET";
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct Proxy {
-    pub host: String,
-    pub port: u16,
-}
-
-impl Proxy {
-    pub fn addr(&self) -> String {
-        format!("{}:{}", self.host, self.port)
-    }
-
-    pub fn from_env() -> Option<Self> {
-        let host = Config::env_var("PROXY_HOST")?;
-        let port = Config::env_var("PROXY_PORT")?;
-        let port = port.parse::<u16>().ok()?;
-        Some(Proxy {
-            host,
-            port,
-        })
-    }
-
-    pub fn from_env_with_prefix(prefix: &str) -> Option<Self> {
-        let host = Config::env_var_with_prefix(prefix, "PROXY_HOST")?;
-        let port = Config::env_var_with_prefix(prefix, "PROXY_PORT")?;
-        let port = port.parse::<u16>().ok()?;
-        Some(Proxy {
-            host,
-            port,
-        })
-    }
-}
-
 /// API config.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Config {
     pub cred: ApiCred,
     pub api_base: Url,
     pub stream_base: Url,
-    pub proxy: Option<Proxy>,
 }
 
 /// API credentials.
@@ -59,12 +26,11 @@ pub struct ApiCred {
 }
 
 impl Config {
-    pub fn new(cred: ApiCred, api_base: Url, stream_base: Url, proxy: Option<Proxy>) -> Self {
+    pub fn new(cred: ApiCred, api_base: Url, stream_base: Url) -> Self {
         Config {
             cred,
             api_base,
             stream_base,
-            proxy
         }
     }
 
