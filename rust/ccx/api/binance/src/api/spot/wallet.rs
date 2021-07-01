@@ -170,7 +170,7 @@ impl TransferType {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Transfer {
     #[serde(rename = "tranId")]
-    transfer_id: u64,
+    pub transfer_id: u64,
 }
 
 #[cfg(feature = "with_network")]
