@@ -4,6 +4,7 @@ use crate::client::{ApiCred, Config, RestClient, WebsocketStream, Proxy};
 use crate::error::*;
 
 mod account;
+mod broker;
 mod margin;
 mod market_data;
 mod user_data_stream;
@@ -20,6 +21,7 @@ mod wallet;
 mod websocket_market;
 
 pub use self::account::*;
+pub use self::broker::*;
 pub use self::futures::*;
 pub use self::margin::*;
 pub use self::market_data::*;
@@ -27,7 +29,6 @@ pub use self::user_data_stream::*;
 // TODO pub use self::error::*;
 // TODO pub use self::savings::*;
 // TODO pub use self::mining::*;
-// TODO pub use self::futures::*;
 // TODO pub use self::blvt::*;
 // TODO pub use self::bswap::*;
 #[cfg(feature = "experimental")]
