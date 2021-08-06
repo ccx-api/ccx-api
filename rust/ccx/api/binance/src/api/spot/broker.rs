@@ -47,20 +47,24 @@ pub struct BrokerAccountInfo {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccountTransferCreated {
-    pub txn_id: String,
-    pub client_tran_id: String,
+    pub txn_id: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_tran_id: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccountTransfer {
-    pub from_id: String,
-    pub to_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub to_id: Option<String>,
     pub asset: Atom,
     pub qty: Decimal,
     pub time: u64,
-    pub txn_id: String,
-    pub client_tran_id: String,
+    pub txn_id: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_tran_id: Option<String>,
     pub status: BrokerSubaccountTransferStatus,
 }
 
@@ -246,7 +250,8 @@ mod with_network {
 
         /// Sub Account Transfer（SPOT）
         ///
-        /// * clientTranId - client transfer id, must be unique
+        /// * clientTranId - client transfer id, must be unique.
+        ///     The value should be an ASCII alphanumeric.
         ///
         /// * You need to enable "internal transfer" option for the api key which requests this
         ///     endpoint.
