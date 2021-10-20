@@ -21,7 +21,7 @@ pub struct WebsocketClientTx {
 }
 
 impl WebsocketClient {
-    pub async fn connect(api_client: RestClient, url: Url) -> LibResult<Self> {
+    pub async fn connect(api_client: RestClient, url: Url) -> BinanceResult<Self> {
         use futures::stream::StreamExt;
 
         log::debug!("Connecting WS: {}", url.as_str());
@@ -62,21 +62,21 @@ impl WebsocketClient {
         });
 
         Arbiter::spawn(async move {
-            let res: LibResult<()> = async {
+            let res: BinanceResult<()> = async {
                 // Слушаем сообщения апстрима, по внутреннему каналу отвечаем апстриму на пинги,
                 // передаём декодированные события клиенту.
                 'iter_frames: while let Some(frame) = up_stream.next().await {
-                    let res: LibResult<Option<WsEvent>> = async {
+                    let res: BinanceResult<Option<WsEvent>> = async {
                         match frame? {
                             ws::Frame::Close(e) => {
                                 up_tx.send(ws::Message::Close(e)).await.map_err(|_e| {
-                                    LibError::IoError(io::ErrorKind::ConnectionAborted.into())
+                                    BinanceError::IoError(io::ErrorKind::ConnectionAborted.into())
                                 })?;
                                 Ok(None)
                             }
                             ws::Frame::Ping(d) => {
                                 up_tx.send(ws::Message::Pong(d)).await.map_err(|_e| {
-                                    LibError::IoError(io::ErrorKind::ConnectionAborted.into())
+                                    BinanceError::IoError(io::ErrorKind::ConnectionAborted.into())
                                 })?;
                                 Ok(None)
                             }
@@ -96,7 +96,7 @@ impl WebsocketClient {
                         }
                         Some(Err(e)) => {
                             log::warn!("Communication error 1: {:?}", e);
-                            if let LibError::IoError(e) = &e {
+                            if let BinanceError::IoError(e) = &e {
                                 if e.kind() != io::ErrorKind::ConnectionAborted {
                                     let _ = up_tx.send(ws::Message::Close(None)).await;
                                 }

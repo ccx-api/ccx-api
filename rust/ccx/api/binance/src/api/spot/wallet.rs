@@ -185,7 +185,7 @@ mod with_network {
             asset: impl Serialize,
             amount: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Transfer> {
+        ) -> BinanceResult<Transfer> {
             self.client
                 .post(SAPI_V1_ASSET_TRANSFER)?
                 .signed(time_window)?
@@ -201,7 +201,7 @@ mod with_network {
         /// Fetch system status.
         pub async fn system_status(
             &self,
-        ) -> LibResult<SystemStatus> {
+        ) -> BinanceResult<SystemStatus> {
             self.client
                 .get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
                 .send()
@@ -216,7 +216,7 @@ mod with_network {
         pub async fn all_coins_information(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<CoinInformation>> {
+        ) -> BinanceResult<Vec<CoinInformation>> {
             self.client
                 .get(SAPI_V1_CAPITAL_CONFIG_GETALL)?
                 .signed(time_window)?
@@ -235,11 +235,11 @@ mod with_network {
         pub async fn disable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<()> {
+        ) -> BinanceResult<()> {
             self.client
                 .post(SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW)?
                 .signed(time_window)?
-                .send_no_responce()
+                .send_no_response()
                 .await
         }
 
@@ -254,11 +254,11 @@ mod with_network {
         pub async fn enable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<()> {
+        ) -> BinanceResult<()> {
             self.client
                 .post(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
                 .signed(time_window)?
-                .send_no_responce()
+                .send_no_response()
                 .await
         }
 
@@ -276,7 +276,7 @@ mod with_network {
             coin: impl Serialize,
             network: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<DepositAddress> {
+        ) -> BinanceResult<DepositAddress> {
             self.client
                 .get(SAPI_V1_CAPITAL_DEPOSIT_ADDRESS)?
                 .signed(time_window)?
@@ -313,7 +313,7 @@ mod with_network {
             transaction_fee_flag: Option<bool>,
             name: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<NewWithdraw> {
+        ) -> BinanceResult<NewWithdraw> {
             self.client
                 .post(SAPI_V1_CAPITAL_WITHDRAW_APPLY)?
                 .signed(time_window)?
@@ -350,7 +350,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<Withdraw>> {
+        ) -> BinanceResult<Vec<Withdraw>> {
             self.client
                 .get(SAPI_V1_CAPITAL_WITHDRAW_HISTORY)?
                 .signed(time_window)?

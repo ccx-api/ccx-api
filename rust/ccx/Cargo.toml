@@ -9,7 +9,11 @@ resolver = "2"
 members = [
     "api/binance",
     "api/binance/examples/util",
+    "api/kraken",
+    "api/kraken/examples/util",
+    "util/lib",
 ]
 
 [dependencies]
 ccx-binance = { path = "api/binance" }
+ccx-kraken = { path = "api/kraken" }

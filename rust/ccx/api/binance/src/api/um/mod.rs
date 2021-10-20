@@ -1,6 +1,13 @@
 use url::Url;
 
-use crate::client::{ApiCred, Config, RestClient, WebsocketStream, Proxy};
+use ccx_api_lib::env_var_with_prefix;
+
+use crate::client::ApiCred;
+use crate::client::Config;
+use crate::client::Proxy;
+use crate::client::RestClient;
+use crate::client::WebsocketStream;
+use crate::client::CCX_BINANCE_API_PREFIX;
 use crate::error::*;
 
 mod market_data;
@@ -59,14 +66,14 @@ mod with_network {
         /// "CCX_BINANCE_API_KEY", "CCX_BINANCE_API_SECRET", and "CCX_BINANCE_API_TESTNET"
         pub fn from_env() -> Self {
             let testnet = Config::env_var("TESTNET").as_deref() == Some("1");
-            let proxy = Proxy::from_env();
-            UmApi::new(ApiCred::from_env(), testnet, proxy)
+            let proxy = Proxy::from_env_with_prefix(CCX_BINANCE_API_PREFIX);
+            UmApi::new(ApiCred::from_env_with_prefix(CCX_BINANCE_API_PREFIX), testnet, proxy)
         }
 
         /// Reads config from env vars with names like:
         /// "${prefix}_KEY", "${prefix}_SECRET", and "${prefix}_TESTNET"
         pub fn from_env_with_prefix(prefix: &str) -> Self {
-            let testnet = Config::env_var_with_prefix(prefix, "TESTNET").as_deref() == Some("1");
+            let testnet = env_var_with_prefix(prefix, "TESTNET").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(prefix);
             UmApi::new(ApiCred::from_env_with_prefix(prefix), testnet, proxy)
         }
@@ -77,7 +84,7 @@ mod with_network {
         }
 
         /// Creates multiplexed websocket stream.
-        pub async fn ws(&self) -> LibResult<WebsocketStream> {
+        pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
             self.client.web_socket2().await
         }
     }

@@ -1,6 +1,6 @@
 use ccx_binance::api::spot::OrderBookLimit;
 use ccx_binance::api::spot::SpotApi;
-use ccx_binance::LibResult;
+use ccx_binance::BinanceResult;
 #[allow(unused_imports)]
 use ccx_binance::{client::ApiCred, ChartInterval};
 use ccx_binance_examples_util::*;
@@ -12,7 +12,7 @@ async fn main() {
     let _ = main_().await;
 }
 
-async fn main_() -> LibResult<()> {
+async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 

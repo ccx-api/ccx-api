@@ -16,7 +16,7 @@ mod with_network {
         /// Test connectivity to the Rest API.
         ///
         /// Weight: 1
-        pub async fn ping(&self) -> LibResult<Pong> {
+        pub async fn ping(&self) -> BinanceResult<Pong> {
             self.client.get(FAPI_V1_PING)?.send().await
         }
     }

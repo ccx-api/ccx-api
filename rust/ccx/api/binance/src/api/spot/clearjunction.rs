@@ -106,7 +106,7 @@ mod with_network {
             amount: Decimal,
             init_time: u64,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<ClearjunctionWithdraw> {
+        ) -> BinanceResult<ClearjunctionWithdraw> {
             self.client
                 .post(SAPI_V1_FIAT_CLEARJUNCTION_WITHDRAW)?
                 .signed(time_window)?
@@ -128,7 +128,7 @@ mod with_network {
             &self,
             transaction_id: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<ClearjunctionTransaction> {
+        ) -> BinanceResult<ClearjunctionTransaction> {
             self.client
                 .get(SAPI_V1_FIAT_CLEARJUNCTION_QUERY_TRANSACTION)?
                 .signed(time_window)?
@@ -150,7 +150,7 @@ mod with_network {
             end_time: u64,
             currency: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<ClearjunctionTransaction> {
+        ) -> BinanceResult<ClearjunctionTransaction> {
             self.client
                 .get(SAPI_V1_FIAT_CLEARJUNCTION_LIST_TRANSACTION)?
                 .signed(time_window)?
@@ -170,7 +170,7 @@ mod with_network {
             &self,
             currency: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<ClearjunctionBalance> {
+        ) -> BinanceResult<ClearjunctionBalance> {
             self.client
                 .get(SAPI_V1_FIAT_CLEARJUNCTION_GET_BALANCE)?
                 .signed(time_window)?

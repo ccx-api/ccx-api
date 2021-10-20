@@ -171,7 +171,7 @@ mod with_network {
             &self,
             tag: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccount> {
+        ) -> BinanceResult<BrokerSubaccount> {
             self.client
                 .post(SAPI_V1_BROKER_SUB_ACCOUNT)?
                 .signed(time_window)?
@@ -196,7 +196,7 @@ mod with_network {
             margin_trade: Option<bool>,
             futures_trade: Option<bool>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountApiKey> {
+        ) -> BinanceResult<BrokerSubaccountApiKey> {
             self.client
                 .post(SAPI_V1_BROKER_SUB_ACCOUNT_API)?
                 .signed(time_window)?
@@ -217,7 +217,7 @@ mod with_network {
             subaccount_id: impl Serialize,
             subaccount_api_key: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountApiKeyDeleted> {
+        ) -> BinanceResult<BrokerSubaccountApiKeyDeleted> {
             self.client
                 .delete(SAPI_V1_BROKER_SUB_ACCOUNT_API)?
                 .signed(time_window)?
@@ -240,7 +240,7 @@ mod with_network {
         pub async fn broker_account_info(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerAccountInfo> {
+        ) -> BinanceResult<BrokerAccountInfo> {
             self.client
                 .get(SAPI_V1_BROKER_INFO)?
                 .signed(time_window)?
@@ -265,7 +265,7 @@ mod with_network {
             asset: impl Serialize,
             amount: Decimal,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountTransferCreated> {
+        ) -> BinanceResult<BrokerSubaccountTransferCreated> {
             self.client
                 .post(SAPI_V1_BROKER_TRANSFER)?
                 .signed(time_window)?
@@ -300,7 +300,7 @@ mod with_network {
             page: Option<u16>,
             limit: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<BrokerSubaccountTransfer>> {
+        ) -> BinanceResult<Vec<BrokerSubaccountTransfer>> {
             self.client
                 .get(SAPI_V1_BROKER_TRANSFER)?
                 .signed(time_window)?
@@ -349,7 +349,7 @@ mod with_network {
             limit: Option<u16>,
             offset: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<BrokerSubaccountDeposit>> {
+        ) -> BinanceResult<Vec<BrokerSubaccountDeposit>> {
             self.client
                 .get(SAPI_V1_BROKER_SUB_ACCOUNT_DEPOSIT_HIST)?
                 .signed(time_window)?
@@ -376,7 +376,7 @@ mod with_network {
             page: Option<u16>,
             size: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountAssetInfoList> {
+        ) -> BinanceResult<BrokerSubaccountAssetInfoList> {
             self.client
                 .get(SAPI_V1_BROKER_SUB_ACCOUNT_SPOT_SUMMARY)?
                 .signed(time_window)?
@@ -399,7 +399,7 @@ mod with_network {
             sub_account_id: impl Serialize,
             sub_account_api_key: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountApiIpRestriction> {
+        ) -> BinanceResult<BrokerSubaccountApiIpRestriction> {
             self.client
                 .get(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION)?
                 .signed(time_window)?
@@ -416,7 +416,7 @@ mod with_network {
             sub_account_api_key: impl Serialize,
             ip_restrict: bool,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountApiIpRestriction> {
+        ) -> BinanceResult<BrokerSubaccountApiIpRestriction> {
             self.client
                 .post(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION)?
                 .signed(time_window)?
@@ -434,7 +434,7 @@ mod with_network {
             sub_account_api_key: impl Serialize,
             ip_address: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountApiIpAddressAdded> {
+        ) -> BinanceResult<BrokerSubaccountApiIpAddressAdded> {
             self.client
                 .post(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION_IP_LIST)?
                 .signed(time_window)?
@@ -452,7 +452,7 @@ mod with_network {
             sub_account_api_key: impl Serialize,
             ip_address: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<BrokerSubaccountApiIpAddressDeleted> {
+        ) -> BinanceResult<BrokerSubaccountApiIpAddressDeleted> {
             self.client
                 .delete(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION_IP_LIST)?
                 .signed(time_window)?

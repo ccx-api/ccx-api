@@ -5,7 +5,7 @@ use ccx_binance::api::spot::OrderResponseType;
 use ccx_binance::api::spot::OrderSide;
 use ccx_binance::api::spot::OrderType;
 use ccx_binance::Decimal;
-use ccx_binance::LibResult;
+use ccx_binance::BinanceResult;
 use ccx_binance::SpotApi;
 use ccx_binance::TimeWindow;
 
@@ -17,7 +17,7 @@ async fn main() {
     let _ = main_().await;
 }
 
-async fn main_() -> LibResult<()> {
+async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
@@ -99,7 +99,7 @@ async fn main_() -> LibResult<()> {
     Ok(())
 }
 
-fn print_res<T: fmt::Debug>(res: LibResult<T>) -> LibResult<T> {
+fn print_res<T: fmt::Debug>(res: BinanceResult<T>) -> BinanceResult<T> {
     match &res {
         Ok(answer) => println!("Answer: {:#?}", answer),
         Err(e) => println!("Error: {:?}", e),
@@ -117,7 +117,7 @@ async fn limit_order(
     side: OrderSide,
     price: Decimal,
     quantity: Quantity,
-) -> LibResult<NewOrder> {
+) -> BinanceResult<NewOrder> {
     let (quantity, quote_quantity) = quantity.to_arg();
     print_res(
         binance
@@ -144,7 +144,7 @@ async fn market_order(
     symbol: &str,
     side: OrderSide,
     quantity: Quantity,
-) -> LibResult<NewOrder> {
+) -> BinanceResult<NewOrder> {
     let (quantity, quote_quantity) = quantity.to_arg();
     print_res(
         binance

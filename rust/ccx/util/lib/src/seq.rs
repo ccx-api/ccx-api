@@ -5,11 +5,11 @@ use std::ops::AddAssign;
 pub struct Seq<T>(T);
 
 impl<T> Seq<T>
-where
-    T: Sum<T>,
-    T: Product<T>,
-    T: AddAssign<T>,
-    T: Copy,
+    where
+        T: Sum<T>,
+        T: Product<T>,
+        T: AddAssign<T>,
+        T: Copy,
 {
     pub fn new() -> Self {
         Seq(empty().sum())
