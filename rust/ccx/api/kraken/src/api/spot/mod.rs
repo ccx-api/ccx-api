@@ -12,18 +12,23 @@ use crate::error::*;
 // TODO mod savings;
 mod market_data;
 mod user_data;
-// TODO mod user_trading;
+mod user_trading;
 // TODO mod user_funding;
 // TODO mod user_staking;
 // pub mod util;
+pub mod types;
 // TODO mod websocket_auth;
 
 pub use self::market_data::*;
+pub use self::types::*;
+pub use self::user_data::*;
+pub use self::user_trading::*;
 
 pub const API_BASE: &str = "https://api.kraken.com/";
 pub const STREAM_BASE: &str = "https://ws.binance.vision/";
 
 mod prelude {
+    pub use super::types::*;
     pub use crate::api::prelude::*;
 
     #[cfg(feature = "with_network")]
