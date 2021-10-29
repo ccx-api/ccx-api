@@ -53,7 +53,7 @@ pub enum AssetClass {
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AssetInfoResponse {
     #[serde(flatten)]
-    pub asset: HashMap<Atom, AssetInfo>
+    pub asset: HashMap<Atom, AssetInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -87,7 +87,7 @@ pub enum AssetPairInfoKind {
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AssetPairResponse {
     #[serde(flatten)]
-    pub pair: HashMap<Atom, AssetPairInfo>
+    pub pair: HashMap<Atom, AssetPairInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -143,7 +143,7 @@ pub struct AssetPairFee {
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AssetTickerResponse {
     #[serde(flatten)]
-    pub pair: HashMap<Atom, TickerInfo>
+    pub pair: HashMap<Atom, TickerInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -230,11 +230,17 @@ mod with_network {
         ///
         /// * assets - Comma delimited list of assets to get info on.
         /// * aclass - Asset class. (optional, default: currency)
-        pub async fn asset_info(&self, assets: Option<&str>, aclass: Option<AssetClass>) -> KrakenApiResult<AssetInfoResponse> {
-            self.client.get(API_0_PUBLIC_ASSETS)?
+        pub async fn asset_info(
+            &self,
+            assets: Option<&str>,
+            aclass: Option<AssetClass>,
+        ) -> KrakenApiResult<AssetInfoResponse> {
+            self.client
+                .get(API_0_PUBLIC_ASSETS)?
                 .try_query_arg("asset", &assets)?
                 .try_query_arg("aclass", &aclass)?
-                .send().await
+                .send()
+                .await
         }
 
         /// Get Tradable Asset Pairs.
@@ -242,11 +248,17 @@ mod with_network {
         /// Get tradable asset pairs.
         ///
         /// * pairs - Asset pairs to get data for.
-        pub async fn asset_pairs(&self, pairs: Option<&str>, info: Option<AssetPairInfoKind>) -> KrakenApiResult<AssetPairResponse> {
-            self.client.get(API_0_PUBLIC_ASSET_PAIRS)?
+        pub async fn asset_pairs(
+            &self,
+            pairs: Option<&str>,
+            info: Option<AssetPairInfoKind>,
+        ) -> KrakenApiResult<AssetPairResponse> {
+            self.client
+                .get(API_0_PUBLIC_ASSET_PAIRS)?
                 .try_query_arg("pairs", &pairs)?
                 .try_query_arg("info", &info)?
-                .send().await
+                .send()
+                .await
         }
 
         /// Get Ticker Information.
@@ -255,9 +267,11 @@ mod with_network {
         ///
         /// * pair - Asset pair to get data for.
         pub async fn ticker(&self, pair: &str) -> KrakenApiResult<AssetTickerResponse> {
-            self.client.get(API_0_PUBLIC_TICKER)?
+            self.client
+                .get(API_0_PUBLIC_TICKER)?
                 .query_arg("pair", &pair)?
-                .send().await
+                .send()
+                .await
         }
     }
 }

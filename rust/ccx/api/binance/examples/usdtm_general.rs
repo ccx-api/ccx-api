@@ -25,7 +25,14 @@ async fn main_() -> BinanceResult<()> {
         // if &symbol.base_asset != "BTC" {
         //     continue;
         // }
-        println!("{:>8}/{:8}\t{:?}\t{:?}\t{:?}", symbol.base_asset, symbol.quote_asset, symbol.contract_type, symbol.underlying_type, symbol.underlying_sub_type);
+        println!(
+            "{:>8}/{:8}\t{:?}\t{:?}\t{:?}",
+            symbol.base_asset,
+            symbol.quote_asset,
+            symbol.contract_type,
+            symbol.underlying_type,
+            symbol.underlying_sub_type
+        );
     }
 
     Ok(())

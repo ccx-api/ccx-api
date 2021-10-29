@@ -4,8 +4,8 @@ use ccx_binance::api::spot::NewOrder;
 use ccx_binance::api::spot::OrderResponseType;
 use ccx_binance::api::spot::OrderSide;
 use ccx_binance::api::spot::OrderType;
-use ccx_binance::Decimal;
 use ccx_binance::BinanceResult;
+use ccx_binance::Decimal;
 use ccx_binance::SpotApi;
 use ccx_binance::TimeWindow;
 

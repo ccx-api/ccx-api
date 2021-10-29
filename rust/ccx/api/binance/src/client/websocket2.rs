@@ -195,7 +195,10 @@ impl std::ops::Deref for WebsocketStream {
 }
 
 impl WebsocketStreamTx {
-    pub async fn subscribe_one(&self, subscription: impl Into<WsSubscription>) -> BinanceResult<()> {
+    pub async fn subscribe_one(
+        &self,
+        subscription: impl Into<WsSubscription>,
+    ) -> BinanceResult<()> {
         let cmd = WsCommand::Subscribe1([subscription.into()]);
         Ok(self
             .addr

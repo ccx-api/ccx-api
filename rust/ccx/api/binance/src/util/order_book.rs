@@ -4,7 +4,7 @@ use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use crate::{DiffOrderBookEvent, BinanceError, BinanceResult};
+use crate::{BinanceError, BinanceResult, DiffOrderBookEvent};
 
 pub enum OrderBookUpdater {
     Preparing { buffer: Vec<DiffOrderBookEvent> },

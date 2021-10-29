@@ -84,10 +84,7 @@ pub enum BrokerSubaccountTransferStatus {
 impl BrokerSubaccountTransferStatus {
     pub fn is_finished(&self) -> bool {
         use BrokerSubaccountTransferStatus as S;
-        matches!(
-            self,
-            S::Success | S::Failure
-        )
+        matches!(self, S::Success | S::Failure)
     }
 }
 

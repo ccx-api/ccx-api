@@ -67,7 +67,11 @@ mod with_network {
         pub fn from_env() -> Self {
             let testnet = Config::env_var("TESTNET").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(CCX_BINANCE_API_PREFIX);
-            UmApi::new(ApiCred::from_env_with_prefix(CCX_BINANCE_API_PREFIX), testnet, proxy)
+            UmApi::new(
+                ApiCred::from_env_with_prefix(CCX_BINANCE_API_PREFIX),
+                testnet,
+                proxy,
+            )
         }
 
         /// Reads config from env vars with names like:

@@ -24,12 +24,3 @@ impl CcxApiError for ApiError {}
 
 pub type BinanceResult<T> = ccx_api_lib::LibResult<T, ApiError>;
 pub type BinanceError = ccx_api_lib::LibError<ApiError>;
-
-fn test() {
-    let y = x();
-
-    // fn x() -> LibError<KrakenApiError> {
-    fn x() -> BinanceResult<()> {
-        todo!()
-    }
-}

@@ -8,7 +8,7 @@ pub fn print_res<T: fmt::Debug>(res: KrakenApiResult<T>) -> KrakenApiResult<T> {
         Ok((answer, warnings)) => {
             println!("Answer: {:#?}", answer);
             println!("Warnings: {:#?}", warnings);
-        },
+        }
         Err(e) => println!("Error: {:?}", e),
     }
     res

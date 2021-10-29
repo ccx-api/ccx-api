@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::env_var_with_prefix;
 
@@ -20,4 +20,3 @@ impl Proxy {
         Some(Proxy { host, port })
     }
 }
-

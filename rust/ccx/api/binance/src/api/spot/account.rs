@@ -433,9 +433,7 @@ mod with_network {
                 }
                 OrderType::StopLoss => {
                     if quantity.is_none() || stop_price.is_none() {
-                        Err(ApiError::mandatory_field_omitted(
-                            "quantity, stop_price",
-                        ))?
+                        Err(ApiError::mandatory_field_omitted("quantity, stop_price"))?
                     }
                 }
                 OrderType::StopLossLimit => {
@@ -451,9 +449,7 @@ mod with_network {
                 }
                 OrderType::TakeProfit => {
                     if quantity.is_none() || stop_price.is_none() {
-                        Err(ApiError::mandatory_field_omitted(
-                            "quantity, stop_price",
-                        ))?
+                        Err(ApiError::mandatory_field_omitted("quantity, stop_price"))?
                     }
                 }
                 OrderType::TakeProfitLimit => {

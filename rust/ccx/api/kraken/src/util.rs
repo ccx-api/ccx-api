@@ -1,13 +1,4 @@
-// {
-// 'XBT': 'BTC',
-// 'BCC': 'BCH',
-// 'DRK': 'DASH',
-// 'BCHABC': 'BCH',
-// 'BCHSV': 'BSV',
-// }
-
-use std::borrow::Cow;
-
+/// Converts Kraken's asset codes into ccxt-compatible asset codes.
 pub fn universal_asset_code(asset_id: &str) -> &str {
     if !asset_id.is_ascii() {
         return asset_id;

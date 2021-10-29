@@ -6,14 +6,13 @@ use crate::client::Proxy;
 use crate::client::RestClient;
 // use crate::client::WebsocketStream;
 use crate::client::CCX_KRAKEN_API_PREFIX;
-use crate::error::*;
 
 // TODO mod error;
 // TODO mod savings;
 mod market_data;
 mod user_data;
-mod user_trading;
 mod user_funding;
+mod user_trading;
 // TODO mod user_staking;
 // pub mod util;
 pub mod types;

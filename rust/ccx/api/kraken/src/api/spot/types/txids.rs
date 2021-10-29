@@ -1,7 +1,5 @@
 use std::fmt;
 
-use serde::de;
-
 use super::super::prelude::*;
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]

@@ -284,7 +284,7 @@ impl RequestBuilder {
     // }
 
     fn sign(mut self) -> KrakenResult<Self> {
-        if let Some((nonce, )) = self.sign {
+        if let Some((nonce,)) = self.sign {
             let path = self.request.get_uri().path();
             let decoded_secret = base64::decode(&self.secret)
                 .map_err(|e| KrakenError::other(format!("Failed to deserialize key: {:?}", e)))?;

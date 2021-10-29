@@ -1,5 +1,5 @@
-use ccx_binance::SpotApi;
 use ccx_binance::BinanceResult;
+use ccx_binance::SpotApi;
 use ccx_binance::TimeWindow;
 use ccx_binance_examples_util::*;
 

@@ -1,8 +1,3 @@
-use std::borrow::Cow;
-use std::collections::HashMap;
-
-use serde::Serializer;
-
 use super::prelude::*;
 
 pub const API_0_PRIVATE_ADD_ORDER: &str = "/0/private/AddOrder";
@@ -59,7 +54,6 @@ pub use with_network::*;
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
-    use std::borrow::Cow;
 
     impl SpotApi {
         /// Validate inputs only. Do not submit order.

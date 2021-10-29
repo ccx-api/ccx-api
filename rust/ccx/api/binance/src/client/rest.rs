@@ -164,7 +164,8 @@ impl RequestBuilder {
             }
             buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
-            let uri = Uri::from_parts(parts).map_err(|e| BinanceError::other(format!("{:?}", e)))?;
+            let uri =
+                Uri::from_parts(parts).map_err(|e| BinanceError::other(format!("{:?}", e)))?;
             self.request = self.request.uri(uri);
         }
 

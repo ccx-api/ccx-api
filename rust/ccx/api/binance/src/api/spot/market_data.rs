@@ -1,6 +1,6 @@
 use super::prelude::*;
 use super::OrderType;
-use crate::util::{Bid, Ask};
+use crate::util::{Ask, Bid};
 
 pub const API_V3_PING: &str = "/api/v3/ping";
 pub const API_V3_TIME: &str = "/api/v3/time";
@@ -436,9 +436,9 @@ impl Into<OrderBook> for SpotOrderBook {
     }
 }
 
+use crate::util::OrderBook;
 #[cfg(feature = "with_network")]
 pub use with_network::*;
-use crate::util::OrderBook;
 
 #[cfg(feature = "with_network")]
 mod with_network {

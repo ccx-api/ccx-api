@@ -3,7 +3,8 @@ use super::prelude::*;
 pub const SAPI_V1_SYSTEM_STATUS: &str = "/sapi/v1/system/status";
 pub const SAPI_V1_CAPITAL_CONFIG_GETALL: &str = "/sapi/v1/capital/config/getall";
 // TODO pub const SAPI_V1_ACCOUNT_SNAPSHOT: &str = "/sapi/v1/accountSnapshot";
-pub const SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW: &str = "/sapi/v1/account/disableFastWithdrawSwitch";
+pub const SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW: &str =
+    "/sapi/v1/account/disableFastWithdrawSwitch";
 pub const SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW: &str = "/sapi/v1/account/enableFastWithdrawSwitch";
 pub const SAPI_V1_CAPITAL_WITHDRAW_APPLY: &str = "/sapi/v1/capital/withdraw/apply";
 // TODO pub const SAPI_V1_CAPITAL_DEPOSIT_HISTORY: &str = "/sapi/v1/capital/deposit/history";
@@ -178,7 +179,6 @@ mod with_network {
     use super::*;
 
     impl SpotApi {
-
         pub async fn asset_transfer(
             &self,
             transfer_type: TransferKind,
@@ -199,9 +199,7 @@ mod with_network {
         /// System Status (System)
         ///
         /// Fetch system status.
-        pub async fn system_status(
-            &self,
-        ) -> BinanceResult<SystemStatus> {
+        pub async fn system_status(&self) -> BinanceResult<SystemStatus> {
             self.client
                 .get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
                 .send()

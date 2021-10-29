@@ -37,26 +37,17 @@ pub enum ClearjunctionWithdrawStatus {
 impl ClearjunctionWithdrawStatus {
     pub fn is_finished(&self) -> bool {
         use ClearjunctionWithdrawStatus as WS;
-        matches!(
-            self,
-            WS::Succeed | WS::Failed
-        )
+        matches!(self, WS::Succeed | WS::Failed)
     }
 
     pub fn is_succeed(&self) -> bool {
         use ClearjunctionWithdrawStatus as WS;
-        matches!(
-            self,
-            WS::Succeed
-        )
+        matches!(self, WS::Succeed)
     }
 
     pub fn is_failed(&self) -> bool {
         use ClearjunctionWithdrawStatus as WS;
-        matches!(
-            self,
-            WS::Failed
-        )
+        matches!(self, WS::Failed)
     }
 
     pub fn is_pending(&self) -> bool {
