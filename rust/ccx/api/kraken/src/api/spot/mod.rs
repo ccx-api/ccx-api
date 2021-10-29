@@ -13,7 +13,7 @@ use crate::error::*;
 mod market_data;
 mod user_data;
 mod user_trading;
-// TODO mod user_funding;
+mod user_funding;
 // TODO mod user_staking;
 // pub mod util;
 pub mod types;
@@ -22,6 +22,7 @@ pub mod types;
 pub use self::market_data::*;
 pub use self::types::*;
 pub use self::user_data::*;
+pub use self::user_funding::*;
 pub use self::user_trading::*;
 
 pub const API_BASE: &str = "https://api.kraken.com/";

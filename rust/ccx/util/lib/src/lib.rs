@@ -11,6 +11,7 @@ mod env;
 mod error;
 mod proxy;
 mod seq;
+pub mod serde_util;
 
 #[cfg(feature = "with_network")]
 pub use self::connector::*;
