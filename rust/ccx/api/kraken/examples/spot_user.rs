@@ -2,7 +2,7 @@ use ccx_kraken::api::spot::SpotApi;
 #[allow(unused_imports)]
 use ccx_kraken::client::ApiCred;
 use ccx_kraken::client::NonceSeq;
-use ccx_kraken::{KrakenApiError, KrakenApiResult, KrakenResult};
+use ccx_kraken::{KrakenApiError, KrakenApiResult};
 use ccx_kraken_examples_util::*;
 
 const SYMBOL: &str = "XXBTZUSD";
