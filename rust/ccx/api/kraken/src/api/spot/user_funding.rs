@@ -56,6 +56,8 @@ pub struct GetDepositAddressesResponse {
 pub struct DepositAddress {
     /// Deposit Address.
     pub address: String,
+    /// Deposit Address tag.
+    pub tag: Option<String>,
     /// Expiration time in unix timestamp, or 0 if not expiring.
     pub expiretm: String,
     /// Whether or not address has ever been used.
