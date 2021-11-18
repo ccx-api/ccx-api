@@ -18,6 +18,7 @@ pub const SAPI_V1_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/addr
 // TODO pub const SAPI_V1_ASSET_DETAIL: &str = "/sapi/v1/asset/assetDetail";
 // TODO pub const SAPI_V1_ASSET_TRADE_FEE: &str = "/sapi/v1/asset/tradeFee";
 pub const SAPI_V1_ASSET_TRANSFER: &str = "/sapi/v1/asset/transfer";
+pub const SAPI_V1_ASSET_GET_FUNDING_ASSET: &str = "/sapi/v1/asset/get-funding-asset";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -174,6 +175,20 @@ pub struct Transfer {
     pub transfer_id: u64,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FundingAsset {
+    pub asset: Atom,
+    /// avalible balance.
+    pub free: Decimal,
+    /// locked asset.
+    pub locked: Decimal,
+    /// freeze asset.
+    pub freeze: Decimal,
+    pub withdrawing: Decimal,
+    pub btc_valuation: Decimal,
+}
+
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
@@ -192,6 +207,27 @@ mod with_network {
                 .query_arg("type", &transfer_type)?
                 .query_arg("asset", &asset)?
                 .query_arg("amount", &amount)?
+                .send()
+                .await
+        }
+
+        /// Funding Wallet (USER_DATA)
+        ///
+        /// Weight(IP): 1
+        ///
+        /// * Currently supports querying the following business assets：Binance Pay, Binance Card,
+        /// Binance Gift Card, Stock Token.
+        pub async fn asset_fundings(
+            &self,
+            asset: Option<impl Serialize>,
+            need_btc_valuation: Option<bool>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<Vec<FundingAsset>> {
+            self.client
+                .post(SAPI_V1_ASSET_GET_FUNDING_ASSET)?
+                .signed(time_window)?
+                .try_query_arg("asset", &asset)?
+                .try_query_arg("needBtcValuation", &need_btc_valuation)?
                 .send()
                 .await
         }
