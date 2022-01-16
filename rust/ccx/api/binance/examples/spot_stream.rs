@@ -6,7 +6,7 @@ use string_cache::DefaultAtom as Atom;
 use ccx_binance::api::spot::OrderBookLimit;
 use ccx_binance::util::OrderBook;
 use ccx_binance::util::OrderBookUpdater;
-use ccx_binance::LibError;
+use ccx_binance::BinanceError;
 use ccx_binance::SpotApi;
 use ccx_binance::UpstreamWebsocketMessage;
 use ccx_binance::WsEvent;
@@ -112,7 +112,7 @@ async fn main() {
             }
             println!();
         }
-        Ok::<(), LibError>(())
+        Ok::<(), BinanceError>(())
     };
     println!("Execution stopped with: {:?}", res.await);
 }

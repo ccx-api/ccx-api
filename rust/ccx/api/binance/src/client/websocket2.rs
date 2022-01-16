@@ -12,9 +12,10 @@ use futures::stream::SplitSink;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use ccx_api_lib::Seq;
+
 use crate::client::RestClient;
-use crate::error::{LibError, LibResult};
-use crate::util::Seq;
+use crate::error::{BinanceError, BinanceResult};
 use crate::{UpstreamApiRequest, UpstreamWebsocketMessage, WsCommand, WsEvent, WsSubscription};
 
 /// How often heartbeat pings are sent.
@@ -156,7 +157,7 @@ impl Websocket {
 }
 
 impl WebsocketStream {
-    pub async fn connect(api_client: RestClient, url: Url) -> LibResult<Self> {
+    pub async fn connect(api_client: RestClient, url: Url) -> BinanceResult<Self> {
         use futures::StreamExt;
 
         log::debug!("Connecting WS: {}", url.as_str());
@@ -194,21 +195,24 @@ impl std::ops::Deref for WebsocketStream {
 }
 
 impl WebsocketStreamTx {
-    pub async fn subscribe_one(&self, subscription: impl Into<WsSubscription>) -> LibResult<()> {
+    pub async fn subscribe_one(
+        &self,
+        subscription: impl Into<WsSubscription>,
+    ) -> BinanceResult<()> {
         let cmd = WsCommand::Subscribe1([subscription.into()]);
         Ok(self
             .addr
             .send(M(cmd))
             .await
-            .map_err(|_e| LibError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
+            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
     }
 
-    pub async fn subscribe_list(&self, subscriptions: Box<[WsSubscription]>) -> LibResult<()> {
+    pub async fn subscribe_list(&self, subscriptions: Box<[WsSubscription]>) -> BinanceResult<()> {
         let cmd = WsCommand::Subscribe(subscriptions);
         Ok(self
             .addr
             .send(M(cmd))
             .await
-            .map_err(|_e| LibError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
+            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
     }
 }

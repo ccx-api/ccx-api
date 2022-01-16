@@ -99,7 +99,7 @@ mod with_network {
             amount: Decimal,
             r#type: FuturesTransferType,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<NewFuturesAccountTransfer> {
+        ) -> BinanceResult<NewFuturesAccountTransfer> {
             self.client
                 .post(SAPI_V1_FUTURES_TRANSFER)?
                 .signed(time_window)?
@@ -124,7 +124,7 @@ mod with_network {
             current_page: Option<u64>,
             page_size: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<FuturesAccountTransferHistoryList> {
+        ) -> BinanceResult<FuturesAccountTransferHistoryList> {
             self.client
                 .get(SAPI_V1_FUTURES_TRANSFER)?
                 .signed(time_window)?
@@ -155,7 +155,7 @@ mod with_network {
             loan_coin: Option<impl Serialize>,
             collateral_coin: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<FuturesCrossCollateranlInformationV2>> {
+        ) -> BinanceResult<Vec<FuturesCrossCollateranlInformationV2>> {
             self.client
                 .get(SAPI_V2_FUTURES_LOAN_CONFIGS)?
                 .signed(time_window)?

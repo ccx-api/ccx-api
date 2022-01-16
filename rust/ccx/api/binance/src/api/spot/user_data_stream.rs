@@ -22,7 +22,7 @@ mod with_network {
         /// The stream will close after 60 minutes unless a keepalive is sent.
         ///
         /// Weight: 1
-        pub async fn user_data_stream(&self) -> LibResult<ListenKey> {
+        pub async fn user_data_stream(&self) -> BinanceResult<ListenKey> {
             self.client
                 .post(V1_USER_DATA_STREAM)?
                 .auth_header()?

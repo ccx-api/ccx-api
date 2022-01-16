@@ -1,9 +1,9 @@
 use std::fmt;
 
+use ccx_binance::BinanceResult;
 use ccx_binance::Decimal;
-use ccx_binance::LibResult;
 
-pub fn print_res<T: fmt::Debug>(res: LibResult<T>) -> LibResult<T> {
+pub fn print_res<T: fmt::Debug>(res: BinanceResult<T>) -> BinanceResult<T> {
     match &res {
         Ok(answer) => println!("Answer: {:#?}", answer),
         Err(e) => println!("Error: {:?}", e),

@@ -1,12 +1,12 @@
 use super::prelude::*;
 
-mod symbol;
-mod rate_limit;
 mod filter;
+mod rate_limit;
+mod symbol;
 
-pub use self::symbol::*;
-pub use self::rate_limit::*;
 pub use self::filter::*;
+pub use self::rate_limit::*;
+pub use self::symbol::*;
 
 pub const FAPI_V1_EXCHANGE_INFO: &str = "/fapi/v1/exchangeInfo";
 
@@ -47,7 +47,7 @@ mod with_network {
         /// Current exchange trading rules and symbol information.
         ///
         /// Weight: 1
-        pub async fn exchange_info(&self) -> LibResult<ExchangeInformation> {
+        pub async fn exchange_info(&self) -> BinanceResult<ExchangeInformation> {
             self.client.get(FAPI_V1_EXCHANGE_INFO)?.send().await
         }
     }

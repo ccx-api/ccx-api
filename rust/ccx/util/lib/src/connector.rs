@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::convert::TryFrom;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
 use std::task::Context;
 use std::task::Poll;
 
@@ -13,35 +14,38 @@ use actix_service::Service;
 use tokio_socks::tcp::Socks5Stream;
 use tokio_socks::Error as SocksConnectError;
 use tokio_socks::TargetAddr;
-use tokio_socks::ToProxyAddrs;
 
 fn to_connect_error(e: SocksConnectError) -> ConnectError {
     ConnectError::Io(std::io::Error::new(std::io::ErrorKind::Other, e))
 }
 
-async fn connect_socks<P: ToProxyAddrs + 'static>(
-    proxy: P,
-    req: Connect<Uri>,
-) -> Result<Connection<Uri, Socks5Stream>, ConnectError> {
-    let res = Socks5Stream::connect(
-        proxy,
-        TargetAddr::Domain(Cow::Borrowed(req.host()), req.port()),
-    )
-    .await
-    .map_err(to_connect_error)?;
-    Ok(Connection::new(
-        res,
-        Uri::try_from(format!("{}:{}", req.host(), req.port())).unwrap(),
-    ))
+#[derive(Clone, Debug)]
+pub struct SocksConnector {
+    addr: Arc<str>,
 }
 
-#[derive(Clone, Debug)]
-pub struct SocksConnector<P: ToProxyAddrs>(pub P);
+impl SocksConnector {
+    pub fn new(addr: impl Into<Arc<str>>) -> Self {
+        let addr = addr.into();
+        SocksConnector { addr }
+    }
 
-impl<P> Service for SocksConnector<P>
-where
-    P: ToProxyAddrs + Copy + 'static,
-{
+    async fn connect(
+        proxy: Arc<str>,
+        req: Connect<Uri>,
+    ) -> Result<Connection<Uri, Socks5Stream>, ConnectError> {
+        let target = TargetAddr::Domain(Cow::Borrowed(req.host()), req.port());
+        let res = Socks5Stream::connect(proxy.as_ref(), target)
+            .await
+            .map_err(to_connect_error)?;
+        Ok(Connection::new(
+            res,
+            Uri::try_from(format!("{}:{}", req.host(), req.port())).unwrap(),
+        ))
+    }
+}
+
+impl Service for SocksConnector {
     type Request = Connect<Uri>;
     type Response = Connection<Uri, Socks5Stream>;
     type Error = ConnectError;
@@ -52,6 +56,6 @@ where
     }
 
     fn call(&mut self, req: Self::Request) -> Self::Future {
-        Box::pin(connect_socks(self.0, req))
+        Box::pin(Self::connect(self.addr.clone(), req))
     }
 }

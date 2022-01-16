@@ -1,9 +1,17 @@
 use url::Url;
 
-use crate::client::{ApiCred, Config, RestClient, WebsocketStream, Proxy};
+use ccx_api_lib::env_var_with_prefix;
+
+use crate::client::ApiCred;
+use crate::client::Config;
+use crate::client::Proxy;
+use crate::client::RestClient;
+use crate::client::WebsocketStream;
+use crate::client::CCX_BINANCE_API_PREFIX;
 use crate::error::*;
 
 mod account;
+mod broker;
 mod margin;
 mod market_data;
 mod user_data_stream;
@@ -20,6 +28,7 @@ mod wallet;
 mod websocket_market;
 
 pub use self::account::*;
+pub use self::broker::*;
 pub use self::futures::*;
 pub use self::margin::*;
 pub use self::market_data::*;
@@ -27,7 +36,6 @@ pub use self::user_data_stream::*;
 // TODO pub use self::error::*;
 // TODO pub use self::savings::*;
 // TODO pub use self::mining::*;
-// TODO pub use self::futures::*;
 // TODO pub use self::blvt::*;
 // TODO pub use self::bswap::*;
 #[cfg(feature = "experimental")]
@@ -81,14 +89,18 @@ mod with_network {
         /// "CCX_BINANCE_API_KEY", "CCX_BINANCE_API_SECRET", and "CCX_BINANCE_API_TESTNET"
         pub fn from_env() -> Self {
             let testnet = Config::env_var("TESTNET").as_deref() == Some("1");
-            let proxy = Proxy::from_env();
-            SpotApi::new(ApiCred::from_env(), testnet, proxy)
+            let proxy = Proxy::from_env_with_prefix(CCX_BINANCE_API_PREFIX);
+            SpotApi::new(
+                ApiCred::from_env_with_prefix(CCX_BINANCE_API_PREFIX),
+                testnet,
+                proxy,
+            )
         }
 
         /// Reads config from env vars with names like:
         /// "${prefix}_KEY", "${prefix}_SECRET", and "${prefix}_TESTNET"
         pub fn from_env_with_prefix(prefix: &str) -> Self {
-            let testnet = Config::env_var_with_prefix(prefix, "TESTNET").as_deref() == Some("1");
+            let testnet = env_var_with_prefix(prefix, "TESTNET").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(prefix);
             SpotApi::new(ApiCred::from_env_with_prefix(prefix), testnet, proxy)
         }
@@ -99,7 +111,7 @@ mod with_network {
         }
 
         /// Creates multiplexed websocket stream.
-        pub async fn ws(&self) -> LibResult<WebsocketStream> {
+        pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
             self.client.web_socket2().await
         }
     }

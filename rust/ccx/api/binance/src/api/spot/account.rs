@@ -325,7 +325,7 @@ mod with_network {
             new_client_order_id: Option<impl Serialize>,
             new_order_resp_type: Option<OrderResponseType>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<NewTestOrder> {
+        ) -> BinanceResult<NewTestOrder> {
             let request = self.prepare_order_request(
                 symbol,
                 side,
@@ -366,7 +366,7 @@ mod with_network {
             new_client_order_id: Option<impl Serialize>,
             new_order_resp_type: Option<OrderResponseType>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<NewOrder> {
+        ) -> BinanceResult<NewOrder> {
             let request = self.prepare_order_request(
                 symbol,
                 side,
@@ -410,7 +410,7 @@ mod with_network {
             new_order_resp_type: Option<OrderResponseType>,
             is_test: bool,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<RequestBuilder> {
+        ) -> BinanceResult<RequestBuilder> {
             let endpoint = if is_test {
                 API_V3_ORDER_TEST
             } else {
@@ -419,23 +419,21 @@ mod with_network {
             match r#type {
                 OrderType::Limit => {
                     if time_in_force.is_none() || quantity.is_none() || price.is_none() {
-                        Err(RequestError::mandatory_field_omitted(
+                        Err(ApiError::mandatory_field_omitted(
                             "time_in_force, quantity, price",
                         ))?
                     }
                 }
                 OrderType::Market => {
                     if quantity.is_none() && quote_order_qty.is_none() {
-                        Err(RequestError::mandatory_field_omitted(
+                        Err(ApiError::mandatory_field_omitted(
                             "quantity or quote_order_qty",
                         ))?
                     }
                 }
                 OrderType::StopLoss => {
                     if quantity.is_none() || stop_price.is_none() {
-                        Err(RequestError::mandatory_field_omitted(
-                            "quantity, stop_price",
-                        ))?
+                        Err(ApiError::mandatory_field_omitted("quantity, stop_price"))?
                     }
                 }
                 OrderType::StopLossLimit => {
@@ -444,16 +442,14 @@ mod with_network {
                         || price.is_none()
                         || stop_price.is_none()
                     {
-                        Err(RequestError::mandatory_field_omitted(
+                        Err(ApiError::mandatory_field_omitted(
                             "time_in_force, quantity, price, stop_price",
                         ))?
                     }
                 }
                 OrderType::TakeProfit => {
                     if quantity.is_none() || stop_price.is_none() {
-                        Err(RequestError::mandatory_field_omitted(
-                            "quantity, stop_price",
-                        ))?
+                        Err(ApiError::mandatory_field_omitted("quantity, stop_price"))?
                     }
                 }
                 OrderType::TakeProfitLimit => {
@@ -462,14 +458,14 @@ mod with_network {
                         || price.is_none()
                         || stop_price.is_none()
                     {
-                        Err(RequestError::mandatory_field_omitted(
+                        Err(ApiError::mandatory_field_omitted(
                             "time_in_force, quantity, price, stop_price",
                         ))?
                     }
                 }
                 OrderType::LimitMaker => {
                     if quantity.is_none() || price.is_none() {
-                        Err(RequestError::mandatory_field_omitted("quantity, price"))?
+                        Err(ApiError::mandatory_field_omitted("quantity, price"))?
                     }
                 }
             };
@@ -508,9 +504,9 @@ mod with_network {
             orig_client_order_id: Option<impl Serialize>,
             new_client_order_id: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<CancelledOrder> {
+        ) -> BinanceResult<CancelledOrder> {
             if order_id.is_none() && orig_client_order_id.is_none() {
-                Err(RequestError::mandatory_field_omitted(
+                Err(ApiError::mandatory_field_omitted(
                     "order_id or orig_client_order_id",
                 ))?
             }
@@ -535,7 +531,7 @@ mod with_network {
             &self,
             symbol: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<CancelledOrder>> {
+        ) -> BinanceResult<Vec<CancelledOrder>> {
             self.client
                 .delete(API_V3_OPEN_ORDERS)?
                 .signed(time_window)?
@@ -559,9 +555,9 @@ mod with_network {
             order_id: Option<u64>,
             orig_client_order_id: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Order> {
+        ) -> BinanceResult<Order> {
             if order_id.is_none() && orig_client_order_id.is_none() {
-                Err(RequestError::mandatory_field_omitted(
+                Err(ApiError::mandatory_field_omitted(
                     "order_id or orig_client_order_id",
                 ))?
             }
@@ -586,7 +582,7 @@ mod with_network {
             &self,
             symbol: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<Order>> {
+        ) -> BinanceResult<Vec<Order>> {
             self.client
                 .get(API_V3_OPEN_ORDERS)?
                 .signed(time_window)?
@@ -616,7 +612,7 @@ mod with_network {
             order_id: Option<u64>,
             limit: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<Order>> {
+        ) -> BinanceResult<Vec<Order>> {
             self.client
                 .get(API_V3_ALL_ORDERS)?
                 .signed(time_window)?
@@ -643,7 +639,7 @@ mod with_network {
         pub async fn account(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<AccountInformation> {
+        ) -> BinanceResult<AccountInformation> {
             self.client
                 .get(API_V3_ACCOUNT)?
                 .signed(time_window)?
@@ -669,7 +665,7 @@ mod with_network {
             from_id: Option<u64>,
             limit: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<MyTrade>> {
+        ) -> BinanceResult<Vec<MyTrade>> {
             self.client
                 .get(API_V3_MY_TRADES)?
                 .signed(time_window)?

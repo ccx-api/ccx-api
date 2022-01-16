@@ -1,5 +1,5 @@
 use ccx_binance::api::um::UmApi;
-use ccx_binance::LibResult;
+use ccx_binance::BinanceResult;
 use ccx_binance_examples_util::*;
 
 #[actix_rt::main]
@@ -7,7 +7,7 @@ async fn main() {
     let _ = main_().await;
 }
 
-async fn main_() -> LibResult<()> {
+async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
@@ -25,7 +25,14 @@ async fn main_() -> LibResult<()> {
         // if &symbol.base_asset != "BTC" {
         //     continue;
         // }
-        println!("{:>8}/{:8}\t{:?}\t{:?}\t{:?}", symbol.base_asset, symbol.quote_asset, symbol.contract_type, symbol.underlying_type, symbol.underlying_sub_type);
+        println!(
+            "{:>8}/{:8}\t{:?}\t{:?}\t{:?}",
+            symbol.base_asset,
+            symbol.quote_asset,
+            symbol.contract_type,
+            symbol.underlying_type,
+            symbol.underlying_sub_type
+        );
     }
 
     Ok(())

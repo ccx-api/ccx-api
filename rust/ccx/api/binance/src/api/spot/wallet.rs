@@ -3,7 +3,8 @@ use super::prelude::*;
 pub const SAPI_V1_SYSTEM_STATUS: &str = "/sapi/v1/system/status";
 pub const SAPI_V1_CAPITAL_CONFIG_GETALL: &str = "/sapi/v1/capital/config/getall";
 // TODO pub const SAPI_V1_ACCOUNT_SNAPSHOT: &str = "/sapi/v1/accountSnapshot";
-pub const SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW: &str = "/sapi/v1/account/disableFastWithdrawSwitch";
+pub const SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW: &str =
+    "/sapi/v1/account/disableFastWithdrawSwitch";
 pub const SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW: &str = "/sapi/v1/account/enableFastWithdrawSwitch";
 pub const SAPI_V1_CAPITAL_WITHDRAW_APPLY: &str = "/sapi/v1/capital/withdraw/apply";
 // TODO pub const SAPI_V1_CAPITAL_DEPOSIT_HISTORY: &str = "/sapi/v1/capital/deposit/history";
@@ -17,6 +18,7 @@ pub const SAPI_V1_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/addr
 // TODO pub const SAPI_V1_ASSET_DETAIL: &str = "/sapi/v1/asset/assetDetail";
 // TODO pub const SAPI_V1_ASSET_TRADE_FEE: &str = "/sapi/v1/asset/tradeFee";
 pub const SAPI_V1_ASSET_TRANSFER: &str = "/sapi/v1/asset/transfer";
+pub const SAPI_V1_ASSET_GET_FUNDING_ASSET: &str = "/sapi/v1/asset/get-funding-asset";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -173,19 +175,32 @@ pub struct Transfer {
     pub transfer_id: u64,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FundingAsset {
+    pub asset: Atom,
+    /// avalible balance.
+    pub free: Decimal,
+    /// locked asset.
+    pub locked: Decimal,
+    /// freeze asset.
+    pub freeze: Decimal,
+    pub withdrawing: Decimal,
+    pub btc_valuation: Decimal,
+}
+
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
 
     impl SpotApi {
-
         pub async fn asset_transfer(
             &self,
             transfer_type: TransferKind,
             asset: impl Serialize,
             amount: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Transfer> {
+        ) -> BinanceResult<Transfer> {
             self.client
                 .post(SAPI_V1_ASSET_TRANSFER)?
                 .signed(time_window)?
@@ -196,12 +211,31 @@ mod with_network {
                 .await
         }
 
+        /// Funding Wallet (USER_DATA)
+        ///
+        /// Weight(IP): 1
+        ///
+        /// * Currently supports querying the following business assets：Binance Pay, Binance Card,
+        /// Binance Gift Card, Stock Token.
+        pub async fn asset_fundings(
+            &self,
+            asset: Option<impl Serialize>,
+            need_btc_valuation: Option<bool>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<Vec<FundingAsset>> {
+            self.client
+                .post(SAPI_V1_ASSET_GET_FUNDING_ASSET)?
+                .signed(time_window)?
+                .try_query_arg("asset", &asset)?
+                .try_query_arg("needBtcValuation", &need_btc_valuation)?
+                .send()
+                .await
+        }
+
         /// System Status (System)
         ///
         /// Fetch system status.
-        pub async fn system_status(
-            &self,
-        ) -> LibResult<SystemStatus> {
+        pub async fn system_status(&self) -> BinanceResult<SystemStatus> {
             self.client
                 .get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
                 .send()
@@ -216,7 +250,7 @@ mod with_network {
         pub async fn all_coins_information(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<CoinInformation>> {
+        ) -> BinanceResult<Vec<CoinInformation>> {
             self.client
                 .get(SAPI_V1_CAPITAL_CONFIG_GETALL)?
                 .signed(time_window)?
@@ -235,11 +269,11 @@ mod with_network {
         pub async fn disable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<()> {
+        ) -> BinanceResult<()> {
             self.client
                 .post(SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW)?
                 .signed(time_window)?
-                .send_no_responce()
+                .send_no_response()
                 .await
         }
 
@@ -254,11 +288,11 @@ mod with_network {
         pub async fn enable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<()> {
+        ) -> BinanceResult<()> {
             self.client
                 .post(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
                 .signed(time_window)?
-                .send_no_responce()
+                .send_no_response()
                 .await
         }
 
@@ -276,7 +310,7 @@ mod with_network {
             coin: impl Serialize,
             network: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<DepositAddress> {
+        ) -> BinanceResult<DepositAddress> {
             self.client
                 .get(SAPI_V1_CAPITAL_DEPOSIT_ADDRESS)?
                 .signed(time_window)?
@@ -313,7 +347,7 @@ mod with_network {
             transaction_fee_flag: Option<bool>,
             name: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<NewWithdraw> {
+        ) -> BinanceResult<NewWithdraw> {
             self.client
                 .post(SAPI_V1_CAPITAL_WITHDRAW_APPLY)?
                 .signed(time_window)?
@@ -350,7 +384,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> LibResult<Vec<Withdraw>> {
+        ) -> BinanceResult<Vec<Withdraw>> {
             self.client
                 .get(SAPI_V1_CAPITAL_WITHDRAW_HISTORY)?
                 .signed(time_window)?

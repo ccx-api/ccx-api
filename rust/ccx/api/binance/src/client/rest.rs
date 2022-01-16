@@ -11,13 +11,16 @@ use hmac::{Hmac, Mac, NewMac};
 use serde::Serialize;
 use sha2::Sha256;
 
+use ccx_api_lib::SocksConnector;
+
 use super::*;
 use crate::client::limits::UsedRateLimits;
 use crate::client::{WebsocketClient, WebsocketStream};
 use crate::error::*;
 use crate::proto::TimeWindow;
 
-const CLIENT_TIMEOUT: u64 = 60;
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// API client.
 #[derive(Clone)]
@@ -42,59 +45,56 @@ impl RestClient {
         RestClient { inner }
     }
 
-    pub(super) fn client(&self) -> Client {
+    fn client_(&self, h1_only: bool) -> Client {
+        let cfg = Self::client_config(h1_only);
         match self.inner.config.proxy.as_ref() {
-            Some(proxy) => self.client_with_proxy(proxy),
-            None => {
-                let timeout = Duration::from_secs(5);
-                let connector = Connector::new().timeout(timeout).finish();
-                Client::builder()
-                    .connector(connector)
-                    .timeout(timeout)
-                    .finish()
-            },
+            Some(proxy) => self.client_with_proxy(cfg, proxy),
+            None => self.client_without_proxy(cfg),
         }
     }
 
-    fn client_with_proxy(&self, proxy: &Proxy) -> Client {
-        fn string_to_static_str(s: String) -> &'static str {
-            Box::leak(s.into_boxed_str())
-        }
-
-        let proxy_addr = proxy.addr();
-        let timeout = Duration::from_secs(CLIENT_TIMEOUT);
-        awc::ClientBuilder::new()
-            .connector(
-                actix_web::client::Connector::new()
-                    .connector(crate::client::connector::SocksConnector(
-                        string_to_static_str(proxy_addr),
-                    ))
-                    .timeout(std::time::Duration::from_secs(60))
-                    .finish(),
-            )
-            .timeout(timeout)
-            .finish()
+    pub(super) fn client(&self) -> Client {
+        self.client_(false)
     }
 
     pub(super) fn client_h1(&self) -> Client {
+        self.client_(true)
+    }
+
+    fn client_config(h1_only: bool) -> Arc<rustls::ClientConfig> {
         let mut cfg = rustls::ClientConfig::new();
-        cfg.alpn_protocols = vec![b"http/1.1".to_vec()];
+        if h1_only {
+            cfg.alpn_protocols = vec![b"http/1.1".to_vec()];
+        }
         cfg.root_store
             .add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
+        Arc::new(cfg)
+    }
 
-        let timeout = Duration::from_secs(5);
+    fn client_without_proxy(&self, cfg: Arc<rustls::ClientConfig>) -> Client {
         let connector = Connector::new()
-            .rustls(Arc::new(cfg))
-            .timeout(timeout)
+            .rustls(cfg)
+            .timeout(CONNECT_TIMEOUT)
             .finish();
-
         Client::builder()
             .connector(connector)
-            .timeout(timeout)
+            .timeout(CLIENT_TIMEOUT)
             .finish()
     }
 
-    pub fn request(&self, method: Method, endpoint: &str) -> LibResult<RequestBuilder> {
+    fn client_with_proxy(&self, cfg: Arc<rustls::ClientConfig>, proxy: &Proxy) -> Client {
+        let connector = Connector::new()
+            .rustls(cfg)
+            .connector(SocksConnector::new(proxy.addr()))
+            .timeout(CONNECT_TIMEOUT)
+            .finish();
+        Client::builder()
+            .connector(connector)
+            .timeout(CLIENT_TIMEOUT)
+            .finish()
+    }
+
+    pub fn request(&self, method: Method, endpoint: &str) -> BinanceResult<RequestBuilder> {
         let url = self.inner.config.api_base.join(endpoint)?;
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
@@ -108,28 +108,28 @@ impl RestClient {
         })
     }
 
-    pub fn get(&self, endpoint: &str) -> LibResult<RequestBuilder> {
+    pub fn get(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
         self.request(Method::GET, endpoint)
     }
 
-    pub fn post(&self, endpoint: &str) -> LibResult<RequestBuilder> {
+    pub fn post(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
         self.request(Method::POST, endpoint)
     }
 
-    pub fn put(&self, endpoint: &str) -> LibResult<RequestBuilder> {
+    pub fn put(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
         self.request(Method::PUT, endpoint)
     }
 
-    pub fn delete(&self, endpoint: &str) -> LibResult<RequestBuilder> {
+    pub fn delete(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
         self.request(Method::DELETE, endpoint)
     }
 
-    pub async fn web_socket(&self) -> LibResult<WebsocketClient> {
+    pub async fn web_socket(&self) -> BinanceResult<WebsocketClient> {
         let url = self.inner.config.stream_base.clone();
         Ok(WebsocketClient::connect(self.clone(), url).await?)
     }
 
-    pub async fn web_socket2(&self) -> LibResult<WebsocketStream> {
+    pub async fn web_socket2(&self) -> BinanceResult<WebsocketStream> {
         let url = self.inner.config.stream_base.clone();
         Ok(WebsocketStream::connect(self.clone(), url).await?)
     }
@@ -140,7 +140,7 @@ impl RequestBuilder {
         self.request.get_uri().to_string()
     }
 
-    pub fn query_args<T: Serialize>(mut self, query: &T) -> LibResult<Self> {
+    pub fn query_args<T: Serialize>(mut self, query: &T) -> BinanceResult<Self> {
         self.request = self.request.query(query)?;
         Ok(self)
     }
@@ -149,7 +149,7 @@ impl RequestBuilder {
         mut self,
         name: S,
         query: &T,
-    ) -> LibResult<Self> {
+    ) -> BinanceResult<Self> {
         let mut parts = self.request.get_uri().clone().into_parts();
 
         if let Some(path_and_query) = parts.path_and_query {
@@ -164,7 +164,8 @@ impl RequestBuilder {
             }
             buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
-            let uri = Uri::from_parts(parts).map_err(|e| LibError::other(format!("{:?}", e)))?;
+            let uri =
+                Uri::from_parts(parts).map_err(|e| BinanceError::other(format!("{:?}", e)))?;
             self.request = self.request.uri(uri);
         }
 
@@ -175,14 +176,14 @@ impl RequestBuilder {
         self,
         name: S,
         query: &Option<T>,
-    ) -> LibResult<Self> {
+    ) -> BinanceResult<Self> {
         match query {
             Some(val) => self.query_arg(name, val),
             None => Ok(self),
         }
     }
 
-    pub fn auth_header(mut self) -> LibResult<Self> {
+    pub fn auth_header(mut self) -> BinanceResult<Self> {
         self.request = self.request.header(
             "X-MBX-APIKEY",
             HeaderValue::from_str(self.api_client.inner.config.cred.key.as_str())?,
@@ -190,12 +191,12 @@ impl RequestBuilder {
         Ok(self)
     }
 
-    pub fn signed(mut self, time_window: impl Into<TimeWindow>) -> LibResult<Self> {
+    pub fn signed(mut self, time_window: impl Into<TimeWindow>) -> BinanceResult<Self> {
         self.sign = Some(time_window.into());
         self.auth_header()
     }
 
-    pub async fn send<V>(mut self) -> LibResult<V>
+    pub async fn send<V>(mut self) -> BinanceResult<V>
     where
         V: serde::de::DeserializeOwned,
     {
@@ -209,11 +210,7 @@ impl RequestBuilder {
         } else {
             self
         };
-        log::debug!(
-            "{}  {}",
-            self.request.get_method(),
-            self.request.get_uri(),
-        );
+        log::debug!("{}  {}", self.request.get_method(), self.request.get_uri(),);
         let tm = Instant::now();
         let mut res = self.request.send().await?;
         let d1 = tm.elapsed();
@@ -224,7 +221,11 @@ impl RequestBuilder {
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
-        log::debug!("Response: {} «{}»", res.status(), String::from_utf8_lossy(&resp));
+        log::debug!(
+            "Response: {} «{}»",
+            res.status(),
+            String::from_utf8_lossy(&resp)
+        );
         if let Err(err) = check_response(res) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
@@ -238,8 +239,7 @@ impl RequestBuilder {
         }
     }
 
-    pub async fn send_no_responce(mut self) -> LibResult<()>
-    {
+    pub async fn send_no_response(mut self) -> BinanceResult<()> {
         self = if let Some(sign) = self.sign.clone() {
             self = self.query_arg("timestamp", &sign.timestamp())?;
             let recv_window = sign.recv_window();
@@ -250,11 +250,7 @@ impl RequestBuilder {
         } else {
             self
         };
-        log::debug!(
-            "{}  {}",
-            self.request.get_method(),
-            self.request.get_uri(),
-        );
+        log::debug!("{}  {}", self.request.get_method(), self.request.get_uri(),);
         let tm = Instant::now();
         let mut res = self.request.send().await?;
         let d1 = tm.elapsed();
@@ -265,7 +261,11 @@ impl RequestBuilder {
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
-        log::debug!("Response: {} «{}»", res.status(), String::from_utf8_lossy(&resp));
+        log::debug!(
+            "Response: {} «{}»",
+            res.status(),
+            String::from_utf8_lossy(&resp)
+        );
         if let Err(err) = check_response(res) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
@@ -273,7 +273,7 @@ impl RequestBuilder {
         Ok(())
     }
 
-    fn sign(self) -> LibResult<Self> {
+    fn sign(self) -> BinanceResult<Self> {
         let query = self.request.get_uri().query().unwrap_or("");
         let signature = sign(query, &self.secret);
         self.query_arg("signature", &signature)
@@ -290,7 +290,7 @@ fn sign(query: &str, secret: &[u8]) -> String {
 
 type AwcClientResponse = ClientResponse<Decoder<Payload<PayloadStream>>>;
 
-fn check_response(res: AwcClientResponse) -> LibResult<AwcClientResponse> {
+fn check_response(res: AwcClientResponse) -> BinanceResult<AwcClientResponse> {
     use awc::http::StatusCode;
 
     let used_rate_limits = UsedRateLimits::from_headers(res.headers());
@@ -301,13 +301,13 @@ fn check_response(res: AwcClientResponse) -> LibResult<AwcClientResponse> {
         StatusCode::OK => Ok(res),
         StatusCode::INTERNAL_SERVER_ERROR => Err(ServiceError::ServerError)?,
         StatusCode::SERVICE_UNAVAILABLE => Err(ServiceError::ServiceUnavailable)?,
-        StatusCode::UNAUTHORIZED => Err(RequestError::Unauthorized)?,
+        StatusCode::UNAUTHORIZED => Err(ApiError::Unauthorized)?,
         // StatusCode::BAD_REQUEST => {
         //     let error_json: BinanceContentError = response.json()?;
         //
         //     Err(ErrorKind::BinanceError(error_json.code, error_json.msg, response).into())
         // }
-        s => Err(LibError::UnknownStatus(s))?,
+        s => Err(BinanceError::UnknownStatus(s))?,
     }
 }
 

@@ -2,7 +2,7 @@ use std::ops;
 
 use chrono::Utc;
 
-use crate::{RequestError, LibResult};
+use crate::{ApiError, BinanceResult};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct TimeWindow {
@@ -52,9 +52,9 @@ impl ops::Deref for RecvWindow {
 impl RecvWindow {
     pub const DEFAULT: RecvWindow = RecvWindow(5000);
 
-    pub fn new(window: u32) -> LibResult<Self> {
+    pub fn new(window: u32) -> BinanceResult<Self> {
         match () {
-            () if window > 60000 => Err(RequestError::OutOfBounds)?,
+            () if window > 60000 => Err(ApiError::OutOfBounds)?,
             () => Ok(RecvWindow(window)),
         }
     }

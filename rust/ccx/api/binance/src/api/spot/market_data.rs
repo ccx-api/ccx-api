@@ -1,6 +1,6 @@
 use super::prelude::*;
 use super::OrderType;
-use crate::util::{Bid, Ask};
+use crate::util::{Ask, Bid};
 
 pub const API_V3_PING: &str = "/api/v3/ping";
 pub const API_V3_TIME: &str = "/api/v3/time";
@@ -436,9 +436,9 @@ impl Into<OrderBook> for SpotOrderBook {
     }
 }
 
+use crate::util::OrderBook;
 #[cfg(feature = "with_network")]
 pub use with_network::*;
-use crate::util::OrderBook;
 
 #[cfg(feature = "with_network")]
 mod with_network {
@@ -448,21 +448,21 @@ mod with_network {
         /// Test connectivity to the Rest API.
         ///
         /// Weight: 1
-        pub async fn ping(&self) -> LibResult<Pong> {
+        pub async fn ping(&self) -> BinanceResult<Pong> {
             self.client.get(API_V3_PING)?.send().await
         }
 
         /// Test connectivity to the Rest API and get the current server time.
         ///
         /// Weight: 1
-        pub async fn time(&self) -> LibResult<ServerTime> {
+        pub async fn time(&self) -> BinanceResult<ServerTime> {
             self.client.get(API_V3_TIME)?.send().await
         }
 
         /// Current exchange trading rules and symbol information.
         ///
         /// Weight: 1
-        pub async fn exchange_info(&self) -> LibResult<ExchangeInformation> {
+        pub async fn exchange_info(&self) -> BinanceResult<ExchangeInformation> {
             self.client.get(API_V3_EXCHANGE_INFO)?.send().await
         }
 
@@ -482,7 +482,7 @@ mod with_network {
             &self,
             symbol: S,
             limit: impl Into<Option<OrderBookLimit>>,
-        ) -> LibResult<SpotOrderBook> {
+        ) -> BinanceResult<SpotOrderBook> {
             let limit = limit.into();
             self.client
                 .get(API_V3_DEPTH)?
@@ -507,7 +507,7 @@ mod with_network {
             &self,
             symbol: S,
             limit: Option<usize>,
-        ) -> LibResult<Vec<Trade>> {
+        ) -> BinanceResult<Vec<Trade>> {
             self.client
                 .get(API_V3_TRADES)?
                 .query_arg("symbol", symbol.as_ref())?
@@ -533,7 +533,7 @@ mod with_network {
             symbol: S,
             limit: Option<usize>,
             from_id: Option<u64>,
-        ) -> LibResult<Vec<Trade>> {
+        ) -> BinanceResult<Vec<Trade>> {
             self.client
                 .get(API_V3_HISTORICAL_TRADES)?
                 .auth_header()?
@@ -572,7 +572,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             limit: Option<usize>,
-        ) -> LibResult<Vec<AggTrade>> {
+        ) -> BinanceResult<Vec<AggTrade>> {
             self.client
                 .get(API_V3_AGG_TRADES)?
                 .query_arg("symbol", symbol.as_ref())?
@@ -609,7 +609,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             limit: Option<usize>,
-        ) -> LibResult<Vec<Kline>> {
+        ) -> BinanceResult<Vec<Kline>> {
             self.client
                 .get(API_V3_KLINES)?
                 .query_args(&[("symbol", symbol.as_ref()), ("interval", interval.as_str())])?
@@ -630,7 +630,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn avg_price<S: AsRef<str>>(&self, symbol: S) -> LibResult<AvgPrice> {
+        pub async fn avg_price<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<AvgPrice> {
             self.client
                 .get(API_V3_AVG_PRICE)?
                 .query_arg("symbol", symbol.as_ref())?
@@ -648,7 +648,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn ticker_24hr<S: AsRef<str>>(&self, symbol: S) -> LibResult<TickerStats> {
+        pub async fn ticker_24hr<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<TickerStats> {
             self.client
                 .get(API_V3_TICKER_24HR)?
                 .query_arg("symbol", symbol.as_ref())?
@@ -663,7 +663,7 @@ mod with_network {
         /// Weight: 40
         ///
         /// Data Source: Memory
-        pub async fn ticker_24hr_all(&self) -> LibResult<Vec<TickerStats>> {
+        pub async fn ticker_24hr_all(&self) -> BinanceResult<Vec<TickerStats>> {
             self.client.get(API_V3_TICKER_24HR)?.send().await
         }
 
@@ -677,7 +677,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn ticker_price<S: AsRef<str>>(&self, symbol: S) -> LibResult<PriceTicker> {
+        pub async fn ticker_price<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<PriceTicker> {
             self.client
                 .get(API_V3_TICKER_PRICE)?
                 .query_arg("symbol", symbol.as_ref())?
@@ -692,7 +692,7 @@ mod with_network {
         /// Weight: 2
         ///
         /// Data Source: Memory
-        pub async fn ticker_price_all(&self) -> LibResult<Vec<PriceTicker>> {
+        pub async fn ticker_price_all(&self) -> BinanceResult<Vec<PriceTicker>> {
             self.client.get(API_V3_TICKER_PRICE)?.send().await
         }
 
@@ -706,7 +706,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn ticker_book<S: AsRef<str>>(&self, symbol: S) -> LibResult<BookTicker> {
+        pub async fn ticker_book<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<BookTicker> {
             self.client
                 .get(API_V3_TICKER_BOOK_TICKER)?
                 .query_arg("symbol", symbol.as_ref())?
@@ -721,7 +721,7 @@ mod with_network {
         /// Weight: 2
         ///
         /// Data Source: Memory
-        pub async fn ticker_book_all(&self) -> LibResult<Vec<BookTicker>> {
+        pub async fn ticker_book_all(&self) -> BinanceResult<Vec<BookTicker>> {
             self.client.get(API_V3_TICKER_BOOK_TICKER)?.send().await
         }
     }

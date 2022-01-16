@@ -19,7 +19,7 @@ mod with_network {
         /// Test connectivity to the Rest API and get the current server time.
         ///
         /// Weight: 1
-        pub async fn time(&self) -> LibResult<ServerTime> {
+        pub async fn time(&self) -> BinanceResult<ServerTime> {
             self.client.get(FAPI_V1_TIME)?.send().await
         }
     }

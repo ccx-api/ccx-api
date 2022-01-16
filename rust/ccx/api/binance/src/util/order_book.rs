@@ -4,7 +4,7 @@ use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use crate::{DiffOrderBookEvent, LibError, LibResult};
+use crate::{BinanceError, BinanceResult, DiffOrderBookEvent};
 
 pub enum OrderBookUpdater {
     Preparing { buffer: Vec<DiffOrderBookEvent> },
@@ -55,7 +55,7 @@ impl OrderBookUpdater {
         }
     }
 
-    pub fn push_diff(&mut self, update: DiffOrderBookEvent) -> LibResult<()> {
+    pub fn push_diff(&mut self, update: DiffOrderBookEvent) -> BinanceResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => buffer.push(update),
             OrderBookUpdater::Ready { state } => state.update(update)?,
@@ -63,7 +63,7 @@ impl OrderBookUpdater {
         Ok(())
     }
 
-    pub fn init(&mut self, snapshot: OrderBook) -> LibResult<()> {
+    pub fn init(&mut self, snapshot: OrderBook) -> BinanceResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => {
                 let mut state = OrderBookState::new(snapshot);
@@ -152,7 +152,7 @@ impl OrderBookState {
         }
     }
 
-    pub fn update(&mut self, diff: DiffOrderBookEvent) -> LibResult<()> {
+    pub fn update(&mut self, diff: DiffOrderBookEvent) -> BinanceResult<()> {
         /*
            Drop any event where final_update_id is <= lastUpdateId in the snapshot.
 
@@ -177,7 +177,7 @@ impl OrderBookState {
                 return Ok(());
             }
             if diff.first_update_id > next_id {
-                Err(LibError::other(format!(
+                Err(BinanceError::other(format!(
                     "first_update_id > next_id:   {};   {}",
                     diff.first_update_id, next_id
                 )))?
@@ -186,7 +186,7 @@ impl OrderBookState {
             self.dirty = false;
         } else {
             if diff.first_update_id != next_id {
-                Err(LibError::other(format!(
+                Err(BinanceError::other(format!(
                     "first_update_id != next_id:   {};   {}",
                     diff.first_update_id, next_id
                 )))?

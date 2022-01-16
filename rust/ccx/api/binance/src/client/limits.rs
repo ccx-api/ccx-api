@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use actix_http::http::HeaderMap;
-use serde::{Deserialize, Serialize};
 use actix_web::http::HeaderValue;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum IntervalLetter {
@@ -102,7 +102,8 @@ impl UsedRateLimits {
                         log::debug!("  {}: {}", header_name, header_value);
                     }
                     if header_name.starts_with(UW_PREFIX) {
-                        if let Some(time_span) = TimeSpan::from_str(&header_name[UW_PREFIX.len()..]) {
+                        if let Some(time_span) = TimeSpan::from_str(&header_name[UW_PREFIX.len()..])
+                        {
                             if let Some(weight) = header_value.parse().ok() {
                                 u.weight_per_ip.push((time_span, weight))
                             }
@@ -112,7 +113,8 @@ impl UsedRateLimits {
                         log::debug!("  {}: {}", header_name, header_value);
                     }
                     if header_name.starts_with(OC_PREFIX) {
-                        if let Some(time_span) = TimeSpan::from_str(&header_name[OC_PREFIX.len()..]) {
+                        if let Some(time_span) = TimeSpan::from_str(&header_name[OC_PREFIX.len()..])
+                        {
                             if let Some(count) = header_value.parse().ok() {
                                 u.order_count_per_account.push((time_span, count))
                             }
