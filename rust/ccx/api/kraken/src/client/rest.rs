@@ -77,6 +77,7 @@ impl RestClient {
         self.client_(false)
     }
 
+    #[allow(dead_code)]
     pub(super) fn client_h1(&self) -> Client {
         self.client_(true)
     }

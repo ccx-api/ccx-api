@@ -1,0 +1,51 @@
+[package]
+name = "ccx-binance-pay"
+version = "0.1.0"
+authors = ["Tima Ghostov <ghosty8707@mail.ru>"]
+edition = "2018"
+
+[features]
+default = ["with_network"]
+with_network = ["awc", "actix", "actix-codec", "actix-http", "actix-web", "rustls", "webpki-roots", "random-string", "hex"]
+with_proxy = ["actix-connect", "actix-service", "tokio-socks"]
+db = ["diesel", "diesel_derives"]
+experimental = []
+
+[dependencies]
+actix = { version = "0.10", optional = true }
+awc = { version = "2.0", optional = true }
+actix-http = { version = "2.0", optional = true }
+actix-web = { version = "3.0", features = ["rustls"], optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+serde_plain = "0.3"
+erased-serde = "0.3"
+serde_urlencoded = "0.7"
+chrono = "0.4"
+hmac = "0.10"
+sha2 = "0.9"
+log = "0.4"
+url = { version = "2", features = ["serde"] }
+thiserror = "1"
+rustls = { version = "0.18", optional = true }
+webpki-roots = { version = "0.21", optional = true }
+random-string = { version = "0.2", optional = true }
+hex = { version = "0.4.3", optional = true }
+slog-scope = "4.3"
+dotenv = "0.15.0"
+uuid = { version = "0.8", features = ["serde", "v4"] }
+
+diesel = { version = "1.4.5", features = ["postgres", "serde_json", "r2d2"], optional = true }
+diesel_derives = { version = "1.4.1", optional = true }
+
+actix-connect = { version = "2.0", optional = true }
+actix-service = { version = "1.0.6", optional = true }
+actix-codec = { version = "0.3", optional = true }
+actix-rt = { version = "2.2.0", optional = true }
+tokio-socks = { version = "0.2.2", optional = true }
+futures = "0.3"
+rust_decimal = "1"
+
+[dependencies.exchange_sign_hook]
+#path = "../../../../exchange_sign_hook/rust"
+git = "https://github.com/timaghostov/exchange_sign_hook.git"
