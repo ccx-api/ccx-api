@@ -2,10 +2,10 @@ use std::str::FromStr;
 
 #[cfg(feature = "db")]
 use diesel_derives::{AsExpression, FromSqlRow};
+use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
-use rust_decimal::Decimal;
 
 use crate::api::Api;
 use crate::error::LibResult;
@@ -68,7 +68,7 @@ pub struct TransferFundRequest {
     #[serde(rename = "merchantId")]
     pub merchant_id: u64, //long	Y	-	The merchant account id, issued when merchant been created at Binance.
     pub currency: String, //string	Y	Not limited, as long as it is within the range.	transfer currency, e.g. "BUSD"
-    pub amount: Decimal, //  string	Y	Greater than 0	the transfer amount
+    pub amount: Decimal,  //  string	Y	Greater than 0	the transfer amount
     #[serde(rename = "transferType")]
     pub transfer_type: TransferType, //    string  Y   Only "TO_MAIN" OR "TO_PAY"	The transfer direction specified by the merchant
 }
@@ -77,7 +77,7 @@ pub struct TransferFundRequest {
 pub struct TransferResult {
     #[serde(rename = "tranId")]
     pub transfer_id: String, //	string	Y	-	Used to query the transfer status, query the necessary fields for the transfer status
-    pub amount: Decimal,     //	string	Y	-	the transfer amount
+    pub amount: Decimal,        //	string	Y	-	the transfer amount
     pub status: TransferStatus, //	string	Y	SUCCESS OR FAILURE OR PROCESS	SUCCESS (indicating that the transfer is completely successful), FAILURE (indicating that the transfer has failed, it may be that the transferor has a problem with the transferee), PROCESS (the transfer is in progress)
     pub currency: String, //	string	Y	Not limited, as long as it is within the range.	transfer currency, e.g. "BUSD"
 }

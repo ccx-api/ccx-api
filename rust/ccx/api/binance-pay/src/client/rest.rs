@@ -14,9 +14,9 @@ use hmac::{Hmac, Mac, NewMac};
 use serde::Serialize;
 use sha2::Sha512;
 
+use ccx_api_lib::Signer;
 use exchange_sign_hook::SignClosure;
 
-use crate::client::config::Signer;
 use crate::error::BinanceError;
 use crate::error::LibResult;
 use crate::error::ServiceError;
@@ -127,13 +127,9 @@ impl RestClient {
         self.inner.as_ref().config.merchant_id.value()
     }
 
-    fn api_key(&self) -> String {
+    fn api_key(&self) -> &str {
         self.inner.as_ref().config.api_key()
     }
-
-    // fn api_secret(&self) -> Option<String> {
-    //     self.inner.as_ref().config.cred.secret.clone()
-    // }
 }
 
 impl<J> RequestBuilder<J>
@@ -182,7 +178,7 @@ where
         Ok(self)
     }
 
-    async fn sign_by_dependency(
+    async fn sign_by_hook(
         time: Time,
         nonce: String,
         json: J,
@@ -220,22 +216,14 @@ where
             .json
             .clone()
             .ok_or_else(|| LibError::other("Body not found."))?;
-        let signature = match self.api_client.inner.config.signer {
+        let signature = match self.api_client.inner.config.signer() {
             Signer::Cred(ref cred) => {
                 Self::sign_by_cred(&time, nonce, &json, cred.secret.as_ref())?
             }
             Signer::Hook(ref hook) => {
-                Self::sign_by_dependency(time, nonce.to_string(), json, hook.closure.clone())
-                    .await?
+                Self::sign_by_hook(time, nonce.to_string(), json, hook.closure.clone()).await?
             }
         };
-        // let signature = match self.api_client.inner.signer.clone() {
-        //     Some(signer) => Self::sign_by_dependency(time, nonce.to_string(), json, signer).await?,
-        //     None => Self::sign_by_cred(&time, nonce, &json, self.api_client.api_secret().as_ref())?,
-        // };
-        // let signature =
-        //     Self::sign_by_cred(&time, nonce, &json, self.api_client.api_secret().as_ref())?;
-        // let signature = String::from("qwerty");
         let signature = signature.to_uppercase();
         self.request = self
             .request
@@ -335,12 +323,10 @@ where
 
 fn sign(query: &str, secret: &[u8]) -> String {
     log::debug!("sign query  :: {}", query);
-    log::debug!("sign secret :: {}", String::from_utf8_lossy(secret));
     let mut mac = Hmac::<Sha512>::new_varkey(secret).expect("HMAC can take key of any size");
     mac.update(query.as_bytes());
 
     let res = mac.finalize().into_bytes();
-    // format!("{:x}", res)
     hex::encode(res)
 }
 

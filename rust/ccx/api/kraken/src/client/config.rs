@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use url::Url;
 
 use ccx_api_lib::env_var_with_prefix;

@@ -46,6 +46,8 @@ tokio-socks = { version = "0.2.2", optional = true }
 futures = "0.3"
 rust_decimal = "1"
 
+ccx-api-lib = { path = "../../util/lib" }
+
 [dependencies.exchange_sign_hook]
 #path = "../../../../exchange_sign_hook/rust"
 git = "https://github.com/timaghostov/exchange_sign_hook.git"

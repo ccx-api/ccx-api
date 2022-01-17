@@ -1,6 +1,6 @@
+use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
-use rust_decimal::Decimal;
 
 use crate::api::Api;
 use crate::error::LibResult;

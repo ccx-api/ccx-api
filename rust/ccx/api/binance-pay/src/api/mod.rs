@@ -1,9 +1,10 @@
-use exchange_sign_hook::SignClosure;
+use crate::MerchantId;
+use ccx_api_lib::ApiCred;
+use ccx_api_lib::Signer;
 
-use crate::client::ApiCred;
 use crate::client::Config;
-use crate::client::KeyClosure;
 use crate::client::RestClient;
+use crate::client::CCX_BINANCE_PAY_API_PREFIX;
 
 mod certificates;
 mod close_order;
@@ -43,28 +44,18 @@ pub struct Api {
 }
 
 impl Api {
-    pub fn new() -> Self {
-        Api::default()
+    pub fn new(signer: impl Into<Signer>, testnet: bool, merchant_id: MerchantId) -> Self {
+        Api::with_config(Config::new(signer, testnet, merchant_id))
     }
 
     pub fn from_env() -> Self {
-        Api::with_config(Config::from_env())
-    }
-
-    pub fn with_cred(cred: ApiCred) -> Self {
-        let signer = cred.into();
-        Api::with_config(Config {
-            signer,
-            ..Config::default()
-        })
-    }
-
-    pub fn with_closure(api_key: String, closure: SignClosure) -> Self {
-        let signer = KeyClosure::new(api_key, closure).into();
-        Api::with_config(Config {
-            signer,
-            ..Config::default()
-        })
+        let testnet = Config::env_var("TESTNET").as_deref() == Some("1");
+        let merchant_id = MerchantId::from_env_with_prefix(CCX_BINANCE_PAY_API_PREFIX);
+        Api::new(
+            ApiCred::from_env_with_prefix(CCX_BINANCE_PAY_API_PREFIX),
+            testnet,
+            merchant_id,
+        )
     }
 
     pub fn with_config(config: Config) -> Self {
