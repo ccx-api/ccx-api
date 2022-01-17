@@ -1,7 +1,7 @@
 [package]
 name = "ccx"
 version = "0.1.0"
-authors = ["Alexander Irbis <irbis.labs@gmail.com>"]
+authors = ["Alexander Irbis <irbis.labs@gmail.com>", "Tima Ghostov <ghosty8707@mail.ru>"]
 edition = "2018"
 resolver = "2"
 
@@ -12,8 +12,10 @@ members = [
     "api/kraken",
     "api/kraken/examples/util",
     "util/lib",
+    "api/binance-pay",
 ]
 
 [dependencies]
 ccx-binance = { path = "api/binance" }
 ccx-kraken = { path = "api/kraken" }
+ccx-binance-pay = { path = "api/binance-pay" }

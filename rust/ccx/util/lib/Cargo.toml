@@ -34,3 +34,6 @@ string_cache = "0.8"
 thiserror = "1"
 tokio-socks = { version = "0.2.2", optional = true }
 url = { version = "2", features = ["serde"] }
+
+[dependencies.exchange_sign_hook]
+git = "https://github.com/timaghostov/exchange_sign_hook.git"

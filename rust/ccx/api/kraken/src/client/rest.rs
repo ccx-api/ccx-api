@@ -11,7 +11,9 @@ use hmac::{Hmac, Mac, NewMac};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256, Sha512};
 
+use ccx_api_lib::Signer;
 use ccx_api_lib::SocksConnector;
+use exchange_sign_hook::Query;
 
 use super::*;
 // use crate::client::limits::UsedRateLimits;
@@ -36,7 +38,7 @@ pub struct RequestBuilder {
     api_client: RestClient,
     request: ClientRequest,
     sign: Option<(Nonce,)>,
-    secret: Vec<u8>,
+    signer: Signer,
     body: String,
 }
 
@@ -77,6 +79,7 @@ impl RestClient {
         self.client_(false)
     }
 
+    #[allow(dead_code)]
     pub(super) fn client_h1(&self) -> Client {
         self.client_(true)
     }
@@ -119,12 +122,12 @@ impl RestClient {
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
         let request = self.client().request(method, url.as_str());
-        let secret = api_client.inner.config.cred.secret.as_bytes().to_vec();
+        let signer = api_client.inner.config.signer().clone();
         Ok(RequestBuilder {
             api_client,
             request,
             sign: None,
-            secret,
+            signer,
             body: String::new(),
         })
     }
@@ -201,7 +204,7 @@ impl RequestBuilder {
     pub fn auth_header(mut self) -> KrakenResult<Self> {
         self.request = self.request.header(
             "API-Key",
-            HeaderValue::from_str(self.api_client.inner.config.cred.key.as_str())?,
+            HeaderValue::from_str(self.api_client.inner.config.api_key())?,
         );
         Ok(self)
     }
@@ -223,7 +226,7 @@ impl RequestBuilder {
     where
         V: serde::de::DeserializeOwned,
     {
-        self = self.sign()?;
+        self = self.sign().await?;
         self.request = self
             .request
             .content_type("application/x-www-form-urlencoded");
@@ -283,12 +286,23 @@ impl RequestBuilder {
     //     Ok(())
     // }
 
-    fn sign(mut self) -> KrakenResult<Self> {
+    async fn sign(mut self) -> KrakenResult<Self> {
         if let Some((nonce,)) = self.sign {
             let path = self.request.get_uri().path();
-            let decoded_secret = base64::decode(&self.secret)
-                .map_err(|e| KrakenError::other(format!("Failed to deserialize key: {:?}", e)))?;
-            let signature = sign(path, nonce, &self.body, &decoded_secret);
+            let signature = match self.signer {
+                Signer::Cred(ref cred) => {
+                    let decoded_secret = base64::decode(&cred.secret).map_err(|e| {
+                        KrakenError::other(format!("Failed to deserialize key: {:?}", e))
+                    })?;
+                    sign(path, nonce, &self.body, &decoded_secret)
+                }
+                Signer::Hook(ref hook) => {
+                    let nonce = nonce.value();
+                    let method = path.to_string();
+                    let query = Query::Url(self.body.clone());
+                    hook.closure.sign_kraken(nonce, method, query).await?
+                }
+            };
             self.request = self.request.header("API-Sign", signature);
         };
         Ok(self)

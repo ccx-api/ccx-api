@@ -1,5 +1,7 @@
 use url::Url;
 
+use ccx_api_lib::Signer;
+
 use crate::client::ApiCred;
 use crate::client::Config;
 use crate::client::Proxy;
@@ -48,10 +50,10 @@ mod with_network {
     }
 
     impl SpotApi {
-        pub fn new(cred: ApiCred, proxy: Option<Proxy>) -> Self {
+        pub fn new(signer: impl Into<Signer>, proxy: Option<Proxy>) -> Self {
             let api_base = Url::parse(API_BASE).unwrap();
             let stream_base = Url::parse(STREAM_BASE).unwrap();
-            SpotApi::with_config(Config::new(cred, api_base, stream_base, proxy))
+            SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
         }
 
         /// Reads config from env vars with names like:

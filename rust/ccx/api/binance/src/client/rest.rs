@@ -12,6 +12,7 @@ use serde::Serialize;
 use sha2::Sha256;
 
 use ccx_api_lib::SocksConnector;
+use exchange_sign_hook::Query;
 
 use super::*;
 use crate::client::limits::UsedRateLimits;
@@ -36,7 +37,7 @@ pub struct RequestBuilder {
     api_client: RestClient,
     request: ClientRequest,
     sign: Option<TimeWindow>,
-    secret: Vec<u8>,
+    signer: Signer,
 }
 
 impl RestClient {
@@ -99,12 +100,12 @@ impl RestClient {
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
         let request = self.client().request(method, url.as_str());
-        let secret = api_client.inner.config.cred.secret.as_bytes().to_vec();
+        let signer = api_client.inner.config.signer().clone();
         Ok(RequestBuilder {
             api_client,
             request,
             sign: None,
-            secret,
+            signer,
         })
     }
 
@@ -186,7 +187,7 @@ impl RequestBuilder {
     pub fn auth_header(mut self) -> BinanceResult<Self> {
         self.request = self.request.header(
             "X-MBX-APIKEY",
-            HeaderValue::from_str(self.api_client.inner.config.cred.key.as_str())?,
+            HeaderValue::from_str(self.api_client.inner.config.api_key())?,
         );
         Ok(self)
     }
@@ -206,7 +207,7 @@ impl RequestBuilder {
             if !recv_window.is_default() {
                 self = self.query_arg("recvWindow", &*recv_window)?;
             }
-            self.sign()?
+            self.sign().await?
         } else {
             self
         };
@@ -246,7 +247,7 @@ impl RequestBuilder {
             if !recv_window.is_default() {
                 self = self.query_arg("recvWindow", &*recv_window)?;
             }
-            self.sign()?
+            self.sign().await?
         } else {
             self
         };
@@ -273,9 +274,18 @@ impl RequestBuilder {
         Ok(())
     }
 
-    fn sign(self) -> BinanceResult<Self> {
+    async fn sign(self) -> BinanceResult<Self> {
         let query = self.request.get_uri().query().unwrap_or("");
-        let signature = sign(query, &self.secret);
+        let signature = match self.signer {
+            Signer::Cred(ref cred) => {
+                let secret = cred.secret.as_bytes().to_vec();
+                sign(query, &secret)
+            }
+            Signer::Hook(ref hook) => {
+                let query = Query::Url(query.to_string());
+                hook.closure.sign_binance(query).await?
+            }
+        };
         self.query_arg("signature", &signature)
     }
 }

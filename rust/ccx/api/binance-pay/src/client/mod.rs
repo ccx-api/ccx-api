@@ -1,15 +1,13 @@
 mod config;
-mod limits;
+#[cfg(feature = "with_proxy")]
+mod connector;
 mod rest;
-mod websocket;
-mod websocket2;
-use serde::Deserialize;
 
 pub use self::config::*;
-pub use self::limits::*;
 pub use self::rest::*;
-pub use self::websocket::*;
-pub use self::websocket2::*;
+
+pub const API_BASE: &str = "https://bpay.binanceapi.com/";
+pub const API_BASE_TESTNET: &str = "https://bpay.binanceapi.com/";
 
 #[derive(Debug, Deserialize)]
 struct BinanceContentError {
