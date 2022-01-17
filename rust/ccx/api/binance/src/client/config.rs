@@ -1,8 +1,8 @@
 use url::Url;
 
 use ccx_api_lib::env_var_with_prefix;
-use ccx_api_lib::Signer;
 
+use crate::client::SignBinance;
 pub use ccx_api_lib::ApiCred;
 pub use ccx_api_lib::Proxy;
 
@@ -45,5 +45,35 @@ impl Config {
 
     pub(crate) fn signer(&self) -> &Signer {
         &self.signer
+    }
+}
+
+#[derive(Clone)]
+pub struct Hook {
+    pub(crate) api_key: String,
+    pub(crate) closure: Box<dyn SignBinance>,
+}
+
+impl Hook {
+    pub fn new(api_key: String, closure: Box<dyn SignBinance>) -> Self {
+        Self { api_key, closure }
+    }
+}
+
+#[derive(Clone)]
+pub enum Signer {
+    Cred(ApiCred),
+    Hook(Hook),
+}
+
+impl From<ApiCred> for Signer {
+    fn from(cred: ApiCred) -> Self {
+        Signer::Cred(cred)
+    }
+}
+
+impl From<Hook> for Signer {
+    fn from(hook: Hook) -> Self {
+        Signer::Hook(hook)
     }
 }

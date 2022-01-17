@@ -1,9 +1,9 @@
 use crate::MerchantId;
 use ccx_api_lib::ApiCred;
-use ccx_api_lib::Signer;
 
 use crate::client::Config;
 use crate::client::RestClient;
+use crate::client::Signer;
 use crate::client::CCX_BINANCE_PAY_API_PREFIX;
 
 mod certificates;

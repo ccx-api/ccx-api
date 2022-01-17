@@ -11,9 +11,7 @@ use hmac::{Hmac, Mac, NewMac};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256, Sha512};
 
-use ccx_api_lib::Signer;
 use ccx_api_lib::SocksConnector;
-use exchange_sign_hook::Query;
 
 use super::*;
 // use crate::client::limits::UsedRateLimits;
@@ -300,7 +298,7 @@ impl RequestBuilder {
                     let nonce = nonce.value();
                     let method = path.to_string();
                     let query = Query::Url(self.body.clone());
-                    hook.closure.sign_kraken(nonce, method, query).await?
+                    hook.closure.as_ref().sign(nonce, method, query).await?
                 }
             };
             self.request = self.request.header("API-Sign", signature);

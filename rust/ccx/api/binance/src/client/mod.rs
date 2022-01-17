@@ -1,6 +1,7 @@
 mod config;
 mod limits;
 mod rest;
+mod signer;
 mod websocket;
 mod websocket2;
 use serde::Deserialize;
@@ -8,6 +9,7 @@ use serde::Deserialize;
 pub use self::config::*;
 pub use self::limits::*;
 pub use self::rest::*;
+pub use self::signer::*;
 pub use self::websocket::*;
 pub use self::websocket2::*;
 

@@ -14,9 +14,8 @@ use hmac::{Hmac, Mac, NewMac};
 use serde::Serialize;
 use sha2::Sha512;
 
-use ccx_api_lib::Signer;
-use exchange_sign_hook::SignClosure;
-
+use crate::client::SignBinancePay;
+use crate::client::Signer;
 use crate::error::BinanceError;
 use crate::error::LibResult;
 use crate::error::ServiceError;
@@ -180,12 +179,12 @@ where
 
     async fn sign_by_hook(
         time: Time,
-        nonce: String,
+        nonce: &str,
         json: J,
-        closure: SignClosure,
+        closure: &dyn SignBinancePay,
     ) -> LibResult<String> {
         closure
-            .sign_binance_pay(time.timestamp(), nonce, json)
+            .sign(time.timestamp(), nonce, Box::new(json))
             .await
             .map_err(|e| e.into())
     }
@@ -221,7 +220,7 @@ where
                 Self::sign_by_cred(&time, nonce, &json, cred.secret.as_ref())?
             }
             Signer::Hook(ref hook) => {
-                Self::sign_by_hook(time, nonce.to_string(), json, hook.closure.clone()).await?
+                Self::sign_by_hook(time, nonce, json, hook.closure.as_ref()).await?
             }
         };
         let signature = signature.to_uppercase();

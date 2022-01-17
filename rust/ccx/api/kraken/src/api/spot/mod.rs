@@ -1,11 +1,10 @@
 use url::Url;
 
-use ccx_api_lib::Signer;
-
 use crate::client::ApiCred;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RestClient;
+use crate::client::Signer;
 // use crate::client::WebsocketStream;
 use crate::client::CCX_KRAKEN_API_PREFIX;
 

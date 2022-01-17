@@ -5,6 +5,7 @@ pub mod error;
 pub mod proto;
 pub mod util;
 
+pub use self::client::Hook;
 pub use self::error::*;
 pub use self::proto::*;
 

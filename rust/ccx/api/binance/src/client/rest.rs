@@ -12,7 +12,6 @@ use serde::Serialize;
 use sha2::Sha256;
 
 use ccx_api_lib::SocksConnector;
-use exchange_sign_hook::Query;
 
 use super::*;
 use crate::client::limits::UsedRateLimits;
@@ -283,7 +282,7 @@ impl RequestBuilder {
             }
             Signer::Hook(ref hook) => {
                 let query = Query::Url(query.to_string());
-                hook.closure.sign_binance(query).await?
+                hook.closure.as_ref().sign(query).await?
             }
         };
         self.query_arg("signature", &signature)

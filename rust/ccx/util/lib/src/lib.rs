@@ -11,8 +11,6 @@ mod error;
 mod proxy;
 mod seq;
 pub mod serde_util;
-#[cfg(feature = "with_network")]
-mod signer;
 
 pub use self::connector::*;
 pub use self::cred::*;
@@ -20,5 +18,3 @@ pub use self::env::*;
 pub use self::error::*;
 pub use self::proxy::*;
 pub use self::seq::*;
-#[cfg(feature = "with_network")]
-pub use self::signer::*;
