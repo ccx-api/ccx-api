@@ -32,6 +32,10 @@ impl Nonce {
         Nonce(v.into())
     }
 
+    pub(crate) fn value(&self) -> u64 {
+        self.0
+    }
+
     pub fn decimal(self) -> NonceDecimal {
         use std::io::Write;
 

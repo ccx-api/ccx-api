@@ -1,6 +1,7 @@
 use url::Url;
 
 use ccx_api_lib::env_var_with_prefix;
+use ccx_api_lib::Signer;
 
 use crate::client::ApiCred;
 use crate::client::Config;
@@ -70,7 +71,7 @@ mod with_network {
     }
 
     impl SpotApi {
-        pub fn new(cred: ApiCred, testnet: bool, proxy: Option<Proxy>) -> Self {
+        pub fn new(signer: impl Into<Signer>, testnet: bool, proxy: Option<Proxy>) -> Self {
             let (api_base, stream_base) = if testnet {
                 (
                     Url::parse(API_BASE_TESTNET).unwrap(),
@@ -82,7 +83,7 @@ mod with_network {
                     Url::parse(STREAM_BASE).unwrap(),
                 )
             };
-            SpotApi::with_config(Config::new(cred, api_base, stream_base, proxy))
+            SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
         }
 
         /// Reads config from env vars with names like:

@@ -1,5 +1,6 @@
 use std::{io, time};
 
+use exchange_sign_hook::SignError;
 use serde_json;
 use thiserror::Error;
 use url;
@@ -69,6 +70,8 @@ where
     WsProtocolError(#[from] WsProtocolError),
     #[error("Other Error: {0}")]
     Other(String),
+    #[error("Sign Error: {0}")]
+    SignError(#[from] SignError),
 }
 
 impl<AE> LibError<AE>

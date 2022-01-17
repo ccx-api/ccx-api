@@ -44,6 +44,9 @@ webpki-roots = { version = "0.21", optional = true }
 
 ccx-api-lib = { path = "../../util/lib" }
 
+[dependencies.exchange_sign_hook]
+git = "https://github.com/timaghostov/exchange_sign_hook.git"
+
 [dev-dependencies]
 actix-rt = "1.0"
 env_logger = "0.8"
