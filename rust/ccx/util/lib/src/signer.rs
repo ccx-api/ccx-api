@@ -2,12 +2,12 @@ use crate::ApiCred;
 use exchange_sign_hook::SignClosure;
 
 #[derive(Clone)]
-pub struct KeyClosure {
+pub struct Hook {
     pub api_key: String,
     pub closure: SignClosure,
 }
 
-impl KeyClosure {
+impl Hook {
     pub fn new(api_key: String, closure: SignClosure) -> Self {
         Self { api_key, closure }
     }
@@ -16,7 +16,7 @@ impl KeyClosure {
 #[derive(Clone)]
 pub enum Signer {
     Cred(ApiCred),
-    Hook(KeyClosure),
+    Hook(Hook),
 }
 
 impl From<ApiCred> for Signer {
@@ -25,8 +25,8 @@ impl From<ApiCred> for Signer {
     }
 }
 
-impl From<KeyClosure> for Signer {
-    fn from(closure: KeyClosure) -> Self {
-        Signer::Hook(closure)
+impl From<Hook> for Signer {
+    fn from(hook: Hook) -> Self {
+        Signer::Hook(hook)
     }
 }
