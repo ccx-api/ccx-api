@@ -209,7 +209,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl SpotApi {
+    impl<S: crate::client::KrakenSigner> SpotApi<S> {
         /// Get Server Time.
         ///
         /// Get the server's time.

@@ -4,7 +4,6 @@ use crate::client::ApiCred;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RestClient;
-use crate::client::Signer;
 // use crate::client::WebsocketStream;
 use crate::client::CCX_KRAKEN_API_PREFIX;
 
@@ -24,6 +23,7 @@ pub use self::types::*;
 pub use self::user_data::*;
 pub use self::user_funding::*;
 pub use self::user_trading::*;
+use crate::client::KrakenSigner;
 
 pub const API_BASE: &str = "https://api.kraken.com/";
 pub const STREAM_BASE: &str = "https://ws.binance.vision/";
@@ -44,12 +44,15 @@ mod with_network {
     use super::*;
 
     #[derive(Clone)]
-    pub struct SpotApi {
-        pub client: RestClient,
+    pub struct SpotApi<S: KrakenSigner> {
+        pub client: RestClient<S>,
     }
 
-    impl SpotApi {
-        pub fn new(signer: impl Into<Signer>, proxy: Option<Proxy>) -> Self {
+    impl<S> SpotApi<S>
+    where
+        S: KrakenSigner,
+    {
+        pub fn new(signer: S, proxy: Option<Proxy>) -> Self {
             let api_base = Url::parse(API_BASE).unwrap();
             let stream_base = Url::parse(STREAM_BASE).unwrap();
             SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
@@ -57,19 +60,19 @@ mod with_network {
 
         /// Reads config from env vars with names like:
         /// "CCX_KRAKEN_API_KEY", "CCX_KRAKEN_API_SECRET"
-        pub fn from_env() -> Self {
+        pub fn from_env() -> SpotApi<ApiCred> {
             let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
             SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy)
         }
 
         /// Reads config from env vars with names like:
         /// "${prefix}_KEY", "${prefix}_SECRET"
-        pub fn from_env_with_prefix(prefix: &str) -> Self {
+        pub fn from_env_with_prefix(prefix: &str) -> SpotApi<ApiCred> {
             let proxy = Proxy::from_env_with_prefix(prefix);
             SpotApi::new(ApiCred::from_env_with_prefix(prefix), proxy)
         }
 
-        pub fn with_config(config: Config) -> Self {
+        pub fn with_config(config: Config<S>) -> Self {
             let client = RestClient::new(config);
             SpotApi { client }
         }

@@ -157,7 +157,10 @@ impl Websocket {
 }
 
 impl WebsocketStream {
-    pub async fn connect(api_client: RestClient, url: Url) -> BinanceResult<Self> {
+    pub async fn connect<S: crate::client::BinaneSigner>(
+        api_client: RestClient<S>,
+        url: Url,
+    ) -> BinanceResult<Self> {
         use futures::StreamExt;
 
         log::debug!("Connecting WS: {}", url.as_str());

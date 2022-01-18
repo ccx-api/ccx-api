@@ -302,7 +302,7 @@ mod with_network {
 
     use crate::client::RequestBuilder;
 
-    impl SpotApi {
+    impl<Signer: crate::client::BinaneSigner> SpotApi<Signer> {
         /// Test New Order (TRADE)
         ///
         /// Test new order creation and signature/recvWindow long.
@@ -410,7 +410,7 @@ mod with_network {
             new_order_resp_type: Option<OrderResponseType>,
             is_test: bool,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<RequestBuilder> {
+        ) -> BinanceResult<RequestBuilder<Signer>> {
             let endpoint = if is_test {
                 API_V3_ORDER_TEST
             } else {

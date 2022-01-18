@@ -5,8 +5,6 @@ pub mod error;
 pub mod proto;
 pub mod util;
 
-pub use self::client::Hook;
-pub use self::client::Query;
 pub use self::client::SignBinance;
 pub use self::client::SignResult;
 pub use self::error::*;

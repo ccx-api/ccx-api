@@ -10,51 +10,67 @@ use awc::http::StatusCode;
 use awc::Client;
 use awc::ClientRequest;
 use awc::ClientResponse;
-use hmac::{Hmac, Mac, NewMac};
 use serde::Serialize;
-use sha2::Sha512;
 
-use crate::client::SignBinancePay;
-use crate::client::Signer;
-use crate::client::Data;
 use crate::error::BinanceError;
 use crate::error::LibResult;
 use crate::error::ServiceError;
 use crate::Config;
 use crate::LibError;
 use crate::Time;
-use crate::SignParams;
+
+use crate::client::BinanePaySigner;
 
 const CLIENT_TIMEOUT: u64 = 60;
 
 /// API client.
-#[derive(Default, Clone)]
-pub struct RestClient {
-    inner: Arc<ClientInner>,
-}
-
-#[derive(Default)]
-struct ClientInner {
-    config: Config,
-}
-
-pub struct RequestBuilder<J>
+pub struct RestClient<S>
 where
+    S: BinanePaySigner,
+{
+    inner: Arc<ClientInner<S>>,
+}
+
+impl<S> Clone for RestClient<S>
+where
+    S: BinanePaySigner,
+{
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+struct ClientInner<S>
+where
+    S: BinanePaySigner,
+{
+    config: Config<S>,
+}
+
+pub struct RequestBuilder<S, J>
+where
+    S: BinanePaySigner,
     J: Serialize,
 {
-    api_client: RestClient,
+    api_client: RestClient<S>,
     request: ClientRequest,
     sign: Option<Time>,
     nonce: Option<String>,
     json: Option<J>,
 }
 
-impl RestClient {
-    pub fn new() -> Self {
-        RestClient::default()
-    }
+impl<S> RestClient<S>
+where
+    S: BinanePaySigner,
+{
+    // pub fn new(config: Config<S>) -> Self {
+    //     let inner = Arc::new(ClientInner { config });
+    //     RestClient { inner }
+    // }
 
-    pub fn with_config(config: Config) -> Self {
+    pub fn with_config(config: Config<S>) -> Self {
         let inner = Arc::new(ClientInner { config });
         RestClient { inner }
     }
@@ -102,7 +118,7 @@ impl RestClient {
         &self,
         method: Method,
         endpoint: &str,
-    ) -> LibResult<RequestBuilder<T>> {
+    ) -> LibResult<RequestBuilder<S, T>> {
         let url = self.inner.config.api_base.join(endpoint)?;
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
@@ -120,7 +136,7 @@ impl RestClient {
         &self,
         endpoint: &str,
         value: T,
-    ) -> LibResult<RequestBuilder<T>> {
+    ) -> LibResult<RequestBuilder<S, T>> {
         Ok(self.request(Method::POST, endpoint)?.json(value))
     }
 
@@ -133,8 +149,9 @@ impl RestClient {
     }
 }
 
-impl<J> RequestBuilder<J>
+impl<S, J> RequestBuilder<S, J>
 where
+    S: BinanePaySigner,
     J: Serialize + Clone + Sync + Send + 'static,
 {
     pub fn uri(&self) -> String {
@@ -179,35 +196,6 @@ where
         Ok(self)
     }
 
-    async fn sign_by_hook(
-        time: Time,
-        nonce: &str,
-        params: &SignParams,
-        closure: &dyn SignBinancePay,
-    ) -> LibResult<String> {
-        let data = Data {
-            time: time.timestamp(),
-            nonce,
-            params,
-        };
-        closure
-            .sign(data)
-            .await
-            .map_err(|e| e.into())
-    }
-
-    fn sign_by_cred<S>(time: &Time, nonce: &str, json: &S, secret: &[u8]) -> LibResult<String>
-    where
-        S: Serialize + 'static,
-    {
-        let timestamp = time.timestamp();
-        let json = serde_json::to_string(json)?;
-        log::debug!("payload_header json :: {}", json);
-        let payload = format!("{}\n{}\n{}\n", timestamp, nonce, json);
-        let signature = sign(&payload, secret);
-        Ok(signature)
-    }
-
     async fn payload_header(mut self) -> LibResult<Self> {
         let time = self
             .sign
@@ -222,46 +210,19 @@ where
             .json
             .clone()
             .ok_or_else(|| LibError::other("Body not found."))?;
-        let signature = match self.api_client.inner.config.signer() {
-            Signer::Cred(ref cred) => {
-                Self::sign_by_cred(&time, nonce, &json, cred.secret.as_ref())?
-            }
-            Signer::Hook(ref hook) => {
-                Self::sign_by_hook(time, nonce, &json, hook.closure.as_ref()).await?
-            }
-        };
+        let signature = self
+            .api_client
+            .inner
+            .config
+            .signer()
+            .sign_data(time.timestamp(), nonce, &json)
+            .await?;
         let signature = signature.to_uppercase();
         self.request = self
             .request
             .header("BinancePay-Signature", HeaderValue::from_str(&signature)?);
         Ok(self)
     }
-
-    // async fn payload_header(mut self) -> LibResult<Self> {
-    //     let timestamp = self
-    //         .sign
-    //         .ok_or_else(|| LibError::other("Time sign not found."))?
-    //         .timestamp();
-    //     log::debug!("payload_header timestamp :: {}", timestamp);
-    //     let nonce = self
-    //         .nonce
-    //         .as_ref()
-    //         .ok_or_else(|| LibError::other("Nonce not found."))?;
-    //     log::debug!("payload_header nonce :: {}", nonce);
-    //     let json = self
-    //         .json
-    //         .as_ref()
-    //         .ok_or_else(|| LibError::other("Body not found."))?;
-    //     let json = serde_json::to_string(json)?;
-    //     log::debug!("payload_header json :: {}", json);
-    //     let payload = format!("{}\n{}\n{}\n", timestamp, nonce, json);
-    //     log::debug!("payload_header payload :: {}", payload);
-    //     let signature = sign(&payload, self.api_client.api_secret().as_ref()).to_uppercase();
-    //     self.request = self
-    //         .request
-    //         .header("BinancePay-Signature", HeaderValue::from_str(&signature)?);
-    //     Ok(self)
-    // }
 
     pub fn signed(mut self, time: impl Into<Time>) -> LibResult<Self> {
         self.sign = Some(time.into());
@@ -325,15 +286,6 @@ where
             }
         }
     }
-}
-
-fn sign(query: &str, secret: &[u8]) -> String {
-    log::debug!("sign query  :: {}", query);
-    let mut mac = Hmac::<Sha512>::new_varkey(secret).expect("HMAC can take key of any size");
-    mac.update(query.as_bytes());
-
-    let res = mac.finalize().into_bytes();
-    hex::encode(res)
 }
 
 type AwcClientResponse = ClientResponse<Decoder<Payload<PayloadStream>>>;

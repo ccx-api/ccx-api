@@ -28,7 +28,7 @@ pub struct CertificateResponse {
     pub error_message: Option<String>, // string               Y	-
 }
 
-impl Api {
+impl<S: crate::client::BinanePaySigner> Api<S> {
     pub async fn certificates(
         &self,
         request: CertificateRequest,
