@@ -7,15 +7,20 @@ use crate::error::LibResult;
 
 pub type SignParams = dyn Serialize + Sync + Send;
 
-#[allow(dead_code)]
-pub type SignResult = Pin<Box<dyn Future<Output = LibResult<String>> + Send>>;
+pub type SignResult<'a> = Pin<Box<dyn Future<Output = LibResult<String>> + Send + 'a>>;
+
+pub struct Data<'a> {
+    pub time: i64,
+    pub nonce: &'a str,
+    pub params: &'a SignParams,
+}
 
 pub trait SignerClone {
     fn clone_box(&self) -> Box<dyn SignBinancePay>;
 }
 
 pub trait SignBinancePay: SignerClone + Sync + Send {
-    fn sign(&self, time: i64, nonce: &str, params: Box<SignParams>) -> SignResult;
+    fn sign<'a, 'b:'a, 'c:'b>(&'c self, data: Data<'b>) -> SignResult<'a>;
 }
 
 impl<T> SignerClone for T

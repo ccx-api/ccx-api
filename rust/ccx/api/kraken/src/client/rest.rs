@@ -296,9 +296,12 @@ impl RequestBuilder {
                 }
                 Signer::Hook(ref hook) => {
                     let nonce = nonce.value();
-                    let method = path.to_string();
-                    let query = Query::Url(self.body.clone());
-                    hook.closure.as_ref().sign(nonce, method, query).await?
+                    let data = Data {
+                        nonce,
+                        method: path,
+                        params: Query::Url(&self.body),
+                    };
+                    hook.closure.as_ref().sign(data).await?
                 }
             };
             self.request = self.request.header("API-Sign", signature);

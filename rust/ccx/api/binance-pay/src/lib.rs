@@ -43,6 +43,7 @@ pub use client::MerchantId;
 pub use client::SignBinancePay;
 pub use client::SignParams;
 pub use client::SignResult;
+pub use client::Data;
 pub use error::common_error::CommonBusinessError;
 pub use error::LibError;
 pub use types::enums::StatusOrder;

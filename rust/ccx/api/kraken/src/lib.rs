@@ -5,6 +5,10 @@ pub mod error;
 pub mod util;
 
 pub use self::client::Hook;
+pub use self::client::Data;
+pub use self::client::Query;
+pub use self::client::SignKraken;
+pub use self::client::SignResult;
 pub use self::error::*;
 pub use self::util::*;
 #[cfg(feature = "with_network")]

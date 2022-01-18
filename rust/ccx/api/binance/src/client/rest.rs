@@ -281,7 +281,7 @@ impl RequestBuilder {
                 sign(query, &secret)
             }
             Signer::Hook(ref hook) => {
-                let query = Query::Url(query.to_string());
+                let query = Query::Url(query);
                 hook.closure.as_ref().sign(query).await?
             }
         };

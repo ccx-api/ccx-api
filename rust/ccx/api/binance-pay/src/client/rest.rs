@@ -16,12 +16,14 @@ use sha2::Sha512;
 
 use crate::client::SignBinancePay;
 use crate::client::Signer;
+use crate::client::Data;
 use crate::error::BinanceError;
 use crate::error::LibResult;
 use crate::error::ServiceError;
 use crate::Config;
 use crate::LibError;
 use crate::Time;
+use crate::SignParams;
 
 const CLIENT_TIMEOUT: u64 = 60;
 
@@ -180,11 +182,16 @@ where
     async fn sign_by_hook(
         time: Time,
         nonce: &str,
-        json: J,
+        params: &SignParams,
         closure: &dyn SignBinancePay,
     ) -> LibResult<String> {
+        let data = Data {
+            time: time.timestamp(),
+            nonce,
+            params,
+        };
         closure
-            .sign(time.timestamp(), nonce, Box::new(json))
+            .sign(data)
             .await
             .map_err(|e| e.into())
     }
@@ -220,7 +227,7 @@ where
                 Self::sign_by_cred(&time, nonce, &json, cred.secret.as_ref())?
             }
             Signer::Hook(ref hook) => {
-                Self::sign_by_hook(time, nonce, json, hook.closure.as_ref()).await?
+                Self::sign_by_hook(time, nonce, &json, hook.closure.as_ref()).await?
             }
         };
         let signature = signature.to_uppercase();

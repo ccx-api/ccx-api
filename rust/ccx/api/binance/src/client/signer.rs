@@ -5,20 +5,21 @@ use erased_serde::Serialize;
 
 use crate::BinanceResult;
 
-pub enum Query {
-    Url(String),
-    Params(Box<dyn Serialize>),
+pub enum Query<'a> {
+    Url(&'a str),
+    Params(&'a dyn Serialize),
 }
 
-#[allow(dead_code)]
-type SignResult = Pin<Box<dyn Future<Output = BinanceResult<String>> + Send>>;
+unsafe impl<'a> Send for Query<'a> {}
+
+pub type SignResult<'a> = Pin<Box<dyn Future<Output = BinanceResult<String>> + Send + 'a>>;
 
 pub trait SignerClone {
     fn clone_box(&self) -> Box<dyn SignBinance>;
 }
 
 pub trait SignBinance: SignerClone + Sync + Send {
-    fn sign(&self, query: Query) -> SignResult;
+    fn sign<'a, 'b:'a, 'c:'b>(&'c self, query: Query<'b>) -> SignResult<'a>;
 }
 
 impl<T> SignerClone for T
