@@ -7,16 +7,31 @@ pub const SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION: &str =
     "/sapi/v1/broker/subAccountApi/ipRestriction";
 pub const SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION_IP_LIST: &str =
     "/sapi/v1/broker/subAccountApi/ipRestriction/ipList";
-pub const SAPI_V1_BROKER_SUB_ACCOUNT_DEPOSIT_HIST: &str = "/sapi/v1/broker/subaccount/depositHist";
-pub const SAPI_V1_BROKER_SUB_ACCOUNT_SPOT_SUMMARY: &str = "/sapi/v1/broker/subaccount/spotSummary";
+pub const SAPI_V1_BROKER_SUB_ACCOUNT_DEPOSIT_HIST: &str = "/sapi/v1/broker/subAccount/depositHist";
+pub const SAPI_V1_BROKER_SUB_ACCOUNT_SPOT_SUMMARY: &str = "/sapi/v1/broker/subAccount/spotSummary";
 pub const SAPI_V1_BROKER_TRANSFER: &str = "/sapi/v1/broker/transfer";
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BrokerSubaccountCreated {
+    pub subaccount_id: String,
+    pub email: String,
+    pub tag: String,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccount {
     pub subaccount_id: String,
     pub email: String,
-    pub tag: String,
+    pub tag: Option<String>,
+    pub maker_commission: Decimal,
+    pub taker_commission: Decimal,
+    // TODO Make None if -1.
+    pub margin_maker_commission: Decimal,
+    // TODO Make None if -1.
+    pub margin_taker_commission: Decimal,
+    pub create_time: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -91,7 +106,7 @@ impl BrokerSubaccountTransferStatus {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccountDeposit {
-    pub subaccount_id: String,
+    pub sub_account_id: String,
     pub address: String,
     pub address_tag: String,
     pub account: String,
@@ -120,14 +135,14 @@ pub struct BrokerSubaccountAssetInfoList {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccountAssetInfo {
-    pub subaccount_id: String,
+    pub sub_account_id: String,
     pub total_balance_of_btc: Decimal,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccountApiIpRestriction {
-    pub subaccount_id: String,
+    pub sub_account_id: String,
     pub ip_restriction: bool,
     pub apikey: String,
     pub ip_list: Vec<String>,
@@ -137,7 +152,7 @@ pub struct BrokerSubaccountApiIpRestriction {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccountApiIpAddressAdded {
-    pub subaccount_id: String,
+    pub sub_account_id: String,
     pub apikey: String,
     pub ip: String,
     pub update_time: u64,
@@ -146,7 +161,7 @@ pub struct BrokerSubaccountApiIpAddressAdded {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerSubaccountApiIpAddressDeleted {
-    pub subaccount_id: String,
+    pub sub_account_id: String,
     pub apikey: String,
     pub ip_list: Vec<String>,
     pub update_time: u64,
@@ -168,7 +183,7 @@ mod with_network {
             &self,
             tag: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccount> {
+        ) -> BinanceResult<BrokerSubaccountCreated> {
             self.client
                 .post(SAPI_V1_BROKER_SUB_ACCOUNT)?
                 .signed(time_window)?
@@ -226,7 +241,28 @@ mod with_network {
 
         // TODO Query Sub Account Api Key
         // TODO Change Sub Account Api Permission
-        // TODO Query Sub Account
+
+        /// Query Sub Account.
+        ///
+        /// * `page` - default 1.
+        /// * `size` - default 500.
+        pub async fn broker_subaccounts(
+            &self,
+            sub_account_id: Option<impl Serialize>,
+            page: Option<u32>,
+            size: Option<u32>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<Vec<BrokerSubaccount>> {
+            self.client
+                .get(SAPI_V1_BROKER_SUB_ACCOUNT)?
+                .signed(time_window)?
+                .try_query_arg("subAccountId", &sub_account_id)?
+                .try_query_arg("page", &page)?
+                .try_query_arg("size", &size)?
+                .send()
+                .await
+        }
+
         // TODO Change Sub Account Commission
         // TODO Change Sub Account USDT-Ⓜ Futures Commission Adjustment
         // TODO Query Sub Account USDT-Ⓜ Futures Commission Adjustment
