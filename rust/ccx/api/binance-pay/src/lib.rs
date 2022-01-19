@@ -38,7 +38,6 @@ pub use api::prelude::TransferStatus;
 pub use api::prelude::TransferType;
 pub use api::uuid_simple;
 pub use client::Config;
-pub use client::Data;
 pub use client::MerchantId;
 pub use client::SignBinancePay;
 pub use client::SignParams;

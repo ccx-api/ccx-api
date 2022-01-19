@@ -8,11 +8,7 @@ use ccx_api_lib::ApiCred;
 
 pub type SignResult<'a> = Pin<Box<dyn Future<Output = KrakenResult<String>> + Send + 'a>>;
 
-pub trait SignerClone {
-    fn clone_box(&self) -> Box<dyn SignKraken>;
-}
-
-pub trait SignKraken: SignerClone + Sync + Send {
+pub trait SignKraken: Sync + Send {
     fn sign<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         nonce: Nonce,
@@ -21,21 +17,6 @@ pub trait SignKraken: SignerClone + Sync + Send {
     ) -> SignResult<'a>;
 
     fn key(&self) -> &str;
-}
-
-impl<T> SignerClone for T
-where
-    T: SignKraken + Clone + 'static,
-{
-    fn clone_box(&self) -> Box<dyn SignKraken> {
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn SignKraken> {
-    fn clone(&self) -> Box<dyn SignKraken> {
-        self.clone_box()
-    }
 }
 
 impl SignKraken for ApiCred {

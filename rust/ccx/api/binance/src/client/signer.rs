@@ -7,29 +7,14 @@ use crate::BinanceResult;
 
 pub type SignResult<'a> = Pin<Box<dyn Future<Output = BinanceResult<String>> + Send + 'a>>;
 
-pub trait SignerClone {
-    fn clone_box(&self) -> Box<dyn SignBinance>;
-}
+// pub trait SignerClone {
+//     fn clone_box(&self) -> Box<dyn SignBinance>;
+// }
 
-pub trait SignBinance: SignerClone + Sync + Send {
+pub trait SignBinance: Sync + Send {
     fn sign<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a>;
 
     fn key(&self) -> &str;
-}
-
-impl<T> SignerClone for T
-where
-    T: SignBinance + Clone + 'static,
-{
-    fn clone_box(&self) -> Box<dyn SignBinance> {
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn SignBinance> {
-    fn clone(&self) -> Box<dyn SignBinance> {
-        self.clone_box()
-    }
 }
 
 impl SignBinance for ApiCred {
