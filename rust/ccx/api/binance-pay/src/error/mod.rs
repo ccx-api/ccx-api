@@ -3,8 +3,9 @@ use std::fmt;
 use std::string::FromUtf8Error;
 
 use actix_http::error::Canceled;
-use exchange_sign_hook::SignError;
 use thiserror::Error;
+
+use ccx_api_lib::SignError;
 
 pub mod common_error;
 

@@ -76,7 +76,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl SpotApi {
+    impl<Signer: crate::client::BinaneSigner> SpotApi<Signer> {
         /// Submit withdraw `[SAPI]`
         ///
         /// Submit a new withdrawal.

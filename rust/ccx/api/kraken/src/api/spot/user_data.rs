@@ -112,7 +112,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl SpotApi {
+    impl<S: crate::client::KrakenSigner> SpotApi<S> {
         /// Get Account Balance.
         ///
         /// Retrieve all cash balances, net of pending withdrawals.

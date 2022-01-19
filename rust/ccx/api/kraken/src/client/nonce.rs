@@ -4,7 +4,7 @@ use chrono::Utc;
 use serde::Serialize;
 
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize)]
-pub struct Nonce(u64);
+pub struct Nonce(pub u64);
 
 #[derive(Clone, Copy)]
 pub struct NonceDecimal {
@@ -30,10 +30,6 @@ pub struct NonceSeq {
 impl Nonce {
     pub fn new(v: impl Into<u64>) -> Self {
         Nonce(v.into())
-    }
-
-    pub(crate) fn value(&self) -> u64 {
-        self.0
     }
 
     pub fn decimal(self) -> NonceDecimal {

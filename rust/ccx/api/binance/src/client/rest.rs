@@ -7,12 +7,9 @@ use actix_http::{Payload, PayloadStream};
 use awc::http::{HeaderValue, Method, Uri};
 use awc::Connector;
 use awc::{Client, ClientRequest, ClientResponse};
-use hmac::{Hmac, Mac, NewMac};
 use serde::Serialize;
-use sha2::Sha256;
 
 use ccx_api_lib::SocksConnector;
-use exchange_sign_hook::Query;
 
 use super::*;
 use crate::client::limits::UsedRateLimits;
@@ -24,24 +21,45 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// API client.
-#[derive(Clone)]
-pub struct RestClient {
-    inner: Arc<ClientInner>,
+pub struct RestClient<S>
+where
+    S: BinaneSigner,
+{
+    inner: Arc<ClientInner<S>>,
 }
 
-struct ClientInner {
-    config: Config,
+impl<S> Clone for RestClient<S>
+where
+    S: BinaneSigner,
+{
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
-pub struct RequestBuilder {
-    api_client: RestClient,
+struct ClientInner<S>
+where
+    S: BinaneSigner,
+{
+    config: Config<S>,
+}
+
+pub struct RequestBuilder<S>
+where
+    S: BinaneSigner,
+{
+    api_client: RestClient<S>,
     request: ClientRequest,
     sign: Option<TimeWindow>,
-    signer: Signer,
 }
 
-impl RestClient {
-    pub fn new(config: Config) -> Self {
+impl<S> RestClient<S>
+where
+    S: BinaneSigner,
+{
+    pub fn new(config: Config<S>) -> Self {
         let inner = Arc::new(ClientInner { config });
         RestClient { inner }
     }
@@ -95,33 +113,31 @@ impl RestClient {
             .finish()
     }
 
-    pub fn request(&self, method: Method, endpoint: &str) -> BinanceResult<RequestBuilder> {
+    pub fn request(&self, method: Method, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
         let url = self.inner.config.api_base.join(endpoint)?;
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
         let request = self.client().request(method, url.as_str());
-        let signer = api_client.inner.config.signer().clone();
         Ok(RequestBuilder {
             api_client,
             request,
             sign: None,
-            signer,
         })
     }
 
-    pub fn get(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
+    pub fn get(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
         self.request(Method::GET, endpoint)
     }
 
-    pub fn post(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
+    pub fn post(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
         self.request(Method::POST, endpoint)
     }
 
-    pub fn put(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
+    pub fn put(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
         self.request(Method::PUT, endpoint)
     }
 
-    pub fn delete(&self, endpoint: &str) -> BinanceResult<RequestBuilder> {
+    pub fn delete(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
         self.request(Method::DELETE, endpoint)
     }
 
@@ -136,7 +152,10 @@ impl RestClient {
     }
 }
 
-impl RequestBuilder {
+impl<S> RequestBuilder<S>
+where
+    S: BinaneSigner,
+{
     pub fn uri(&self) -> String {
         self.request.get_uri().to_string()
     }
@@ -146,9 +165,9 @@ impl RequestBuilder {
         Ok(self)
     }
 
-    pub fn query_arg<S: AsRef<str>, T: Serialize + ?Sized>(
+    pub fn query_arg<Name: AsRef<str>, T: Serialize + ?Sized>(
         mut self,
-        name: S,
+        name: Name,
         query: &T,
     ) -> BinanceResult<Self> {
         let mut parts = self.request.get_uri().clone().into_parts();
@@ -173,9 +192,9 @@ impl RequestBuilder {
         Ok(self)
     }
 
-    pub fn try_query_arg<S: AsRef<str>, T: Serialize>(
+    pub fn try_query_arg<Name: AsRef<str>, T: Serialize>(
         self,
-        name: S,
+        name: Name,
         query: &Option<T>,
     ) -> BinanceResult<Self> {
         match query {
@@ -276,26 +295,15 @@ impl RequestBuilder {
 
     async fn sign(self) -> BinanceResult<Self> {
         let query = self.request.get_uri().query().unwrap_or("");
-        let signature = match self.signer {
-            Signer::Cred(ref cred) => {
-                let secret = cred.secret.as_bytes().to_vec();
-                sign(query, &secret)
-            }
-            Signer::Hook(ref hook) => {
-                let query = Query::Url(query.to_string());
-                hook.closure.sign_binance(query).await?
-            }
-        };
+        let signature = self
+            .api_client
+            .inner
+            .config
+            .signer()
+            .sign_data(query)
+            .await?;
         self.query_arg("signature", &signature)
     }
-}
-
-fn sign(query: &str, secret: &[u8]) -> String {
-    let mut mac = Hmac::<Sha256>::new_varkey(secret).expect("HMAC can take key of any size");
-    mac.update(query.as_bytes());
-
-    let res = mac.finalize().into_bytes();
-    format!("{:x}", res)
 }
 
 type AwcClientResponse = ClientResponse<Decoder<Payload<PayloadStream>>>;

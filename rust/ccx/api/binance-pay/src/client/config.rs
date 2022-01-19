@@ -1,9 +1,9 @@
 use std::env::var;
 
 use ccx_api_lib::env_var_with_prefix;
-use ccx_api_lib::ApiCred;
-use ccx_api_lib::Signer;
 use url::Url;
+
+use crate::client::BinancePaySigner;
 
 use super::API_BASE;
 use super::API_BASE_TESTNET;
@@ -38,21 +38,24 @@ impl MerchantId {
 
 /// API config.
 #[derive(Clone)]
-pub struct Config {
-    pub signer: Signer,
+pub struct Config<S: BinancePaySigner> {
+    pub signer: S,
     pub api_base: Url,
     pub merchant_id: MerchantId,
 }
 
-impl Config {
-    pub fn new(signer: impl Into<Signer>, testnet: bool, merchant_id: MerchantId) -> Self {
+impl<S> Config<S>
+where
+    S: BinancePaySigner,
+{
+    pub fn new(signer: S, testnet: bool, merchant_id: MerchantId) -> Self {
         let api_base = if testnet {
             Url::parse(API_BASE_TESTNET).unwrap()
         } else {
             Url::parse(API_BASE).unwrap()
         };
         Config {
-            signer: signer.into(),
+            signer,
             api_base,
             merchant_id,
         }
@@ -63,19 +66,10 @@ impl Config {
     }
 
     pub(crate) fn api_key(&self) -> &str {
-        match self.signer {
-            Signer::Cred(ref cred) => cred.key.as_str(),
-            Signer::Hook(ref closure) => closure.api_key.as_str(),
-        }
+        self.signer.api_key()
     }
 
-    pub(crate) fn signer(&self) -> &Signer {
+    pub(crate) fn signer(&self) -> &S {
         &self.signer
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self::new(ApiCred::default(), false, MerchantId::default())
     }
 }

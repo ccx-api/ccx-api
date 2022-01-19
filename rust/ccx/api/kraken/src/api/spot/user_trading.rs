@@ -55,7 +55,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl SpotApi {
+    impl<S: crate::client::KrakenSigner> SpotApi<S> {
         /// Validate inputs only. Do not submit order.
         ///
         /// Note: See the AssetPairs endpoint for details on the available trading pairs,

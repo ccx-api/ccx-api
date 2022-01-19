@@ -1,9 +1,9 @@
 use url::Url;
 
 use ccx_api_lib::env_var_with_prefix;
-use ccx_api_lib::Signer;
 
 use crate::client::ApiCred;
+use crate::client::BinaneSigner;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RestClient;
@@ -43,12 +43,18 @@ mod with_network {
     use super::*;
 
     #[derive(Clone)]
-    pub struct UmApi {
-        pub client: RestClient,
+    pub struct UmApi<S>
+    where
+        S: BinaneSigner,
+    {
+        pub client: RestClient<S>,
     }
 
-    impl UmApi {
-        pub fn new(signer: impl Into<Signer>, testnet: bool, proxy: Option<Proxy>) -> Self {
+    impl<S> UmApi<S>
+    where
+        S: BinaneSigner,
+    {
+        pub fn new(signer: S, testnet: bool, proxy: Option<Proxy>) -> Self {
             let (api_base, stream_base) = if testnet {
                 (
                     Url::parse(API_BASE_TESTNET).unwrap(),
@@ -65,8 +71,8 @@ mod with_network {
 
         /// Reads config from env vars with names like:
         /// "CCX_BINANCE_API_KEY", "CCX_BINANCE_API_SECRET", and "CCX_BINANCE_API_TESTNET"
-        pub fn from_env() -> Self {
-            let testnet = Config::env_var("TESTNET").as_deref() == Some("1");
+        pub fn from_env() -> UmApi<ApiCred> {
+            let testnet = Config::<S>::env_var("TESTNET").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(CCX_BINANCE_API_PREFIX);
             UmApi::new(
                 ApiCred::from_env_with_prefix(CCX_BINANCE_API_PREFIX),
@@ -77,13 +83,13 @@ mod with_network {
 
         /// Reads config from env vars with names like:
         /// "${prefix}_KEY", "${prefix}_SECRET", and "${prefix}_TESTNET"
-        pub fn from_env_with_prefix(prefix: &str) -> Self {
+        pub fn from_env_with_prefix(prefix: &str) -> UmApi<ApiCred> {
             let testnet = env_var_with_prefix(prefix, "TESTNET").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(prefix);
             UmApi::new(ApiCred::from_env_with_prefix(prefix), testnet, proxy)
         }
 
-        pub fn with_config(config: Config) -> Self {
+        pub fn with_config(config: Config<S>) -> Self {
             let client = RestClient::new(config);
             UmApi { client }
         }

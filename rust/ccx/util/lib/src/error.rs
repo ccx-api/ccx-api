@@ -1,6 +1,5 @@
-use std::{io, time};
+use std::{fmt, io, time};
 
-use exchange_sign_hook::SignError;
 use serde_json;
 use thiserror::Error;
 use url;
@@ -24,6 +23,23 @@ pub enum ServiceError {
     ServerError,
     #[error("Service Unavailable")]
     ServiceUnavailable,
+}
+
+#[derive(Debug, Error)]
+pub struct SignError {
+    pub reason: String,
+}
+
+impl SignError {
+    pub fn new(s: impl Into<String>) -> Self {
+        Self { reason: s.into() }
+    }
+}
+
+impl fmt::Display for SignError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SignError {{ reason: {} }}", self.reason)
+    }
 }
 
 pub type LibResult<T, AE> = std::result::Result<T, LibError<AE>>;
@@ -68,10 +84,10 @@ where
     #[cfg(feature = "with_network")]
     #[error("Websocket Protocol Error: {0}")]
     WsProtocolError(#[from] WsProtocolError),
-    #[error("Other Error: {0}")]
-    Other(String),
     #[error("Sign Error: {0}")]
     SignError(#[from] SignError),
+    #[error("Other Error: {0}")]
+    Other(String),
 }
 
 impl<AE> LibError<AE>

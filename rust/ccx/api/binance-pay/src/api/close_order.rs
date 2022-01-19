@@ -36,7 +36,7 @@ impl CloseOrderResponse {
     }
 }
 
-impl Api {
+impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn close_order(
         &self,
         request: CloseOrderRequest,

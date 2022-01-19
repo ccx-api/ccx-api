@@ -1,7 +1,7 @@
 use crate::MerchantId;
 use ccx_api_lib::ApiCred;
-use ccx_api_lib::Signer;
 
+use crate::client::BinancePaySigner;
 use crate::client::Config;
 use crate::client::RestClient;
 use crate::client::CCX_BINANCE_PAY_API_PREFIX;
@@ -38,27 +38,30 @@ pub mod prelude {
     pub use super::webhook::ReturnCode;
 }
 
-#[derive(Clone, Default)]
-pub struct Api {
-    pub client: RestClient,
+#[derive(Clone)]
+pub struct Api<S>
+where
+    S: BinancePaySigner,
+{
+    pub client: RestClient<S>,
 }
 
-impl Api {
-    pub fn new(signer: impl Into<Signer>, testnet: bool, merchant_id: MerchantId) -> Self {
+impl<S: crate::client::BinancePaySigner> Api<S> {
+    pub fn new(signer: S, testnet: bool, merchant_id: MerchantId) -> Api<S> {
         Api::with_config(Config::new(signer, testnet, merchant_id))
     }
 
-    pub fn from_env() -> Self {
-        let testnet = Config::env_var("TESTNET").as_deref() == Some("1");
-        let merchant_id = MerchantId::from_env_with_prefix(CCX_BINANCE_PAY_API_PREFIX);
-        Api::new(
-            ApiCred::from_env_with_prefix(CCX_BINANCE_PAY_API_PREFIX),
-            testnet,
-            merchant_id,
-        )
+    pub fn from_env() -> Api<ApiCred> {
+        Self::from_env_with_prefix(CCX_BINANCE_PAY_API_PREFIX)
     }
 
-    pub fn with_config(config: Config) -> Self {
+    pub fn from_env_with_prefix(prefix: &str) -> Api<ApiCred> {
+        let testnet = Config::<S>::env_var("TESTNET").as_deref() == Some("1");
+        let merchant_id = MerchantId::from_env_with_prefix(prefix);
+        Api::new(ApiCred::from_env_with_prefix(prefix), testnet, merchant_id)
+    }
+
+    pub fn with_config(config: Config<S>) -> Api<S> {
         let client = RestClient::with_config(config);
         Api { client }
     }
