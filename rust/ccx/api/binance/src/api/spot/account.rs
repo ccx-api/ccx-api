@@ -302,7 +302,7 @@ mod with_network {
 
     use crate::client::RequestBuilder;
 
-    impl<Signer: crate::client::BinaneSigner> SpotApi<Signer> {
+    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
         /// Test New Order (TRADE)
         ///
         /// Test new order creation and signature/recvWindow long.

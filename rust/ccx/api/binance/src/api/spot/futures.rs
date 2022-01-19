@@ -84,7 +84,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinaneSigner> SpotApi<Signer> {
+    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
         /// New Future Account Transfer (USER_DATA).
         ///
         /// Execute transfer between spot account and futures account.

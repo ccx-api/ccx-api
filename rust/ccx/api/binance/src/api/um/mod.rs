@@ -3,7 +3,7 @@ use url::Url;
 use ccx_api_lib::env_var_with_prefix;
 
 use crate::client::ApiCred;
-use crate::client::BinaneSigner;
+use crate::client::BinanceSigner;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RestClient;
@@ -45,14 +45,14 @@ mod with_network {
     #[derive(Clone)]
     pub struct UmApi<S>
     where
-        S: BinaneSigner,
+        S: BinanceSigner,
     {
         pub client: RestClient<S>,
     }
 
     impl<S> UmApi<S>
     where
-        S: BinaneSigner,
+        S: BinanceSigner,
     {
         pub fn new(signer: S, testnet: bool, proxy: Option<Proxy>) -> Self {
             let (api_base, stream_base) = if testnet {

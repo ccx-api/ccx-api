@@ -21,7 +21,7 @@ pub struct WebsocketClientTx {
 }
 
 impl WebsocketClient {
-    pub async fn connect<S: crate::client::BinaneSigner>(
+    pub async fn connect<S: crate::client::BinanceSigner>(
         api_client: RestClient<S>,
         url: Url,
     ) -> BinanceResult<Self> {

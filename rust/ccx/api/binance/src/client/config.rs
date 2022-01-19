@@ -2,7 +2,7 @@ use url::Url;
 
 use ccx_api_lib::env_var_with_prefix;
 
-use crate::client::BinaneSigner;
+use crate::client::BinanceSigner;
 pub use ccx_api_lib::ApiCred;
 pub use ccx_api_lib::Proxy;
 
@@ -10,7 +10,7 @@ pub static CCX_BINANCE_API_PREFIX: &str = "CCX_BINANCE_API";
 
 /// API config.
 #[derive(Clone)]
-pub struct Config<S: BinaneSigner> {
+pub struct Config<S: BinanceSigner> {
     pub signer: S,
     pub api_base: Url,
     pub stream_base: Url,
@@ -19,7 +19,7 @@ pub struct Config<S: BinaneSigner> {
 
 impl<S> Config<S>
 where
-    S: BinaneSigner,
+    S: BinanceSigner,
 {
     pub fn new(signer: S, api_base: Url, stream_base: Url, proxy: Option<Proxy>) -> Self {
         Config {
@@ -40,5 +40,17 @@ where
 
     pub(crate) fn signer(&self) -> &S {
         &self.signer
+    }
+
+    pub fn as_dyn(&self) -> Config<std::sync::Arc<dyn BinanceSigner>>
+    where
+        S: crate::client::SignerClone,
+    {
+        Config {
+            signer: self.signer.clone_arc(),
+            api_base: self.api_base.clone(),
+            stream_base: self.stream_base.clone(),
+            proxy: self.proxy.clone(),
+        }
     }
 }

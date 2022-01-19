@@ -43,7 +43,7 @@ pub use self::clearjunction::*;
 pub use self::subaccount::*;
 pub use self::wallet::*;
 pub use self::websocket_market::*;
-use crate::client::BinaneSigner;
+use crate::client::BinanceSigner;
 
 pub const API_BASE: &str = "https://api.binance.com/";
 pub const STREAM_BASE: &str = "wss://stream.binance.com/stream";
@@ -68,14 +68,14 @@ mod with_network {
     #[derive(Clone)]
     pub struct SpotApi<S>
     where
-        S: BinaneSigner,
+        S: BinanceSigner,
     {
         pub client: RestClient<S>,
     }
 
     impl<S> SpotApi<S>
     where
-        S: BinaneSigner,
+        S: BinanceSigner,
     {
         pub fn new(signer: S, testnet: bool, proxy: Option<Proxy>) -> Self {
             let (api_base, stream_base) = if testnet {
@@ -120,6 +120,12 @@ mod with_network {
         /// Creates multiplexed websocket stream.
         pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
             self.client.web_socket2().await
+        }
+
+        pub fn as_dyn(self) -> SpotApi<std::sync::Arc<dyn BinanceSigner>> {
+            SpotApi {
+                client: self.client.as_dyn(),
+            }
         }
     }
 }

@@ -68,8 +68,6 @@ fn sign(path: &str, nonce: Nonce, body: &str, decoded_secret: &[u8]) -> String {
 }
 
 pub trait KrakenSigner {
-    type Signer: SignKraken;
-
     fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         nonce: Nonce,
@@ -81,8 +79,6 @@ pub trait KrakenSigner {
 }
 
 impl<T: SignKraken> KrakenSigner for T {
-    type Signer = T;
-
     fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         nonce: Nonce,
