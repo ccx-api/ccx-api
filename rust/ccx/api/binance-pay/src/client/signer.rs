@@ -60,8 +60,6 @@ fn sign(query: &str, secret: &[u8]) -> String {
 }
 
 pub trait BinancePaySigner {
-    type Signer: SignBinancePay;
-
     fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         time: i64,
@@ -73,8 +71,6 @@ pub trait BinancePaySigner {
 }
 
 impl<T: SignBinancePay> BinancePaySigner for T {
-    type Signer = T;
-
     fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         time: i64,

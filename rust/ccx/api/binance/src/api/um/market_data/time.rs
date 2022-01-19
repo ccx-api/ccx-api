@@ -15,7 +15,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinaneSigner> UmApi<Signer> {
+    impl<Signer: crate::client::BinanceSigner> UmApi<Signer> {
         /// Test connectivity to the Rest API and get the current server time.
         ///
         /// Weight: 1

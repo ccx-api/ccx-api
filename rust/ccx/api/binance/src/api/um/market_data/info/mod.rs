@@ -43,7 +43,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinaneSigner> UmApi<Signer> {
+    impl<Signer: crate::client::BinanceSigner> UmApi<Signer> {
         /// Current exchange trading rules and symbol information.
         ///
         /// Weight: 1

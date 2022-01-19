@@ -23,14 +23,14 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 /// API client.
 pub struct RestClient<S>
 where
-    S: BinaneSigner,
+    S: BinanceSigner,
 {
     inner: Arc<ClientInner<S>>,
 }
 
 impl<S> Clone for RestClient<S>
 where
-    S: BinaneSigner,
+    S: BinanceSigner,
 {
     fn clone(&self) -> Self {
         Self {
@@ -41,14 +41,14 @@ where
 
 struct ClientInner<S>
 where
-    S: BinaneSigner,
+    S: BinanceSigner,
 {
     config: Config<S>,
 }
 
 pub struct RequestBuilder<S>
 where
-    S: BinaneSigner,
+    S: BinanceSigner,
 {
     api_client: RestClient<S>,
     request: ClientRequest,
@@ -57,7 +57,7 @@ where
 
 impl<S> RestClient<S>
 where
-    S: BinaneSigner,
+    S: BinanceSigner,
 {
     pub fn new(config: Config<S>) -> Self {
         let inner = Arc::new(ClientInner { config });
@@ -70,6 +70,12 @@ where
             Some(proxy) => self.client_with_proxy(cfg, proxy),
             None => self.client_without_proxy(cfg),
         }
+    }
+
+    pub(crate) fn as_dyn(&self) -> RestClient<std::sync::Arc<dyn BinanceSigner>> {
+        let config = self.inner.config.as_dyn();
+        let inner = Arc::new(ClientInner { config });
+        RestClient { inner }
     }
 
     pub(super) fn client(&self) -> Client {
@@ -154,7 +160,7 @@ where
 
 impl<S> RequestBuilder<S>
 where
-    S: BinaneSigner,
+    S: BinanceSigner,
 {
     pub fn uri(&self) -> String {
         self.request.get_uri().to_string()

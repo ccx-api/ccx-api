@@ -174,7 +174,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinaneSigner> SpotApi<Signer> {
+    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
         /// Create a Sub Account.
         ///
         /// * This request will generate a sub account under your brokerage master account.

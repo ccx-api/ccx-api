@@ -193,7 +193,7 @@ pub struct FundingAsset {
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinaneSigner> SpotApi<Signer> {
+    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
         pub async fn asset_transfer(
             &self,
             transfer_type: TransferKind,

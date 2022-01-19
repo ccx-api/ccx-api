@@ -15,7 +15,7 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinaneSigner> SpotApi<Signer> {
+    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
         /// Create a listenKey.
         ///
         /// Start a new user data stream.

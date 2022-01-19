@@ -7,10 +7,6 @@ use crate::BinanceResult;
 
 pub type SignResult<'a> = Pin<Box<dyn Future<Output = BinanceResult<String>> + Send + 'a>>;
 
-// pub trait SignerClone {
-//     fn clone_box(&self) -> Box<dyn SignBinance>;
-// }
-
 pub trait SignBinance: Sync + Send {
     fn sign<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a>;
 
@@ -49,17 +45,25 @@ fn sign(query: &str, secret: &[u8]) -> String {
     format!("{:x}", res)
 }
 
-pub trait BinaneSigner {
-    type Signer: SignBinance;
+// pub type DynSigner = std::sync::Arc<dyn BinanceSigner>;
 
+impl SignBinance for std::sync::Arc<dyn BinanceSigner> {
+    fn sign<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a> {
+        self.as_ref().sign_data(query)
+    }
+
+    fn key(&self) -> &str {
+        self.as_ref().api_key()
+    }
+}
+
+pub trait BinanceSigner: SignerClone + Sync + Send {
     fn sign_data<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a>;
 
     fn api_key(&self) -> &str;
 }
 
-impl<T: SignBinance> BinaneSigner for T {
-    type Signer = T;
-
+impl<T: SignBinance + Clone + 'static> BinanceSigner for T {
     fn sign_data<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a> {
         self.sign(query)
     }
@@ -68,3 +72,28 @@ impl<T: SignBinance> BinaneSigner for T {
         self.key()
     }
 }
+
+pub trait SignerClone {
+    fn clone_box(&self) -> Box<dyn BinanceSigner>;
+
+    fn clone_arc(&self) -> std::sync::Arc<dyn BinanceSigner>;
+}
+
+impl<T> SignerClone for T
+where
+    T: BinanceSigner + Clone + 'static,
+{
+    fn clone_box(&self) -> Box<dyn BinanceSigner> {
+        Box::new(self.clone())
+    }
+
+    fn clone_arc(&self) -> std::sync::Arc<dyn BinanceSigner> {
+        std::sync::Arc::new(self.clone())
+    }
+}
+
+// impl Clone for Box<dyn BinanceSigner> {
+//     fn clone(&self) -> Box<dyn BinanceSigner> {
+//         self.clone_box()
+//     }
+// }
