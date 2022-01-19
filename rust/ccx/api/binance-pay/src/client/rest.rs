@@ -19,21 +19,21 @@ use crate::Config;
 use crate::LibError;
 use crate::Time;
 
-use crate::client::BinanePaySigner;
+use crate::client::BinancePaySigner;
 
 const CLIENT_TIMEOUT: u64 = 60;
 
 /// API client.
 pub struct RestClient<S>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
 {
     inner: Arc<ClientInner<S>>,
 }
 
 impl<S> Clone for RestClient<S>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
 {
     fn clone(&self) -> Self {
         Self {
@@ -44,14 +44,14 @@ where
 
 struct ClientInner<S>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
 {
     config: Config<S>,
 }
 
 pub struct RequestBuilder<S, J>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
     J: Serialize,
 {
     api_client: RestClient<S>,
@@ -63,7 +63,7 @@ where
 
 impl<S> RestClient<S>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
 {
     // pub fn new(config: Config<S>) -> Self {
     //     let inner = Arc::new(ClientInner { config });
@@ -151,7 +151,7 @@ where
 
 impl<S, J> RequestBuilder<S, J>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
     J: Serialize + Clone + Sync + Send + 'static,
 {
     pub fn uri(&self) -> String {

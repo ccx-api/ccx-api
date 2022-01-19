@@ -84,7 +84,7 @@ fn sign(query: &str, secret: &[u8]) -> String {
     hex::encode(res)
 }
 
-pub trait BinanePaySigner {
+pub trait BinancePaySigner {
     type Signer: SignBinancePay;
 
     fn sign_data<'a, 'b: 'a, 'c: 'b>(
@@ -97,7 +97,7 @@ pub trait BinanePaySigner {
     fn api_key(&self) -> &str;
 }
 
-impl<T: SignBinancePay> BinanePaySigner for T {
+impl<T: SignBinancePay> BinancePaySigner for T {
     type Signer = T;
 
     fn sign_data<'a, 'b: 'a, 'c: 'b>(

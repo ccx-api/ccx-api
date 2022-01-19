@@ -99,7 +99,7 @@ pub struct QueryOrderResponse {
     pub error_message: Option<String>, // string	            Y	-
 }
 
-impl<S: crate::client::BinanePaySigner> Api<S> {
+impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn query_order(
         &self,
         request: QueryOrderRequest,

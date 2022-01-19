@@ -1,7 +1,7 @@
 use crate::MerchantId;
 use ccx_api_lib::ApiCred;
 
-use crate::client::BinanePaySigner;
+use crate::client::BinancePaySigner;
 use crate::client::Config;
 use crate::client::RestClient;
 use crate::client::CCX_BINANCE_PAY_API_PREFIX;
@@ -41,12 +41,12 @@ pub mod prelude {
 #[derive(Clone)]
 pub struct Api<S>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
 {
     pub client: RestClient<S>,
 }
 
-impl<S: crate::client::BinanePaySigner> Api<S> {
+impl<S: crate::client::BinancePaySigner> Api<S> {
     pub fn new(signer: S, testnet: bool, merchant_id: MerchantId) -> Api<S> {
         Api::with_config(Config::new(signer, testnet, merchant_id))
     }

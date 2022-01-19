@@ -57,7 +57,7 @@ pub struct CreateOrderResponse {
     pub error_message: Option<String>, // string       Y	-
 }
 
-impl<S: crate::client::BinanePaySigner> Api<S> {
+impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn create_order(
         &self,
         request: CreateOrderRequest,

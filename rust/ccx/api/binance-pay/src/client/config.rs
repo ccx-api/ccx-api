@@ -3,7 +3,7 @@ use std::env::var;
 use ccx_api_lib::env_var_with_prefix;
 use url::Url;
 
-use crate::client::BinanePaySigner;
+use crate::client::BinancePaySigner;
 
 use super::API_BASE;
 use super::API_BASE_TESTNET;
@@ -38,7 +38,7 @@ impl MerchantId {
 
 /// API config.
 #[derive(Clone)]
-pub struct Config<S: BinanePaySigner> {
+pub struct Config<S: BinancePaySigner> {
     pub signer: S,
     pub api_base: Url,
     pub merchant_id: MerchantId,
@@ -46,7 +46,7 @@ pub struct Config<S: BinanePaySigner> {
 
 impl<S> Config<S>
 where
-    S: BinanePaySigner,
+    S: BinancePaySigner,
 {
     pub fn new(signer: S, testnet: bool, merchant_id: MerchantId) -> Self {
         let api_base = if testnet {
