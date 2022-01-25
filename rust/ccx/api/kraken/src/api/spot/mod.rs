@@ -44,20 +44,11 @@ mod with_network {
     use super::*;
 
     #[derive(Clone)]
-    pub struct SpotApi<S: KrakenSigner> {
+    pub struct SpotApi<S: KrakenSigner = ApiCred> {
         pub client: RestClient<S>,
     }
 
-    impl<S> SpotApi<S>
-    where
-        S: KrakenSigner,
-    {
-        pub fn new(signer: S, proxy: Option<Proxy>) -> Self {
-            let api_base = Url::parse(API_BASE).unwrap();
-            let stream_base = Url::parse(STREAM_BASE).unwrap();
-            SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
-        }
-
+    impl SpotApi<ApiCred> {
         /// Reads config from env vars with names like:
         /// "CCX_KRAKEN_API_KEY", "CCX_KRAKEN_API_SECRET"
         pub fn from_env() -> SpotApi<ApiCred> {
@@ -70,6 +61,17 @@ mod with_network {
         pub fn from_env_with_prefix(prefix: &str) -> SpotApi<ApiCred> {
             let proxy = Proxy::from_env_with_prefix(prefix);
             SpotApi::new(ApiCred::from_env_with_prefix(prefix), proxy)
+        }
+    }
+
+    impl<S> SpotApi<S>
+    where
+        S: KrakenSigner,
+    {
+        pub fn new(signer: S, proxy: Option<Proxy>) -> Self {
+            let api_base = Url::parse(API_BASE).unwrap();
+            let stream_base = Url::parse(STREAM_BASE).unwrap();
+            SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
         }
 
         pub fn with_config(config: Config<S>) -> Self {
