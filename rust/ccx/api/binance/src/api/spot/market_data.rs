@@ -264,6 +264,10 @@ pub enum SymbolPermission {
     Margin,
     #[serde(rename = "LEVERAGED")]
     Leveraged,
+    #[serde(rename = "TRD_GRP_002")]
+    TrdGrp002,
+    #[serde(rename = "TRD_GRP_003")]
+    TrdGrp003,
 }
 
 // FIXME clarify: the documentation is ambiguous; only these values are listed as valid,
