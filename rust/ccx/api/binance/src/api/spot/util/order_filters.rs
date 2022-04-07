@@ -4,6 +4,7 @@ use super::super::*;
 pub struct OrderFilters {
     pub price: Option<PriceFilter>,
     pub percent_price: Option<PercentPriceFilter>,
+    pub percent_price_by_side: Option<PercentPriceBySideFilter>,
     pub lot_size: Option<LotSizeFilter>,
     pub min_notional: Option<MinNotionalFilter>,
     pub icebert_parts: Option<IcebergPartsFilter>,
@@ -21,6 +22,7 @@ impl OrderFilters {
             match filter {
                 Filter::Price(filter) => this.price = Some(filter),
                 Filter::PercentPrice(filter) => this.percent_price = Some(filter),
+                Filter::PercentPriceBySide(filter) => this.percent_price_by_side = Some(filter),
                 Filter::LotSize(filter) => this.lot_size = Some(filter),
                 Filter::MinNotional(filter) => this.min_notional = Some(filter),
                 Filter::IcebergParts(filter) => this.icebert_parts = Some(filter),

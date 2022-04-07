@@ -111,6 +111,8 @@ pub enum Filter {
     Price(PriceFilter),
     #[serde(rename = "PERCENT_PRICE")]
     PercentPrice(PercentPriceFilter),
+    #[serde(rename = "PERCENT_PRICE_BY_SIDE")]
+    PercentPriceBySide(PercentPriceBySideFilter),
     #[serde(rename = "LOT_SIZE")]
     LotSize(LotSizeFilter),
     #[serde(rename = "MIN_NOTIONAL")]
@@ -153,11 +155,42 @@ pub struct PriceFilter {
     pub tick_size: Decimal,
 }
 
+/// The PERCENT_PRICE filter defines valid range for a price based on the average of the previous
+/// trades. `avgPriceMins` is the number of minutes the average price is calculated over. 0 means
+/// the last price is used.
+///
+/// In order to pass the percent price, the following must be true for price:
+///
+/// * `price` <= `weightedAveragePrice` * `multiplierUp`
+/// * `price` >= `weightedAveragePrice` * `multiplierDown`
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
 pub struct PercentPriceFilter {
     pub multiplier_up: Decimal,
     pub multiplier_down: Decimal,
+    pub avg_price_mins: u64,
+}
+
+/// The PERCENT_PRICE_BY_SIDE filter defines the valid range for the price based on the lastPrice
+/// of the symbol. There is a different range depending on whether the order is placed
+/// on the `BUY` side or the `SELL` side.
+///
+/// Buy orders will succeed on this filter if:
+///
+/// * `Order price` <= `bidMultiplierUp` * `lastPrice`
+/// * `Order price` >= `bidMultiplierDown` * `lastPrice`
+///
+/// Sell orders will succeed on this filter if:
+///
+/// * `Order Price` <= `askMultiplierUp` * `lastPrice`
+/// * `Order Price` >= `askMultiplierDown` * `lastPrice`
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct PercentPriceBySideFilter {
+    pub bid_multiplier_up: Decimal,
+    pub bid_multiplier_down: Decimal,
+    pub ask_multiplier_up: Decimal,
+    pub ask_multiplier_down: Decimal,
     pub avg_price_mins: u64,
 }
 

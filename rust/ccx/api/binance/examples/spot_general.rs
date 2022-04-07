@@ -1,3 +1,4 @@
+use ccx_api_lib::ApiCred;
 use ccx_binance::BinanceResult;
 use ccx_binance::SpotApi;
 use ccx_binance_examples_util::*;
@@ -11,7 +12,7 @@ async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance_spot = SpotApi::from_env();
+    let binance_spot = SpotApi::<ApiCred>::from_env();
 
     println!("Running...");
 
