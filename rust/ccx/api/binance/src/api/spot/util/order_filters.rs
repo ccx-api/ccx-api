@@ -13,6 +13,7 @@ pub struct OrderFilters {
     pub max_num_algo_orders: Option<MaxNumAlgoOrdersFilter>,
     pub max_num_iceberg: Option<MaxNumIcebergOrdersFilter>,
     pub max_position: Option<MaxPositionFilter>,
+    pub trailing_delta: Option<TrailingDeltaFilter>,
 }
 
 impl OrderFilters {
@@ -31,6 +32,7 @@ impl OrderFilters {
                 Filter::MaxNumAlgoOrders(filter) => this.max_num_algo_orders = Some(filter),
                 Filter::MaxNumIcebergOrders(filter) => this.max_num_iceberg = Some(filter),
                 Filter::MaxPosition(filter) => this.max_position = Some(filter),
+                Filter::TrailingDelta(filter) => this.trailing_delta = Some(filter),
             }
         }
         this

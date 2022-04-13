@@ -129,6 +129,8 @@ pub enum Filter {
     MaxNumIcebergOrders(MaxNumIcebergOrdersFilter),
     #[serde(rename = "MAX_POSITION")]
     MaxPosition(MaxPositionFilter),
+    #[serde(rename = "TRAILING_DELTA")]
+    TrailingDelta(TrailingDeltaFilter),
 }
 
 /// The PRICE_FILTER defines the price rules for a symbol. There are 3 parts:
@@ -287,6 +289,24 @@ pub struct MaxNumIcebergOrdersFilter {
 #[serde(rename_all = "camelCase")]
 pub struct MaxPositionFilter {
     pub max_position: Decimal,
+}
+
+/// The `MAX_POSITION` filter defines the allowed maximum position an account can have on the
+/// base asset of a symbol. An account's position defined as the sum of the account's:
+///
+/// * free balance of the base asset
+/// * locked balance of the base asset
+/// * sum of the qty of all open BUY orders
+///
+/// BUY orders will be rejected if the account's position is greater than the maximum position
+/// allowed.
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct TrailingDeltaFilter {
+    pub min_trailing_above_delta: Decimal,
+    pub max_trailing_above_delta: Decimal,
+    pub min_trailing_below_delta: Decimal,
+    pub max_trailing_below_delta: Decimal,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
