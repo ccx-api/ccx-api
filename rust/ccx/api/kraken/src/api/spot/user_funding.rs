@@ -4,6 +4,9 @@ use super::prelude::*;
 
 pub const API_0_PRIVATE_DEPOSIT_METHODS: &str = "/0/private/DepositMethods";
 pub const API_0_PRIVATE_DEPOSIT_ADDRESSES: &str = "/0/private/DepositAddresses";
+pub const API_0_PRIVATE_WITHDRAW: &str = "/0/private/Withdraw";
+pub const API_0_PRIVATE_WITHDRAW_STATUS: &str = "/0/private/WithdrawStatus";
+pub const API_0_PRIVATE_WITHDRAW_CANCEL: &str = "/0/private/WithdrawCancel";
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct GetDepositMethodsRequest<'a> {
@@ -65,6 +68,110 @@ pub struct DepositAddress {
     pub new: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct WithdrawFundsRequest<'a> {
+    asset: &'a str,
+    key: &'a str,
+    amount: &'a str,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct WithdrawFundsResponse {
+    /// Reference ID of the withdraw.
+    refid: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct GetStatusOfRecentWithdrawalsRequest<'a> {
+    asset: &'a str,
+    method: Option<&'a str>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(transparent)]
+pub struct GetStatusOfRecentWithdrawalsResponse(pub Vec<Withdraw>);
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct WithdrawalCancelationRequest<'a> {
+    asset: &'a str,
+    refid: &'a str,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(transparent)]
+pub struct WithdrawalCancelationResponse(pub bool);
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct Withdraw {
+    /// Name og withdrawal method.
+    pub method: String,
+
+    /// Asset class.
+    pub aclass: String,
+
+    /// Asset being withdrawn.
+    pub asset: String,
+
+    /// Reference ID
+    pub refid: String,
+
+    /// Method transaction ID.
+    pub txid: String,
+
+    /// Method transaction information.
+    pub info: String,
+
+    /// Amount withdrawn.
+    pub amount: String,
+
+    /// Fees paid.
+    pub fee: String,
+
+    /// Unix timestamp when request was made.
+    pub time: i32,
+
+    /// Status of withdraw.
+    pub status: WithdrawStatus,
+
+    /// Additional status properties.
+    pub status_prop: Option<WithdrawStatusProperties>
+}
+
+/// Withdrawal status according to [IFEX financial transaction states][1].
+///
+/// [1]: https://github.com/globalcitizen/ifex-protocol/blob/master/draft-ifex-00.txt#L837
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub enum WithdrawStatus {
+    Initial,
+    Pending,
+    Settled,
+    Success,
+    Failure,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub enum WithdrawStatusProperties {
+    /// Cancelation requested.
+    #[serde(rename = "cancel-pending")]
+    CancelPending,
+
+    /// Withdraw was canceled.
+    #[serde(rename = "canceled")]
+    Canceled,
+
+    /// Cancelation requested but was denied.
+    #[serde(rename = "cancel-denied")]
+    CancelDenied,
+
+    /// A return transaction initiated by Kraken; it cannot be canceled.
+    #[serde(rename = "return")]
+    Return,
+
+    /// Withdrawal is on hold pending review
+    #[serde(rename = "onhold")]
+    OnHold,
+}
+
 #[cfg(feature = "with_network")]
 pub use with_network::*;
 
@@ -106,6 +213,75 @@ mod with_network {
                 .post(API_0_PRIVATE_DEPOSIT_ADDRESSES)?
                 .signed(nonce)?
                 .request_body(GetDepositAddressesRequest { asset, method })?
+                .send()
+                .await
+        }
+
+        /// Withdraw Funds
+        ///
+        /// Make a withdrawal request.
+        ///
+        /// * `asset` - Asset being withdrawn
+        /// * `key` - Withdrawal key name, as set up on your account
+        /// * `amount` - Amount to be withdrawn
+        pub async fn withdraw_funds(
+            &self,
+            nonce: Nonce,
+            asset: &str,
+            key: &str,
+            amount: &str,
+        ) -> KrakenApiResult<WithdrawFundsResponse> {
+            self.client
+                .post(API_0_PRIVATE_WITHDRAW)?
+                .signed(nonce)?
+                .request_body(WithdrawFundsRequest { asset, key, amount })?
+                .send()
+                .await
+        }
+
+        /// Get Status of Recent Withdrawals.
+        ///
+        /// Retrieve information about recently requests withdrawals.
+        ///
+        /// * `asset` - Asset being withdrawn.
+        /// * `method` - Name of the withdrawal method.
+        pub async fn get_status_of_recent_withdrawals(
+            &self,
+            nonce: Nonce,
+            asset: &str,
+            method: Option<&str>,
+        ) -> KrakenApiResult<GetStatusOfRecentWithdrawalsResponse> {
+            self.client
+                .post(API_0_PRIVATE_WITHDRAW_STATUS)?
+                .signed(nonce)?
+                .request_body(GetStatusOfRecentWithdrawalsRequest {
+                    asset,
+                    method
+                })?
+                .send()
+                .await
+        }
+
+        /// Request Withdrawal Cancelation
+        ///
+        /// Cancel a recently requested withdrawal, if it has not already been
+        /// successfully processed.
+        ///
+        /// * `asset` - Asset being withdrawn.
+        /// * `method` - Name of the withdrawal method.
+        pub async fn request_withdrawal_cancelation(
+            &self,
+            nonce: Nonce,
+            asset: &str,
+            refid: &str,
+        ) -> KrakenApiResult<WithdrawalCancelationResponse> {
+            self.client
+                .post(API_0_PRIVATE_WITHDRAW_CANCEL)?
+                .signed(nonce)?
+                .request_body(WithdrawalCancelationRequest {
+                    asset,
+                    refid,
+                })?
                 .send()
                 .await
         }
