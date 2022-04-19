@@ -78,7 +78,7 @@ pub struct WithdrawFundsRequest<'a> {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct WithdrawFundsResponse {
     /// Reference ID of the withdraw.
-    refid: String,
+    pub refid: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
