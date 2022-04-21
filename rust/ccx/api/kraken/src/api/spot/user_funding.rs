@@ -4,6 +4,7 @@ use super::prelude::*;
 
 pub const API_0_PRIVATE_DEPOSIT_METHODS: &str = "/0/private/DepositMethods";
 pub const API_0_PRIVATE_DEPOSIT_ADDRESSES: &str = "/0/private/DepositAddresses";
+pub const API_0_PRIVATE_WITHDRAW_INFO: &str = "/0/private/WithdrawInfo";
 pub const API_0_PRIVATE_WITHDRAW: &str = "/0/private/Withdraw";
 pub const API_0_PRIVATE_WITHDRAW_STATUS: &str = "/0/private/WithdrawStatus";
 pub const API_0_PRIVATE_WITHDRAW_CANCEL: &str = "/0/private/WithdrawCancel";
@@ -69,6 +70,17 @@ pub struct DepositAddress {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct GetWithdrawalInformationRequest<'a> {
+    asset: &'a str,
+    key: &'a str,
+    amount: &'a str,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(transparent)]
+pub struct GetWithdrawalInformationResponse(pub WithdrawInfo);
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct WithdrawFundsRequest<'a> {
     asset: &'a str,
     key: &'a str,
@@ -102,6 +114,21 @@ pub struct WithdrawalCancelationRequest<'a> {
 pub struct WithdrawalCancelationResponse(pub bool);
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct WithdrawInfo {
+    /// Name of the withdrawal method that will be used.
+    pub method: String,
+
+    /// Maximum net amount that can be withdrawn right now.
+    pub limit: String,
+
+    /// Net amount that will be sent, after fees.
+    pub amount: String,
+
+    /// Amount of fees that will be paid
+    pub fee: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Withdraw {
     /// Name og withdrawal method.
     pub method: String,
@@ -128,7 +155,7 @@ pub struct Withdraw {
     pub fee: String,
 
     /// Unix timestamp when request was made.
-    pub time: i32,
+    pub time: i64,
 
     /// Status of withdraw.
     pub status: WithdrawStatus,
@@ -213,6 +240,33 @@ mod with_network {
                 .post(API_0_PRIVATE_DEPOSIT_ADDRESSES)?
                 .signed(nonce)?
                 .request_body(GetDepositAddressesRequest { asset, method })?
+                .send()
+                .await
+        }
+
+        /// Get Withdrawal Information
+        ///
+        /// Retrieve fee information about potential withdrawals for a
+        /// particular asset, key and amount.
+        ///
+        /// * `asset` - Asset being withdrawn
+        /// * `key` - Withdrawal key name, as set up on your account
+        /// * `amount` - Amount to be withdrawn
+        pub async fn get_withdrawal_information(
+            &self,
+            nonce: Nonce,
+            asset: &str,
+            key: &str,
+            amount: &str,
+        ) -> KrakenApiResult<GetWithdrawalInformationResponse> {
+            self.client
+                .post(API_0_PRIVATE_WITHDRAW_INFO)?
+                .signed(nonce)?
+                .request_body(GetWithdrawalInformationRequest {
+                    asset,
+                    key,
+                    amount,
+                })?
                 .send()
                 .await
         }
