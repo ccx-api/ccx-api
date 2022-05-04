@@ -1,26 +1,24 @@
 use std::sync::Arc;
-use std::time::Duration;
 use std::time::Instant;
 
 use actix_http::encoding::Decoder;
-use actix_http::{Payload, PayloadStream};
+use actix_http::{Payload, BoxedPayloadStream};
 use awc::http::Method;
 use awc::http::StatusCode;
-use awc::Client;
-use awc::ClientRequest;
-use awc::ClientResponse;
 use serde::Serialize;
 
+use ccx_api_lib::make_client;
+use ccx_api_lib::Client;
+use ccx_api_lib::ClientRequest;
+use ccx_api_lib::ClientResponse;
+
+use crate::client::BinancePaySigner;
 use crate::error::BinanceError;
 use crate::error::LibResult;
 use crate::error::ServiceError;
 use crate::Config;
 use crate::LibError;
 use crate::Time;
-
-use crate::client::BinancePaySigner;
-
-const CLIENT_TIMEOUT: u64 = 60;
 
 /// API client.
 pub struct RestClient<S>
@@ -69,51 +67,8 @@ where
         RestClient { inner }
     }
 
-    #[cfg(not(feature = "with_proxy"))]
-    pub fn client_with_proxy(
-        &self,
-        cfg: Arc<rustls::ClientConfig>,
-        proxy: &ccx_api_lib::Proxy,
-    ) -> Client {
-        // let connector = Connector::new()
-        //     .rustls(cfg)
-        //     .connector(SocksConnector::new(proxy.addr()))
-        //     .timeout(CONNECT_TIMEOUT);
-        // Client::builder()
-        //     .connector(connector)
-        //     .timeout(CLIENT_TIMEOUT)
-        //     .finish()
-        todo!("FIX client_with_proxy")
-    }
-
-    // #[cfg(all(feature = "with_proxy"))]
     pub(super) fn client(&self) -> Client {
-        use std::env::var;
-        static CCX_BINANCE_API_PROXY_HOST: &str = "CCX_BINANCE_API_PROXY_HOST";
-        static CCX_BINANCE_API_PROXY_PORT: &str = "CCX_BINANCE_API_PROXY_PORT";
-
-        fn string_to_static_str(s: String) -> &'static str {
-            Box::leak(s.into_boxed_str())
-        }
-
-        let host = var(CCX_BINANCE_API_PROXY_HOST)
-            .expect("Error while getting CCX_BINANCE_API_PROXY_HOST");
-        let port = var(CCX_BINANCE_API_PROXY_PORT)
-            .expect("Error while getting CCX_BINANCE_API_PROXY_PORT");
-        let proxy_addr = format!("{}:{}", host, port);
-        let timeout = Duration::from_secs(CLIENT_TIMEOUT);
-        // awc::ClientBuilder::new()
-        //     .connector(
-        //         actix_web::client::Connector::new()
-        //             .connector(crate::client::connector::SocksConnector(
-        //                 string_to_static_str(proxy_addr),
-        //             ))
-        //             .timeout(std::time::Duration::from_secs(60))
-        //             .finish(),
-        //     )
-        //     .timeout(timeout)
-        //     .finish()
-        todo!("FIXME Client")
+        make_client(false, self.inner.config.proxy.as_ref())
     }
 
     pub fn request<T: Serialize + Clone + 'static>(
@@ -172,9 +127,10 @@ where
 
     pub fn timestamp_header(mut self) -> LibResult<Self> {
         if let Some(time_window) = self.sign {
-            self.request = self
-                .request
-                .append_header(("BinancePay-Timestamp", &*time_window.timestamp().to_string()));
+            self.request = self.request.append_header((
+                "BinancePay-Timestamp",
+                &*time_window.timestamp().to_string(),
+            ));
         }
         Ok(self)
     }
@@ -288,7 +244,7 @@ where
     }
 }
 
-type AwcClientResponse = ClientResponse<Decoder<Payload<PayloadStream>>>;
+type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
 fn check_response(res: AwcClientResponse, resp: &[u8]) -> LibResult<AwcClientResponse> {
     match res.status() {

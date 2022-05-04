@@ -1,10 +1,11 @@
-use crate::MerchantId;
 use ccx_api_lib::ApiCred;
+use ccx_api_lib::Proxy;
 
 use crate::client::BinancePaySigner;
 use crate::client::Config;
 use crate::client::RestClient;
 use crate::client::CCX_BINANCE_PAY_API_PREFIX;
+use crate::MerchantId;
 
 mod certificates;
 mod close_order;
@@ -46,9 +47,9 @@ where
     pub client: RestClient<S>,
 }
 
-impl<S: crate::client::BinancePaySigner> Api<S> {
-    pub fn new(signer: S, testnet: bool, merchant_id: MerchantId) -> Api<S> {
-        Api::with_config(Config::new(signer, testnet, merchant_id))
+impl<S: BinancePaySigner> Api<S> {
+    pub fn new(signer: S, testnet: bool, merchant_id: MerchantId, proxy: Option<Proxy>) -> Api<S> {
+        Api::with_config(Config::new(signer, testnet, merchant_id, proxy))
     }
 
     pub fn from_env() -> Api<ApiCred> {
@@ -58,7 +59,8 @@ impl<S: crate::client::BinancePaySigner> Api<S> {
     pub fn from_env_with_prefix(prefix: &str) -> Api<ApiCred> {
         let testnet = Config::<S>::env_var("TESTNET").as_deref() == Some("1");
         let merchant_id = MerchantId::from_env_with_prefix(prefix);
-        Api::new(ApiCred::from_env_with_prefix(prefix), testnet, merchant_id)
+        let proxy = Proxy::from_env_with_prefix(prefix);
+        Api::new(ApiCred::from_env_with_prefix(prefix), testnet, merchant_id, proxy)
     }
 
     pub fn with_config(config: Config<S>) -> Api<S> {

@@ -148,7 +148,7 @@ impl Websocket {
                 ctx.stop();
                 return;
             }
-            if let (_msg) = act.sink.write(ws::Message::Ping("".into())) {
+            if let Err(_msg) = act.sink.write(ws::Message::Ping("".into())) {
                 log::warn!("Websocket client failed to send ping, stopping!");
                 ctx.stop()
             };

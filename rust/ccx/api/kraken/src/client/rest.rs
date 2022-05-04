@@ -1,28 +1,23 @@
 use std::sync::Arc;
-use std::time::Duration;
 use std::time::Instant;
 
 use actix_http::encoding::Decoder;
 use actix_http::Uri;
-use actix_http::{Payload, PayloadStream};
+use actix_http::{Payload, BoxedPayloadStream};
 use awc::http::Method;
 use awc::http::StatusCode;
-use awc::Client;
-use awc::ClientRequest;
-use awc::ClientResponse;
-use awc::Connector;
 use serde::{Deserialize, Serialize};
 
-use ccx_api_lib::SocksConnector;
+use ccx_api_lib::make_client;
+use ccx_api_lib::Client;
+use ccx_api_lib::ClientRequest;
+use ccx_api_lib::ClientResponse;
 
 use super::*;
 // use crate::client::limits::UsedRateLimits;
 // use crate::client::{WebsocketClient, WebsocketStream};
 use crate::error::*;
 // use crate::proto::TimeWindow;
-
-const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
-const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// API client.
 pub struct RestClient<S>
@@ -88,62 +83,8 @@ where
         RestClient { inner }
     }
 
-    fn client_(&self, h1_only: bool) -> Client {
-        let cfg = Self::client_config(h1_only);
-        match self.inner.config.proxy.as_ref() {
-            Some(proxy) => self.client_with_proxy(cfg, proxy),
-            None => self.client_without_proxy(cfg),
-        }
-    }
-
     pub(super) fn client(&self) -> Client {
-        self.client_(false)
-    }
-
-    #[allow(dead_code)]
-    pub(super) fn client_h1(&self) -> Client {
-        self.client_(true)
-    }
-
-    fn client_config(h1_only: bool) -> Arc<rustls::ClientConfig> {
-        let mut root_store = rustls::RootCertStore::empty();
-        root_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
-            rustls::OwnedTrustAnchor::from_subject_spki_name_constraints(
-                ta.subject,
-                ta.spki,
-                ta.name_constraints,
-            )
-        }));
-
-        let mut cfg = rustls::ClientConfig::builder()
-            .with_safe_defaults()
-            .with_root_certificates(root_store)
-            .with_no_client_auth();
-
-        if h1_only {
-            cfg.alpn_protocols = vec![b"http/1.1".to_vec()];
-        }
-        Arc::new(cfg)
-    }
-
-    fn client_without_proxy(&self, cfg: Arc<rustls::ClientConfig>) -> Client {
-        let connector = Connector::new().rustls(cfg).timeout(CONNECT_TIMEOUT);
-        Client::builder()
-            .connector(connector)
-            .timeout(CLIENT_TIMEOUT)
-            .finish()
-    }
-
-    fn client_with_proxy(&self, _cfg: Arc<rustls::ClientConfig>, _proxy: &Proxy) -> Client {
-        // let connector = Connector::new()
-        //     .rustls(cfg)
-        //     .connector(SocksConnector::new(proxy.addr()))
-        //     .timeout(CONNECT_TIMEOUT);
-        // Client::builder()
-        //     .connector(connector)
-        //     .timeout(CLIENT_TIMEOUT)
-        //     .finish()
-        todo!("FIX client_with_proxy")
+        make_client(false, self.inner.config.proxy.as_ref())
     }
 
     pub fn request(&self, method: Method, endpoint: &str) -> KrakenResult<RequestBuilder<S>> {
@@ -232,10 +173,9 @@ where
     }
 
     pub fn auth_header(mut self) -> KrakenResult<Self> {
-        self.request = self.request.append_header((
-            "API-Key",
-            self.api_client.inner.config.api_key(),
-        ));
+        self.request = self
+            .request
+            .append_header(("API-Key", self.api_client.inner.config.api_key()));
         Ok(self)
     }
 
@@ -334,11 +274,9 @@ where
 
 /// Return base64 encoded api sign.
 
-type AwcClientResponse = ClientResponse<Decoder<Payload<PayloadStream>>>;
+type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
 fn check_response(res: AwcClientResponse) -> KrakenApiResult<AwcClientResponse> {
-    use awc::http::StatusCode;
-
     // let used_rate_limits = UsedRateLimits::from_headers(res.headers());
     //
     // log::debug!("  used_rate_limits:  {:?}", used_rate_limits);

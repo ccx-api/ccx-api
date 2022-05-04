@@ -14,7 +14,9 @@ with_network = [
     "actix-service",
     "actix-tls",
     "awc",
+    "rustls",
     "tokio-socks",
+    "webpki-roots",
 ]
 
 [dependencies]
@@ -24,6 +26,7 @@ actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 awc = { version = "3", optional = true }
 rust_decimal = "1"
+rustls = { version = "0.20", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_urlencoded = "0.7"
@@ -31,3 +34,4 @@ string_cache = "0.8"
 thiserror = "1"
 tokio-socks = { version = "0.5", optional = true }
 url = { version = "2", features = ["serde"] }
+webpki-roots = { version = "0.22", optional = true }

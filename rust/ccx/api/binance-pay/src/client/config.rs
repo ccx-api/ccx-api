@@ -1,6 +1,7 @@
 use std::env::var;
 
 use ccx_api_lib::env_var_with_prefix;
+use ccx_api_lib::Proxy;
 use url::Url;
 
 use crate::client::BinancePaySigner;
@@ -42,13 +43,14 @@ pub struct Config<S: BinancePaySigner> {
     pub signer: S,
     pub api_base: Url,
     pub merchant_id: MerchantId,
+    pub proxy: Option<Proxy>,
 }
 
 impl<S> Config<S>
 where
     S: BinancePaySigner,
 {
-    pub fn new(signer: S, testnet: bool, merchant_id: MerchantId) -> Self {
+    pub fn new(signer: S, testnet: bool, merchant_id: MerchantId, proxy: Option<Proxy>) -> Self {
         let api_base = if testnet {
             Url::parse(API_BASE_TESTNET).unwrap()
         } else {
@@ -58,6 +60,7 @@ where
             signer,
             api_base,
             merchant_id,
+            proxy,
         }
     }
 

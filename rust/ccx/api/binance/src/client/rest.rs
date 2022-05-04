@@ -1,23 +1,20 @@
 use std::sync::Arc;
-use std::time::Duration;
 use std::time::Instant;
 
 use actix_http::encoding::Decoder;
-use actix_http::{Payload, PayloadStream, Method, Uri};
-use awc::Connector;
-use awc::{Client, ClientRequest, ClientResponse};
+use actix_http::{Payload, BoxedPayloadStream, Method, Uri};
 use serde::Serialize;
 
-use ccx_api_lib::SocksConnector;
+use ccx_api_lib::make_client;
+use ccx_api_lib::Client;
+use ccx_api_lib::ClientRequest;
+use ccx_api_lib::ClientResponse;
 
 use super::*;
 use crate::client::limits::UsedRateLimits;
 use crate::client::{WebsocketClient, WebsocketStream};
 use crate::error::*;
 use crate::proto::TimeWindow;
-
-const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
-const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// API client.
 pub struct RestClient<S>
@@ -63,18 +60,14 @@ where
         RestClient { inner }
     }
 
-    fn client_(&self, h1_only: bool) -> Client {
-        let cfg = Self::client_config(h1_only);
-        match self.inner.config.proxy.as_ref() {
-            Some(proxy) => self.client_with_proxy(cfg, proxy),
-            None => self.client_without_proxy(cfg),
-        }
-    }
-
     pub(crate) fn as_dyn(&self) -> RestClient<std::sync::Arc<dyn BinanceSigner>> {
         let config = self.inner.config.as_dyn();
         let inner = Arc::new(ClientInner { config });
         RestClient { inner }
+    }
+
+    fn client_(&self, h1_only: bool) -> Client {
+        make_client(h1_only, self.inner.config.proxy.as_ref())
     }
 
     pub(super) fn client(&self) -> Client {
@@ -83,47 +76,6 @@ where
 
     pub(super) fn client_h1(&self) -> Client {
         self.client_(true)
-    }
-
-    fn client_config(h1_only: bool) -> Arc<rustls::ClientConfig> {
-        let mut root_store = rustls::RootCertStore::empty();
-        root_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
-            rustls::OwnedTrustAnchor::from_subject_spki_name_constraints(
-                ta.subject,
-                ta.spki,
-                ta.name_constraints,
-            )
-        }));
-
-        let mut cfg = rustls::ClientConfig::builder()
-            .with_safe_defaults()
-            .with_root_certificates(root_store)
-            .with_no_client_auth();
-
-        if h1_only {
-            cfg.alpn_protocols = vec![b"http/1.1".to_vec()];
-        }
-        Arc::new(cfg)
-    }
-
-    fn client_without_proxy(&self, cfg: Arc<rustls::ClientConfig>) -> Client {
-        let connector = Connector::new().rustls(cfg).timeout(CONNECT_TIMEOUT);
-        Client::builder()
-            .connector(connector)
-            .timeout(CLIENT_TIMEOUT)
-            .finish()
-    }
-
-    fn client_with_proxy(&self, _cfg: Arc<rustls::ClientConfig>, _proxy: &Proxy) -> Client {
-        // let connector = Connector::new()
-        //     .rustls(cfg)
-        //     .connector(SocksConnector::new(proxy.addr()))
-        //     .timeout(CONNECT_TIMEOUT);
-        // Client::builder()
-        //     .connector(connector)
-        //     .timeout(CLIENT_TIMEOUT)
-        //     .finish()
-        todo!("FIX client_with_proxy")
     }
 
     pub fn request(&self, method: Method, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
@@ -319,7 +271,7 @@ where
     }
 }
 
-type AwcClientResponse = ClientResponse<Decoder<Payload<PayloadStream>>>;
+type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
 fn check_response(res: AwcClientResponse) -> BinanceResult<AwcClientResponse> {
     use awc::http::StatusCode;
