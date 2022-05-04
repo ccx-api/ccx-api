@@ -4,7 +4,6 @@ use std::time::Instant;
 
 use actix_http::encoding::Decoder;
 use actix_http::{Payload, PayloadStream};
-use awc::http::HeaderValue;
 use awc::http::Method;
 use awc::http::StatusCode;
 use awc::Client;
@@ -65,27 +64,29 @@ impl<S> RestClient<S>
 where
     S: BinancePaySigner,
 {
-    // pub fn new(config: Config<S>) -> Self {
-    //     let inner = Arc::new(ClientInner { config });
-    //     RestClient { inner }
-    // }
-
     pub fn with_config(config: Config<S>) -> Self {
         let inner = Arc::new(ClientInner { config });
         RestClient { inner }
     }
 
     #[cfg(not(feature = "with_proxy"))]
-    pub(super) fn client(&self) -> Client {
-        let timeout = Duration::from_secs(CLIENT_TIMEOUT);
-        let connector = awc::Connector::new().timeout(timeout).finish();
-        Client::builder()
-            .connector(connector)
-            .timeout(timeout)
-            .finish()
+    pub fn client_with_proxy(
+        &self,
+        cfg: Arc<rustls::ClientConfig>,
+        proxy: &ccx_api_lib::Proxy,
+    ) -> Client {
+        // let connector = Connector::new()
+        //     .rustls(cfg)
+        //     .connector(SocksConnector::new(proxy.addr()))
+        //     .timeout(CONNECT_TIMEOUT);
+        // Client::builder()
+        //     .connector(connector)
+        //     .timeout(CLIENT_TIMEOUT)
+        //     .finish()
+        todo!("FIX client_with_proxy")
     }
 
-    #[cfg(all(feature = "with_proxy"))]
+    // #[cfg(all(feature = "with_proxy"))]
     pub(super) fn client(&self) -> Client {
         use std::env::var;
         static CCX_BINANCE_API_PROXY_HOST: &str = "CCX_BINANCE_API_PROXY_HOST";
@@ -101,17 +102,18 @@ where
             .expect("Error while getting CCX_BINANCE_API_PROXY_PORT");
         let proxy_addr = format!("{}:{}", host, port);
         let timeout = Duration::from_secs(CLIENT_TIMEOUT);
-        awc::ClientBuilder::new()
-            .connector(
-                actix_web::client::Connector::new()
-                    .connector(crate::client::connector::SocksConnector(
-                        string_to_static_str(proxy_addr),
-                    ))
-                    .timeout(std::time::Duration::from_secs(60))
-                    .finish(),
-            )
-            .timeout(timeout)
-            .finish()
+        // awc::ClientBuilder::new()
+        //     .connector(
+        //         actix_web::client::Connector::new()
+        //             .connector(crate::client::connector::SocksConnector(
+        //                 string_to_static_str(proxy_addr),
+        //             ))
+        //             .timeout(std::time::Duration::from_secs(60))
+        //             .finish(),
+        //     )
+        //     .timeout(timeout)
+        //     .finish()
+        todo!("FIXME Client")
     }
 
     pub fn request<T: Serialize + Clone + 'static>(
@@ -170,10 +172,9 @@ where
 
     pub fn timestamp_header(mut self) -> LibResult<Self> {
         if let Some(time_window) = self.sign {
-            self.request = self.request.header(
-                "BinancePay-Timestamp",
-                HeaderValue::from_str(&time_window.timestamp().to_string())?,
-            );
+            self.request = self
+                .request
+                .append_header(("BinancePay-Timestamp", &*time_window.timestamp().to_string()));
         }
         Ok(self)
     }
@@ -183,16 +184,15 @@ where
             log::debug!("nonce_header :: {}", nonce);
             self.request = self
                 .request
-                .header("BinancePay-Nonce", HeaderValue::from_str(nonce.as_str())?);
+                .append_header(("BinancePay-Nonce", nonce.as_str()));
         }
         Ok(self)
     }
 
     pub fn api_key_header(mut self) -> LibResult<Self> {
-        self.request = self.request.header(
-            "BinancePay-Certificate-SN",
-            HeaderValue::from_str(&self.api_client.api_key())?,
-        );
+        self.request = self
+            .request
+            .append_header(("BinancePay-Certificate-SN", self.api_client.api_key()));
         Ok(self)
     }
 
@@ -220,7 +220,7 @@ where
         let signature = signature.to_uppercase();
         self.request = self
             .request
-            .header("BinancePay-Signature", HeaderValue::from_str(&signature)?);
+            .append_header(("BinancePay-Signature", &*signature));
         Ok(self)
     }
 

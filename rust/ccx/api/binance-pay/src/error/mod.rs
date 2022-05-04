@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::fmt;
 use std::string::FromUtf8Error;
 
-use actix_http::error::Canceled;
+use futures::channel::oneshot::Canceled;
 use thiserror::Error;
 
 use ccx_api_lib::SignError;

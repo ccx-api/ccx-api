@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use actix_http::http::HeaderMap;
-use actix_web::http::HeaderValue;
+use actix_http::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -95,7 +94,6 @@ impl UsedRateLimits {
         let mut u = UsedRateLimits::default();
         for (header_name, _hv) in headers.iter() {
             if let Some(value) = headers.get(header_name) {
-                let value: &HeaderValue = value;
                 if let Ok(header_value) = value.to_str() {
                     let header_name = header_name.as_str();
                     if header_name.starts_with(UW_Z) {

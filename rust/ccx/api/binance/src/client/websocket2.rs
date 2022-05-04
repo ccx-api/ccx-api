@@ -66,7 +66,7 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
         match msg {
             ws::Frame::Ping(msg) => {
                 self.hb = Instant::now();
-                if self.sink.write(ws::Message::Pong(msg)).is_some() {
+                if let Err(_msg) = self.sink.write(ws::Message::Pong(msg)) {
                     log::warn!("Failed to send Pong. Disconnecting.");
                     ctx.stop()
                 }
@@ -121,7 +121,7 @@ impl Handler<M<WsCommand>> for Websocket {
         };
         let msg = serde_json::to_string(&msg).expect("json encode");
         log::debug!("Sending to server: `{}`", msg);
-        if self.sink.write(ws::Message::Text(msg)).is_some() {
+        if let Err(_msg) = self.sink.write(ws::Message::Text(msg.into())) {
             ctx.stop();
         }
     }
@@ -148,7 +148,7 @@ impl Websocket {
                 ctx.stop();
                 return;
             }
-            if act.sink.write(ws::Message::Ping("".into())).is_some() {
+            if let (_msg) = act.sink.write(ws::Message::Ping("".into())) {
                 log::warn!("Websocket client failed to send ping, stopping!");
                 ctx.stop()
             };

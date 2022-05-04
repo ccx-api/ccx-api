@@ -1,36 +1,33 @@
 [package]
 name = "ccx-api-lib"
-version = "0.1.0"
+version = "0.3.0"
+authors = ["CCX-API Library developers <irbis.labs@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["with_network"]
+default = []
 with_network = [
-    "awc",
-#    "actix",
-#    "actix-codec",
-    "actix-connect",
     "actix-http",
+    "actix-rt",
     "actix-service",
-#    "actix-web",
-#    "actix-web-actors",
-#    "rustls",
-#    "webpki-roots",
+    "actix-tls",
+    "awc",
     "tokio-socks",
 ]
 
 [dependencies]
-actix-connect = { version = "2.0", optional = true }
-actix-http = { version = "2.0", optional = true }
-actix-service = { version = "1.0.6", optional = true }
-awc = { version = "2.0", optional = true }
+actix-http = { version = "3", optional = true }
+actix-service = { version = "2", optional = true }
+actix-rt = { version = "2", optional = true }
+actix-tls = { version = "3", optional = true }
+awc = { version = "3", optional = true }
 rust_decimal = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_urlencoded = "0.7"
 string_cache = "0.8"
 thiserror = "1"
-tokio-socks = { version = "0.2.2", optional = true }
+tokio-socks = { version = "0.5", optional = true }
 url = { version = "2", features = ["serde"] }

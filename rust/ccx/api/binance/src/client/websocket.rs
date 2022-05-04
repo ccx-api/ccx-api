@@ -1,6 +1,5 @@
 use std::io;
 
-use actix_web::rt::Arbiter;
 use awc::ws;
 use futures::channel::mpsc;
 use futures::SinkExt;
@@ -40,19 +39,19 @@ impl WebsocketClient {
         // Клиентский передатчик сообщений и внутренний слушатель.
         let (dn_tx, mut dn_stream) = futures::channel::mpsc::channel(0);
 
-        Arbiter::spawn(async move {
+        actix_rt::spawn(async move {
             // Перенаправляем внутренние сообщения апстриму в канал апстрима.
             let _ = up_sink.send_all(&mut up_rx.map(Ok)).await;
         });
 
-        Arbiter::spawn({
+        actix_rt::spawn({
             let mut up_tx = up_tx.clone();
             async move {
                 // Получаем команды от клиента и передаём их по внутреннему каналу апстриму.
                 while let Some(cmd) = dn_stream.next().await {
                     match serde_json::to_string(&cmd) {
                         Ok(msg) => {
-                            let _ = up_tx.send(ws::Message::Text(msg)).await;
+                            let _ = up_tx.send(ws::Message::Text(msg.into())).await;
                         }
                         Err(e) => {
                             log::warn!("Communication error: {:?}", e)
@@ -64,7 +63,7 @@ impl WebsocketClient {
             }
         });
 
-        Arbiter::spawn(async move {
+        actix_rt::spawn(async move {
             let res: BinanceResult<()> = async {
                 // Слушаем сообщения апстрима, по внутреннему каналу отвечаем апстриму на пинги,
                 // передаём декодированные события клиенту.

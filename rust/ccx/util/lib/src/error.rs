@@ -13,7 +13,7 @@ mod with_network {
     pub use awc::error::PayloadError;
     pub use awc::error::SendRequestError;
     pub use awc::error::WsClientError;
-    pub use awc::error::WsProtocolError;
+    pub use actix_http::ws::ProtocolError;
     pub use awc::http::header::InvalidHeaderValue;
 }
 
@@ -83,7 +83,7 @@ where
     WsClientError(#[from] WsClientError),
     #[cfg(feature = "with_network")]
     #[error("Websocket Protocol Error: {0}")]
-    WsProtocolError(#[from] WsProtocolError),
+    WsProtocolError(#[from] ProtocolError),
     #[error("Sign Error: {0}")]
     SignError(#[from] SignError),
     #[error("Other Error: {0}")]

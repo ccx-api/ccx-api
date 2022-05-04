@@ -1,7 +1,7 @@
 [package]
 name = "ccx-binance"
-version = "0.2.0"
-authors = ["Alexander Irbis <irbis.labs@gmail.com>"]
+version = "0.3.0"
+authors = ["CCX-API Library developers <irbis.labs@gmail.com>"]
 edition = "2018"
 
 [features]
@@ -10,6 +10,8 @@ with_network = [
     "actix",
     "actix-codec",
     "actix-http",
+    "actix-rt",
+    "actix-tls",
     "actix-web",
     "actix-web-actors",
     "awc",
@@ -20,18 +22,20 @@ with_network = [
 experimental = []
 
 [dependencies]
-actix = { version = "0.10", optional = true }
-actix-codec = { version = "0.3", optional = true }
-actix-http = { version = "2.0", optional = true }
-actix-web = { version = "3.0", features = ["rustls"], optional = true }
-actix-web-actors = { version = "3.0", optional = true }
-awc = { version = "2.0", optional = true }
+actix = { version = "0.13", optional = true }
+actix-codec = { version = "0.5", optional = true }
+actix-http = { version = "3", optional = true }
+actix-rt = { version = "2", optional = true }
+actix-tls = { version = "3", optional = true }
+actix-web = { version = "4.0", features = ["rustls"], optional = true }
+actix-web-actors = { version = "4.0", optional = true }
+awc = { version = "3.0", optional = true }
 chrono = "0.4"
 log = "0.4"
 futures = "0.3"
 hmac = "0.10"
 rust_decimal = "1"
-rustls = { version = "0.18", optional = true }
+rustls = { version = "0.20", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_repr = "0.1"
@@ -41,12 +45,11 @@ sha2 = "0.9"
 string_cache = "0.8"
 thiserror = "1"
 url = { version = "2", features = ["serde"] }
-webpki-roots = { version = "0.21", optional = true }
+webpki-roots = { version = "0.22", optional = true }
 
 ccx-api-lib = { path = "../../util/lib" }
 
 [dev-dependencies]
-actix-rt = "1.0"
 env_logger = "0.8"
 dotenv = "0.15"
 ccx-binance-examples-util = { path = "examples/util" }
