@@ -39,7 +39,7 @@ pub use api::prelude::TransferType;
 pub use api::uuid_simple;
 pub use client::Config;
 pub use client::MerchantId;
-pub use client::SignBinancePay;
+pub use client::BinancePaySigner;
 pub use client::SignParams;
 pub use client::SignResult;
 pub use error::common_error::CommonBusinessError;

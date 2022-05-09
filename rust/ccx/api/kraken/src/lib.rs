@@ -5,7 +5,7 @@ pub mod error;
 pub mod util;
 
 pub use self::client::Nonce;
-pub use self::client::SignKraken;
+pub use self::client::KrakenSigner;
 pub use self::client::SignResult;
 pub use self::error::*;
 pub use self::util::*;

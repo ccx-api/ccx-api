@@ -8,38 +8,33 @@ use ccx_api_lib::ApiCred;
 
 pub type SignResult<'a> = Pin<Box<dyn Future<Output = KrakenResult<String>> + Send + 'a>>;
 
-pub trait SignKraken: Sync + Send {
-    fn sign<'a, 'b: 'a, 'c: 'b>(
+pub trait KrakenSigner: Sync + Send {
+    fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         nonce: Nonce,
         method: &'b str,
         query: &'b str,
     ) -> SignResult<'a>;
 
-    fn key(&self) -> &str;
+    fn api_key(&self) -> &str;
 }
 
-impl SignKraken for ApiCred {
-    fn sign<'a, 'b: 'a, 'c: 'b>(
+impl KrakenSigner for ApiCred {
+    fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         nonce: Nonce,
         method: &'b str,
         query: &'b str,
     ) -> SignResult<'a> {
         Box::pin(async move {
-            let f = async move {
-                let decoded_secret = base64::decode(&self.secret).map_err(|e| {
-                    KrakenError::other(format!("Failed to deserialize key: {:?}", e))
-                })?;
-                let signature = sign(method, nonce, query, &decoded_secret);
-                Ok(signature)
-            };
-            let res: KrakenResult<String> = f.await;
-            res
+            let decoded_secret = base64::decode(&self.secret).map_err(|e| {
+                KrakenError::other(format!("Failed to deserialize key: {:?}", e))
+            })?;
+            Ok(sign(method, nonce, query, &decoded_secret))
         })
     }
 
-    fn key(&self) -> &str {
+    fn api_key(&self) -> &str {
         self.key.as_str()
     }
 }
@@ -65,30 +60,4 @@ fn sign(path: &str, nonce: Nonce, body: &str, decoded_secret: &[u8]) -> String {
 
     let res = m512.finalize().into_bytes();
     base64::encode(&res)
-}
-
-pub trait KrakenSigner {
-    fn sign_data<'a, 'b: 'a, 'c: 'b>(
-        &'c self,
-        nonce: Nonce,
-        method: &'b str,
-        query: &'b str,
-    ) -> SignResult<'a>;
-
-    fn api_key(&self) -> &str;
-}
-
-impl<T: SignKraken> KrakenSigner for T {
-    fn sign_data<'a, 'b: 'a, 'c: 'b>(
-        &'c self,
-        nonce: Nonce,
-        method: &'b str,
-        query: &'b str,
-    ) -> SignResult<'a> {
-        self.sign(nonce, method, query)
-    }
-
-    fn api_key(&self) -> &str {
-        self.key()
-    }
 }

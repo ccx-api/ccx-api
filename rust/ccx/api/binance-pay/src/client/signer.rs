@@ -10,37 +10,32 @@ pub type SignParams = dyn Serialize + Sync + Send;
 
 pub type SignResult<'a> = Pin<Box<dyn Future<Output = LibResult<String>> + Send + 'a>>;
 
-pub trait SignBinancePay: Sync + Send {
-    fn sign<'a, 'b: 'a, 'c: 'b>(
+pub trait BinancePaySigner: Sync + Send {
+    fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         time: i64,
         nonce: &'b str,
         params: &'b SignParams,
     ) -> SignResult<'a>;
 
-    fn key(&self) -> &str;
+    fn api_key(&self) -> &str;
 }
 
-impl SignBinancePay for ApiCred {
-    fn sign<'a, 'b: 'a, 'c: 'b>(
+impl BinancePaySigner for ApiCred {
+    fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         time: i64,
         nonce: &'b str,
         params: &'b SignParams,
     ) -> SignResult<'a> {
         Box::pin(async move {
-            let f = async move {
-                let json = serde_json::to_string(params)?;
-                let payload = format!("{}\n{}\n{}\n", time, nonce, json);
-                let signature = sign(&payload, self.secret.as_ref());
-                Ok(signature)
-            };
-            let res: LibResult<String> = f.await;
-            res
+            let json = serde_json::to_string(params)?;
+            let payload = format!("{}\n{}\n{}\n", time, nonce, json);
+            Ok(sign(&payload, self.secret.as_ref()))
         })
     }
 
-    fn key(&self) -> &str {
+    fn api_key(&self) -> &str {
         self.key.as_str()
     }
 }
@@ -59,28 +54,3 @@ fn sign(query: &str, secret: &[u8]) -> String {
     hex::encode(res)
 }
 
-pub trait BinancePaySigner {
-    fn sign_data<'a, 'b: 'a, 'c: 'b>(
-        &'c self,
-        time: i64,
-        nonce: &'b str,
-        params: &'b SignParams,
-    ) -> SignResult<'a>;
-
-    fn api_key(&self) -> &str;
-}
-
-impl<T: SignBinancePay> BinancePaySigner for T {
-    fn sign_data<'a, 'b: 'a, 'c: 'b>(
-        &'c self,
-        time: i64,
-        nonce: &'b str,
-        params: &'b SignParams,
-    ) -> SignResult<'a> {
-        self.sign(time, nonce, params)
-    }
-
-    fn api_key(&self) -> &str {
-        self.key()
-    }
-}

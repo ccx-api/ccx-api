@@ -60,12 +60,6 @@ where
         RestClient { inner }
     }
 
-    pub(crate) fn as_dyn(&self) -> RestClient<std::sync::Arc<dyn BinanceSigner>> {
-        let config = self.inner.config.as_dyn();
-        let inner = Arc::new(ClientInner { config });
-        RestClient { inner }
-    }
-
     fn client_(&self, h1_only: bool) -> Client {
         make_client(h1_only, self.inner.config.proxy.as_ref())
     }

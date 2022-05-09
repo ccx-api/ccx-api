@@ -121,11 +121,5 @@ mod with_network {
         pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
             self.client.web_socket2().await
         }
-
-        pub fn as_dyn(self) -> SpotApi<std::sync::Arc<dyn BinanceSigner>> {
-            SpotApi {
-                client: self.client.as_dyn(),
-            }
-        }
     }
 }

@@ -41,16 +41,4 @@ where
     pub(crate) fn signer(&self) -> &S {
         &self.signer
     }
-
-    pub fn as_dyn(&self) -> Config<std::sync::Arc<dyn BinanceSigner>>
-    where
-        S: crate::client::SignerClone,
-    {
-        Config {
-            signer: self.signer.clone_arc(),
-            api_base: self.api_base.clone(),
-            stream_base: self.stream_base.clone(),
-            proxy: self.proxy.clone(),
-        }
-    }
 }
