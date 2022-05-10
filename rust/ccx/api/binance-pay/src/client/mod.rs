@@ -1,6 +1,4 @@
 mod config;
-// #[cfg(feature = "with_proxy")]
-mod connector;
 mod rest;
 mod signer;
 

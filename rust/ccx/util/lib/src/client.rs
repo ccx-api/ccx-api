@@ -10,6 +10,7 @@ pub use rustls::OwnedTrustAnchor;
 pub use rustls::RootCertStore;
 
 pub use crate::Proxy;
+use crate::SocksConnector;
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
@@ -51,14 +52,13 @@ pub fn client_without_proxy(cfg: Arc<ClientConfig>) -> Client {
         .finish()
 }
 
-pub fn client_with_proxy(_cfg: Arc<rustls::ClientConfig>, _proxy: &Proxy) -> Client {
-    // let connector = Connector::new()
-    //     .rustls(cfg)
-    //     .connector(SocksConnector::new(proxy.addr()))
-    //     .timeout(CONNECT_TIMEOUT);
-    // Client::builder()
-    //     .connector(connector)
-    //     .timeout(CLIENT_TIMEOUT)
-    //     .finish()
-    todo!("FIX client_with_proxy")
+pub fn client_with_proxy(cfg: Arc<ClientConfig>, proxy: &Proxy) -> Client {
+    let connector = Connector::new()
+        .rustls(cfg)
+        .connector(SocksConnector::new(proxy.addr().to_string()))
+        .timeout(CONNECT_TIMEOUT);
+    Client::builder()
+        .connector(connector)
+        .timeout(CLIENT_TIMEOUT)
+        .finish()
 }
