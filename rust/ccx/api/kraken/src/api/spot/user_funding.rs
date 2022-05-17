@@ -143,7 +143,7 @@ pub struct Withdraw {
     pub refid: String,
 
     /// Method transaction ID.
-    pub txid: String,
+    pub txid: Option<String>,
 
     /// Method transaction information.
     pub info: String,
