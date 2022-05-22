@@ -29,7 +29,7 @@ actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 actix-web = { version = "4.0", features = ["rustls"], optional = true }
 actix-web-actors = { version = "4.0", optional = true }
-awc = { version = "3.0", optional = true }
+awc = { version = "3.0", optional = true, features = ["rustls"] }
 chrono = { version = "0.4", default_features = false, features = ["clock"] }
 log = "0.4"
 futures = "0.3"
