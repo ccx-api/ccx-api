@@ -7,7 +7,7 @@ pub const SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW: &str =
     "/sapi/v1/account/disableFastWithdrawSwitch";
 pub const SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW: &str = "/sapi/v1/account/enableFastWithdrawSwitch";
 pub const SAPI_V1_CAPITAL_WITHDRAW_APPLY: &str = "/sapi/v1/capital/withdraw/apply";
-// TODO pub const SAPI_V1_CAPITAL_DEPOSIT_HISTORY: &str = "/sapi/v1/capital/deposit/history";
+pub const SAPI_V1_CAPITAL_DEPOSIT_HISTORY: &str = "/sapi/v1/capital/deposit/hisrec";
 pub const SAPI_V1_CAPITAL_WITHDRAW_HISTORY: &str = "/sapi/v1/capital/withdraw/history";
 pub const SAPI_V1_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/address";
 // TODO pub const SAPI_V1_ACCOUNT_STATUS: &str = "/sapi/v1/account/status";
@@ -84,11 +84,52 @@ pub struct NetworkInformation {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct Deposit {
+    pub amount: Decimal,
+    pub coin: String,
+    pub network: String,
+    pub status: DepositStatus,
+    pub address: String,
+    pub address_tag: String,
+    pub tx_id: String,
+    // FIXME decode time, example: "2021-04-29 16:08:00"
+    pub insert_time: u64,
+    pub transfer_type: TransferType,
+    // pub unlock_confirm: String,
+    pub confirm_times: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DepositAddress {
     pub address: String,
     pub coin: Atom,
     pub tag: String,
     pub url: String,
+}
+
+#[derive(
+    Clone, Copy, Debug, Serialize_repr, Deserialize_repr, Eq, Ord, PartialOrd, PartialEq, Hash,
+)]
+#[repr(u32)]
+pub enum DepositStatus {
+    Pending = 0,
+    Success = 1,
+    Processing = 6,
+}
+
+impl DepositStatus {
+    pub fn is_success(&self) -> bool {
+        matches!(self, DepositStatus::Success)
+    }
+
+    pub fn is_pending(&self) -> bool {
+        matches!(self, DepositStatus::Pending)
+    }
+
+    pub fn is_processing(&self) -> bool {
+        matches!(self, DepositStatus::Processing)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -359,6 +400,41 @@ mod with_network {
                 .query_arg("amount", &amount)?
                 .try_query_arg("transactionFeeFlag", &transaction_fee_flag)?
                 .try_query_arg("name", &name)?
+                .send()
+                .await
+        }
+
+        /// Deposit History (supporting network) (USER_DATA)
+        ///
+        /// Fetch deposit history.
+        ///
+        /// Weight: 1
+        ///
+        /// * startTime - Default: 90 days from current timestamp
+        /// * endTime - Default: present timestamp
+        ///
+        /// * network may not be in the response for old deposit.
+        /// * Please notice the default startTime and endTime to make sure that time interval is within 0-90 days.
+        /// * If both startTime and endTime are sent, time between startTime and endTime must be less than 90 days.
+        pub async fn deposit_history(
+            &self,
+            coin: Option<impl Serialize>,
+            status: Option<DepositStatus>,
+            offset: Option<u16>,
+            limit: Option<u16>,
+            start_time: Option<u64>,
+            end_time: Option<u64>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<Vec<Deposit>> {
+            self.client
+                .get(SAPI_V1_CAPITAL_DEPOSIT_HISTORY)?
+                .signed(time_window)?
+                .try_query_arg("coin", &coin)?
+                .try_query_arg("status", &status)?
+                .try_query_arg("offset", &offset)?
+                .try_query_arg("limit", &limit)?
+                .try_query_arg("startTime", &start_time)?
+                .try_query_arg("endTime", &end_time)?
                 .send()
                 .await
         }
