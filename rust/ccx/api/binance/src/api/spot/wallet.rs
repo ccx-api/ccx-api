@@ -10,13 +10,13 @@ pub const SAPI_V1_CAPITAL_WITHDRAW_APPLY: &str = "/sapi/v1/capital/withdraw/appl
 pub const SAPI_V1_CAPITAL_DEPOSIT_HISTORY: &str = "/sapi/v1/capital/deposit/hisrec";
 pub const SAPI_V1_CAPITAL_WITHDRAW_HISTORY: &str = "/sapi/v1/capital/withdraw/history";
 pub const SAPI_V1_CAPITAL_DEPOSIT_ADDRESS: &str = "/sapi/v1/capital/deposit/address";
-// TODO pub const SAPI_V1_ACCOUNT_STATUS: &str = "/sapi/v1/account/status";
-// TODO pub const SAPI_V1_ACCOUNT_TRADING_STATUS: &str = "/sapi/v1/account/apiTradingStatus";
-// TODO pub const SAPI_V1_ASSET_DRIBLET: &str = "/sapi/v1/asset/dribblet";
-// TODO pub const SAPI_V1_ASSET_DUST: &str = "/sapi/v1/asset/dust";
-// TODO pub const SAPI_V1_ASSET_DIVIDEND: &str = "/sapi/v1/asset/assetDividend";
-// TODO pub const SAPI_V1_ASSET_DETAIL: &str = "/sapi/v1/asset/assetDetail";
-// TODO pub const SAPI_V1_ASSET_TRADE_FEE: &str = "/sapi/v1/asset/tradeFee";
+pub const SAPI_V1_ACCOUNT_STATUS: &str = "/sapi/v1/account/status";
+pub const SAPI_V1_ACCOUNT_TRADING_STATUS: &str = "/sapi/v1/account/apiTradingStatus";
+pub const SAPI_V1_ASSET_DRIBLET: &str = "/sapi/v1/asset/dribblet";
+pub const SAPI_V1_ASSET_DUST: &str = "/sapi/v1/asset/dust";
+pub const SAPI_V1_ASSET_DIVIDEND: &str = "/sapi/v1/asset/assetDividend";
+pub const SAPI_V1_ASSET_DETAIL: &str = "/sapi/v1/asset/assetDetail";
+pub const SAPI_V1_ASSET_TRADE_FEE: &str = "/sapi/v1/asset/tradeFee";
 pub const SAPI_V1_ASSET_TRANSFER: &str = "/sapi/v1/asset/transfer";
 pub const SAPI_V1_ASSET_GET_FUNDING_ASSET: &str = "/sapi/v1/asset/get-funding-asset";
 
@@ -228,6 +228,118 @@ pub struct FundingAsset {
     pub freeze: Decimal,
     pub withdrawing: Decimal,
     pub btc_valuation: Decimal,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountStatus {
+    pub data: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountTradingStatus {
+    pub data: AccountTradingStatusData,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountTradingStatusData {
+    pub is_locked: bool,
+    pub planned_recover_time: u64,
+    pub trigger_condition: HashMap<String, u64>,
+    pub update_time: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDribblet {
+    pub total: u64,
+    pub user_asset_dribblets: Vec<UserAssetDribblet>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UserAssetDribblet {
+    pub operate_time: u64,
+    pub total_transfered_amount: Decimal,
+    pub total_service_charge_amount: Decimal,
+    pub trans_id: u64,
+    pub user_asset_dribblet_details: Vec<UserAssetDribbletDetails>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UserAssetDribbletDetails {
+    pub trans_id: u64,
+    pub service_charge_amount: Decimal,
+    pub amount: Decimal,
+    pub operate_time: u64,
+    pub transfered_amount: Decimal,
+    pub from_asset: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDust {
+    pub total_service_charge: Decimal,
+    pub total_transfered: Decimal,
+    pub transfer_result: Vec<AssetDustResult>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDustResult {
+    pub amount: Decimal,
+    pub from_asset: String,
+    pub operate_time: u64,
+    pub service_charge_amount: Decimal,
+    pub tran_id: u64,
+    pub transfered_amount: Decimal,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDividend {
+    pub rows: Vec<AssetDividendRow>,
+    pub total: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDividendRow {
+    id: u64,
+    amount: Decimal,
+    asset: String,
+    div_time: u64,
+    en_info: String,
+    tran_id: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDetail {
+    #[serde(flatten)]
+    pub asset: HashMap<Atom, AssetDetailInfo>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDetailInfo {
+    min_withdraw_amount: Decimal,
+    deposit_status: bool,
+    withdraw_fee: Decimal,
+    withdraw_status: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    deposit_tip: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TradeFee {
+    pub symbol: String,
+    pub maker_commission: Decimal,
+    pub taker_commission: Decimal,
 }
 
 #[cfg(feature = "with_network")]
@@ -470,6 +582,143 @@ mod with_network {
                 .try_query_arg("limit", &limit)?
                 .try_query_arg("startTime", &start_time)?
                 .try_query_arg("endTime", &end_time)?
+                .send()
+                .await
+        }
+
+        /// Account Status (USER_DATA)
+        ///
+        /// Fetch account status detail.
+        ///
+        /// Weight: 1
+        pub async fn account_status(
+            &self,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<AccountStatus> {
+            self.client
+                .get(SAPI_V1_ACCOUNT_STATUS)?
+                .signed(time_window)?
+                .send()
+                .await
+        }
+
+        /// Account API Trading Status (USER_DATA)
+        ///
+        /// Fetch account api trading status detail.
+        ///
+        /// Weight: 1
+        pub async fn account_trading_status(
+            &self,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<AccountTradingStatus> {
+            self.client
+                .get(SAPI_V1_ACCOUNT_TRADING_STATUS)?
+                .signed(time_window)?
+                .send()
+                .await
+        }
+
+        /// DustLog(USER_DATA)
+        ///
+        /// Weight: 1
+        ///
+        /// * Only return last 100 records
+        /// * Only return records after 2020/12/01
+        pub async fn asset_dribblet(
+            &self,
+            start_time: Option<u64>,
+            end_time: Option<u64>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<AssetDribblet> {
+            self.client
+                .get(SAPI_V1_ASSET_DRIBLET)?
+                .signed(time_window)?
+                .try_query_arg("startTime", &start_time)?
+                .try_query_arg("endTime", &end_time)?
+                .send()
+                .await
+        }
+
+        /// Dust Transfer (USER_DATA)
+        ///
+        /// Convert dust assets to BNB.
+        ///
+        /// Weight: 10
+        ///
+        /// * You need to openEnable Spot & Margin Trading permission
+        ///   for the API Key which requests this endpoint.
+        pub async fn asset_dust(
+            &self,
+            asset: impl Serialize,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<AssetDust> {
+            self.client
+                .post(SAPI_V1_ASSET_DUST)?
+                .signed(time_window)?
+                .query_arg("asset", &asset)?
+                .send()
+                .await
+        }
+
+        /// Asset Dividend Record (USER_DATA)
+        ///
+        /// Query asset dividend record.
+        ///
+        /// Weight: 10
+        pub async fn asset_dividend(
+            &self,
+            asset: Option<impl Serialize>,
+            limit: Option<u16>,
+            start_time: Option<u64>,
+            end_time: Option<u64>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<AssetDividend> {
+            self.client
+                .get(SAPI_V1_ASSET_DIVIDEND)?
+                .signed(time_window)?
+                .try_query_arg("asset", &asset)?
+                .try_query_arg("limit", &limit)?
+                .try_query_arg("startTime", &start_time)?
+                .try_query_arg("endTime", &end_time)?
+                .send()
+                .await
+        }
+
+        /// Asset Detail (USER_DATA)
+        ///
+        /// Fetch details of assets supported on Binance.
+        ///
+        /// Weight: 1
+        ///
+        /// * Please get network and other deposit or withdraw details
+        ///   from GET /sapi/v1/capital/config/getall.
+        pub async fn asset_detail(
+            &self,
+            asset: Option<impl Serialize>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<AssetDetail> {
+            self.client
+                .get(SAPI_V1_ASSET_DETAIL)?
+                .signed(time_window)?
+                .try_query_arg("asset", &asset)?
+                .send()
+                .await
+        }
+
+        /// Trade Fee (USER_DATA)
+        ///
+        /// Fetch trade fee
+        ///
+        /// Weight: 1
+        pub async fn trade_fee(
+            &self,
+            symbol: Option<impl Serialize>,
+            time_window: impl Into<TimeWindow>,
+        ) -> BinanceResult<Vec<TradeFee>> {
+            self.client
+                .get(SAPI_V1_ASSET_TRADE_FEE)?
+                .signed(time_window)?
+                .try_query_arg("symbol", &symbol)?
                 .send()
                 .await
         }

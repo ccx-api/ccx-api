@@ -2,6 +2,8 @@ pub mod spot;
 pub mod um;
 
 mod prelude {
+    pub use std::collections::HashMap;
+
     pub use rust_decimal::prelude::Zero;
     pub use rust_decimal::Decimal;
     pub use serde::{Deserialize, Serialize};
