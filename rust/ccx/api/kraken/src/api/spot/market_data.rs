@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 
 use super::prelude::*;
+use crate::util::{Ask, Bid, OrderBook};
 
 pub const API_0_PUBLIC_TIME: &str = "/0/public/Time";
 pub const API_0_PUBLIC_SYSTEM_STATUS: &str = "/0/public/SystemStatus";
 pub const API_0_PUBLIC_ASSETS: &str = "/0/public/Assets";
 pub const API_0_PUBLIC_ASSET_PAIRS: &str = "/0/public/AssetPairs";
 pub const API_0_PUBLIC_TICKER: &str = "/0/public/Ticker";
+pub const API_0_PUBLIC_DEPTH: &str = "/0/public/Depth";
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ServerTimeResponse {
@@ -202,6 +204,69 @@ pub struct TickerTradesInfo {
     pub last_24_hours: u32,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct AssetDepthResponse {
+    #[serde(flatten)]
+    pub pair: HashMap<Atom, AssetDepthInfo>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct AssetDepthInfo {
+    pub asks: Vec<AssetDepthLotInfo>,
+    pub bids: Vec<AssetDepthLotInfo>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct AssetDepthLotInfo {
+    pub price: Decimal,
+    pub volume: Decimal,
+    pub timestamp: u32,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum OrderBookLimit {
+    N5 = 5,
+    N10 = 10,
+    N20 = 20,
+    N50 = 50,
+    N100 = 100,
+    N500 = 500,
+}
+
+impl OrderBookLimit {
+    pub fn as_u16(&self) -> u16 {
+        *self as u16
+    }
+}
+
+impl Into<OrderBook> for AssetDepthInfo {
+    fn into(self) -> OrderBook {
+        OrderBook {
+            last_checksum: Default::default(),
+            bids: self
+                .bids
+                .iter()
+                .map(|i| Bid {
+                    price: i.price,
+                    qty: i.volume,
+                    timestamp: i.timestamp.into(),
+                    update_type: None,
+                })
+                .collect(),
+            asks: self
+                .asks
+                .iter()
+                .map(|i| Ask {
+                    price: i.price,
+                    qty: i.volume,
+                    timestamp: i.timestamp.into(),
+                    update_type: None,
+                })
+                .collect(),
+        }
+    }
+}
+
 #[cfg(feature = "with_network")]
 pub use with_network::*;
 
@@ -270,6 +335,25 @@ mod with_network {
             self.client
                 .get(API_0_PUBLIC_TICKER)?
                 .query_arg("pair", &pair)?
+                .send()
+                .await
+        }
+
+        /// Get Depth Information.
+        ///
+        /// Get depth information.
+        ///
+        /// * pair - Asset pair to get data for.
+        /// * count - Maximum number of asks/bids. (optional, default: 100)
+        pub async fn depth(
+            &self,
+            pair: &str,
+            count: Option<OrderBookLimit>,
+        ) -> KrakenApiResult<AssetDepthResponse> {
+            self.client
+                .get(API_0_PUBLIC_DEPTH)?
+                .query_arg("pair", &pair)?
+                .try_query_arg("count", &count.map(|i| i.as_u16()))?
                 .send()
                 .await
         }

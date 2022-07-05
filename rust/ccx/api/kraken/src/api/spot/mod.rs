@@ -4,7 +4,7 @@ use crate::client::ApiCred;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RestClient;
-// use crate::client::WebsocketStream;
+use crate::client::WebsocketStream;
 use crate::client::CCX_KRAKEN_API_PREFIX;
 
 // TODO mod error;
@@ -26,7 +26,7 @@ pub use self::user_trading::*;
 use crate::client::KrakenSigner;
 
 pub const API_BASE: &str = "https://api.kraken.com/";
-pub const STREAM_BASE: &str = "https://ws.binance.vision/";
+pub const STREAM_BASE: &str = "wss://ws.kraken.com/";
 
 mod prelude {
     pub use super::types::*;
@@ -41,6 +41,8 @@ pub use with_network::*;
 
 #[cfg(feature = "with_network")]
 mod with_network {
+    use crate::KrakenResult;
+
     use super::*;
 
     #[derive(Clone)]
@@ -79,9 +81,9 @@ mod with_network {
             SpotApi { client }
         }
 
-        // /// Creates multiplexed websocket stream.
-        // pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
-        //     self.client.web_socket2().await
-        // }
+        /// Creates multiplexed websocket stream.
+        pub async fn ws(&self) -> KrakenResult<WebsocketStream> {
+            self.client.web_socket().await
+        }
     }
 }

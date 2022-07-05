@@ -5,7 +5,7 @@ use ccx_kraken::client::NonceSeq;
 use ccx_kraken::{KrakenApiError, KrakenApiResult};
 use ccx_kraken_examples_util::*;
 
-const SYMBOL: &str = "XXBTZUSD";
+// const SYMBOL: &str = "XXBTZUSD";
 
 #[actix_rt::main]
 async fn main() {

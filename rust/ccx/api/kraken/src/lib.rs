@@ -2,13 +2,16 @@ pub mod api;
 #[cfg(feature = "with_network")]
 pub mod client;
 pub mod error;
+pub mod proto;
 pub mod util;
 
-pub use self::client::Nonce;
 pub use self::client::KrakenSigner;
+pub use self::client::Nonce;
 pub use self::client::SignResult;
 pub use self::error::*;
+pub use self::proto::*;
 pub use self::util::*;
+
 #[cfg(feature = "with_network")]
 pub use self::with_network::*;
 

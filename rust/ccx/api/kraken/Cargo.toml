@@ -8,6 +8,7 @@ edition = "2018"
 default = ["with_network"]
 with_network = [
     "actix",
+    "actix-codec",
     "actix-http",
     "actix-rt",
     "actix-tls",
@@ -20,6 +21,7 @@ experimental = []
 
 [dependencies]
 actix = { version = "0.13", optional = true }
+actix-codec = { version = "0.5", optional = true }
 actix-http = { version = "3", optional = true, features = ["rustls"] }
 actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }

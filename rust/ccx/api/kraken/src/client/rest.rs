@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use actix_http::encoding::Decoder;
 use actix_http::Uri;
-use actix_http::{Payload, BoxedPayloadStream};
+use actix_http::{BoxedPayloadStream, Payload};
 use awc::http::Method;
 use awc::http::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ use ccx_api_lib::ClientResponse;
 
 use super::*;
 // use crate::client::limits::UsedRateLimits;
-// use crate::client::{WebsocketClient, WebsocketStream};
+use crate::client::WebsocketStream;
 use crate::error::*;
 // use crate::proto::TimeWindow;
 
@@ -116,15 +116,10 @@ where
         self.request(Method::DELETE, endpoint)
     }
 
-    // pub async fn web_socket(&self) -> KrakenResult<WebsocketClient> {
-    //     let url = self.inner.config.stream_base.clone();
-    //     Ok(WebsocketClient::connect(self.clone(), url).await?)
-    // }
-    //
-    // pub async fn web_socket2(&self) -> KrakenResult<WebsocketStream> {
-    //     let url = self.inner.config.stream_base.clone();
-    //     Ok(WebsocketStream::connect(self.clone(), url).await?)
-    // }
+    pub async fn web_socket(&self) -> KrakenResult<WebsocketStream> {
+        let url = self.inner.config.stream_base.clone();
+        Ok(WebsocketStream::connect(self.clone(), url).await?)
+    }
 }
 
 impl<S> RequestBuilder<S>

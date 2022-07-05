@@ -1,3 +1,7 @@
+mod order_book;
+
+pub use self::order_book::*;
+
 /// Converts Kraken's asset codes into ccxt-compatible asset codes.
 pub fn universal_asset_code(asset_id: &str) -> &str {
     if !asset_id.is_ascii() {
