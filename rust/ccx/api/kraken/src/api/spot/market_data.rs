@@ -242,7 +242,6 @@ impl OrderBookLimit {
 impl Into<OrderBook> for AssetDepthInfo {
     fn into(self) -> OrderBook {
         OrderBook {
-            last_checksum: Default::default(),
             bids: self
                 .bids
                 .iter()

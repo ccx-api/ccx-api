@@ -111,8 +111,16 @@ impl OrderBookState {
         self.bids.iter().next_back()
     }
 
+    pub fn next_bid_price(&self) -> Option<Decimal> {
+        self.bids.iter().next_back().map(|(price, _qty)| *price)
+    }
+
     pub fn next_ask(&self) -> Option<(&Decimal, &Decimal)> {
         self.asks.iter().next()
+    }
+
+    pub fn next_ask_price(&self) -> Option<Decimal> {
+        self.asks.iter().next().map(|(price, _qty)| *price)
     }
 
     pub fn bid_volume(&self, price_limit: &Decimal) -> Fill {

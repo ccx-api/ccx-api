@@ -14,7 +14,6 @@ pub enum OrderBookUpdater {
 
 #[derive(Debug)]
 pub struct OrderBookState {
-    last_checksum: String,
     asks: BTreeMap<Decimal, Decimal>,
     bids: BTreeMap<Decimal, Decimal>,
 }
@@ -28,7 +27,6 @@ pub struct Fill {
 
 #[derive(Clone, Debug)]
 pub struct OrderBook {
-    pub last_checksum: String,
     pub bids: Box<[Bid]>,
     pub asks: Box<[Ask]>,
 }
@@ -104,7 +102,6 @@ impl OrderBookUpdater {
 impl OrderBookState {
     pub fn new(snapshot: OrderBook) -> Self {
         OrderBookState {
-            last_checksum: snapshot.last_checksum,
             asks: snapshot
                 .asks
                 .into_iter()
@@ -130,8 +127,16 @@ impl OrderBookState {
         self.bids.iter().next_back()
     }
 
+    pub fn next_bid_price(&self) -> Option<Decimal> {
+        self.bids.iter().next_back().map(|(price, _qty)| *price)
+    }
+
     pub fn next_ask(&self) -> Option<(&Decimal, &Decimal)> {
         self.asks.iter().next()
+    }
+
+    pub fn next_ask_price(&self) -> Option<Decimal> {
+        self.asks.iter().next().map(|(price, _qty)| *price)
     }
 
     pub fn bid_volume(&self, price_limit: &Decimal) -> Fill {
@@ -173,38 +178,29 @@ impl OrderBookState {
     }
 
     pub fn update(&mut self, diff: DiffOrderBookEvent) -> KrakenResult<()> {
-        let diff_checksum = diff.data.checksum.unwrap_or_default();
-        log::trace!(
-            "last_checksum  {}, diff_checksum:  {}",
-            self.last_checksum,
-            diff_checksum
-        );
-
-        if self.last_checksum == diff_checksum {
-            // Ignore an old update.
-            return Ok(());
-        }
-
-        self.last_checksum = diff_checksum;
-
-        for e in diff.data.asks.unwrap_or_default() {
-            if e.is_republished() {
-                continue;
-            }
-            if e.qty.is_zero() {
-                self.asks.remove(&e.price);
-            } else {
-                self.asks.insert(e.price, e.qty);
+        if let Some(ask_data) = diff.ask_data {
+            for e in &ask_data.values {
+                if e.is_republished() {
+                    continue;
+                }
+                if e.qty.is_zero() {
+                    self.asks.remove(&e.price);
+                } else {
+                    self.asks.insert(e.price, e.qty);
+                }
             }
         }
-        for e in diff.data.bids.unwrap_or_default() {
-            if e.is_republished() {
-                continue;
-            }
-            if e.qty.is_zero() {
-                self.bids.remove(&e.price);
-            } else {
-                self.bids.insert(e.price, e.qty);
+
+        if let Some(bid_data) = diff.bid_data {
+            for e in &bid_data.values {
+                if e.is_republished() {
+                    continue;
+                }
+                if e.qty.is_zero() {
+                    self.bids.remove(&e.price);
+                } else {
+                    self.bids.insert(e.price, e.qty);
+                }
             }
         }
         Ok(())
