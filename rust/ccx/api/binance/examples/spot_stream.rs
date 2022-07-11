@@ -14,6 +14,11 @@ use ccx_binance::WsEvent;
 use ccx_binance::WsStream;
 // use ccx_binance_examples_util::*;
 
+enum X {
+    Snapshot((Atom, OrderBook)),
+    Event(WsEvent),
+}
+
 #[actix_rt::main]
 async fn main() {
     let _ = dotenv::dotenv();
@@ -44,40 +49,56 @@ async fn main() {
         println!("Subscribed");
 
         let mut state = BTreeMap::new();
+        let mut snapshots = Vec::new();
 
         for symbol in &listen {
-            let mut book_updater = OrderBookUpdater::new();
+            state.insert(symbol.clone(), OrderBookUpdater::new());
 
-            let result = binance_spot
-                .depth(symbol.clone(), OrderBookLimit::N1000)
-                .await;
-            if let Ok(snapshot) = result {
-                let _ = book_updater.init(snapshot.into());
-            }
+            let f = Box::pin(
+                binance_spot
+                    .depth(symbol.clone(), OrderBookLimit::N1000)
+                    .into_stream()
+                    .filter_map({
+                        let symbol = symbol.clone();
+                        move |r| {
+                            let symbol = symbol.clone();
+                            async move {
+                                println!("Received {}", symbol);
+                                r.ok().map(|v| (X::Snapshot((symbol, v.into()))))
+                            }
+                        }
+                    }),
+            );
 
-            state.insert(symbol.clone(), book_updater);
+            snapshots.push(f);
         }
 
         let mut stream = Box::pin(stream.filter_map(move |e| async move {
             match e {
-                UpstreamWebsocketMessage::Event(e) => Some(e),
+                UpstreamWebsocketMessage::Event(e) => Some(X::Event(e)),
                 UpstreamWebsocketMessage::Response(e) => {
                     println!("{:?}", e);
                     None
                 }
             }
         }));
+        let mut stream = stream::select(&mut stream, stream::select_all(snapshots));
 
         while let Some(e) = stream.next().await {
             match e {
-                WsEvent::DiffOrderBook(diff) => {
-                    state
-                        .get_mut(&diff.symbol)
-                        .unwrap()
-                        .push_diff(diff)
-                        .unwrap();
+                X::Event(e) => {
+                    if let WsEvent::DiffOrderBook(diff) = e {
+                        state
+                            .get_mut(&diff.symbol)
+                            .unwrap()
+                            .push_diff(diff)
+                            .unwrap();
+                    }
                 }
-                _ => {}
+                X::Snapshot((symbol, snapshot)) => {
+                    let book = state.get_mut(&symbol).unwrap();
+                    book.init(snapshot).unwrap();
+                }
             }
             for (symbol, updater) in &state {
                 let s = match updater.state() {
