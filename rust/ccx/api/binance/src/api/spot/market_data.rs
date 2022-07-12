@@ -321,6 +321,19 @@ pub enum SymbolPermission {
     TrdGrp002,
     #[serde(rename = "TRD_GRP_003")]
     TrdGrp003,
+    #[serde(rename = "TRD_GRP_004")]
+    TrdGrp004,
+    // ???
+    #[serde(rename = "TRD_GRP_005")]
+    TrdGrp005,
+    #[serde(rename = "TRD_GRP_006")]
+    TrdGrp006,
+    #[serde(rename = "TRD_GRP_007")]
+    TrdGrp007,
+    #[serde(rename = "TRD_GRP_008")]
+    TrdGrp008,
+    #[serde(rename = "TRD_GRP_009")]
+    TrdGrp009,
 }
 
 // FIXME clarify: the documentation is ambiguous; only these values are listed as valid,
