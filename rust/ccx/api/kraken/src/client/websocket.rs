@@ -91,11 +91,6 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
                     Err(e) => {
                         log::error!("Failed to deserialize server message: {:?}", e);
                     }
-                    Ok(UpstreamWebsocketMessage::Event(
-                        WsEvent::Pong(_) | WsEvent::Heartbeat(_),
-                    )) => {
-                        self.hb = Instant::now();
-                    }
                     Ok(msg) => {
                         if let Err(e) = self.tx.unbounded_send(msg) {
                             log::warn!("Failed to notify downstream: {:?}", e);
