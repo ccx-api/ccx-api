@@ -442,10 +442,9 @@ pub enum UpstreamWebsocketMessage<T> {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct UpstreamWebsocketResponse<T> {
-    #[serde(default)]
-    pub id: Option<u64>,
+    pub id: u64,
     #[serde(flatten)]
-    pub payload: UpstreamWebsocketResult<T>,
+    pub payload: Option<UpstreamWebsocketResult<T>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
