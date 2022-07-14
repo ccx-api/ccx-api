@@ -81,9 +81,8 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
                 use log::Level::*;
 
                 let res = serde_json::from_slice(&msg);
-                let l = if res.is_err() { Error } else { Debug };
                 log::log!(
-                    l,
+                    if res.is_err() { Error } else { Info },
                     "json message from server: {}",
                     String::from_utf8_lossy(&msg)
                 );
