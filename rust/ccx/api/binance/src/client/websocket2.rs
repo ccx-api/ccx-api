@@ -82,7 +82,7 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
 
                 let res = serde_json::from_slice(&msg);
                 log::log!(
-                    if res.is_err() { Error } else { Info },
+                    if res.is_err() { Error } else { Trace },
                     "json message from server: {}",
                     String::from_utf8_lossy(&msg)
                 );

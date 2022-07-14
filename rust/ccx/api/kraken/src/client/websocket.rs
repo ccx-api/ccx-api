@@ -82,13 +82,18 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
 
                 let res = serde_json::from_slice(&msg);
                 log::log!(
-                    if res.is_err() { Error } else { Info },
+                    if res.is_err() { Error } else { Trace },
                     "json message from server: {}",
                     String::from_utf8_lossy(&msg)
                 );
                 match res {
                     Err(e) => {
                         log::error!("Failed to deserialize server message: {:?}", e);
+                    }
+                    Ok(UpstreamWebsocketMessage::Event(
+                        WsEvent::Pong(_) | WsEvent::Heartbeat(_),
+                    )) => {
+                        self.hb = Instant::now();
                     }
                     Ok(msg) => {
                         if let Err(e) = self.tx.unbounded_send(msg) {
