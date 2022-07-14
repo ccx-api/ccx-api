@@ -16,6 +16,7 @@ use ccx_binance::WsStream;
 
 enum X {
     Snapshot((Atom, OrderBook)),
+    SnapshotErr(BinanceError),
     Event(WsEvent),
 }
 
@@ -52,21 +53,16 @@ async fn main() {
         let mut snapshots = Vec::new();
 
         for symbol in &listen {
+            let symbol = symbol.clone();
             state.insert(symbol.clone(), OrderBookUpdater::new());
 
             let f = Box::pin(
                 binance_spot
                     .depth(symbol.clone(), OrderBookLimit::N1000)
                     .into_stream()
-                    .filter_map({
-                        let symbol = symbol.clone();
-                        move |r| {
-                            let symbol = symbol.clone();
-                            async move {
-                                println!("Received {}", symbol);
-                                r.ok().map(|v| (X::Snapshot((symbol, v.into()))))
-                            }
-                        }
+                    .map(move |r| match r {
+                        Ok(book) => X::Snapshot((symbol.clone(), book.into())),
+                        Err(e) => X::SnapshotErr(e),
                     }),
             );
 
@@ -98,6 +94,10 @@ async fn main() {
                 X::Snapshot((symbol, snapshot)) => {
                     let book = state.get_mut(&symbol).unwrap();
                     book.init(snapshot).unwrap();
+                }
+                X::SnapshotErr(e) => {
+                    log::error!("SnapshotErr: {:?}", e);
+                    break;
                 }
             }
             for (symbol, updater) in &state {
