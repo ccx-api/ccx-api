@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -20,7 +21,7 @@ use crate::KrakenApiResult;
 use crate::KrakenResult;
 use crate::LibError;
 
-type TaskCosts = HashMap<String, u64>;
+type TaskCosts = HashMap<Cow<'static, str>, u64>;
 type TaskMessageResult = KrakenResult<()>;
 
 struct TaskMessage {
@@ -30,11 +31,11 @@ struct TaskMessage {
 
 #[derive(Default)]
 pub(crate) struct RateLimiterBuilder {
-    buckets: HashMap<String, RateLimiterBucket>,
+    buckets: HashMap<Cow<'static, str>, RateLimiterBucket>,
 }
 
 impl RateLimiterBuilder {
-    pub fn bucket(mut self, key: impl Into<String>, bucket: RateLimiterBucket) -> Self {
+    pub fn bucket(mut self, key: impl Into<Cow<'static, str>>, bucket: RateLimiterBucket) -> Self {
         match self.buckets.entry(key.into()) {
             Entry::Occupied(mut e) => *e.get_mut() = bucket,
             Entry::Vacant(e) => {
@@ -63,7 +64,7 @@ impl RateLimiterBuilder {
 
 #[derive(Clone)]
 pub(crate) struct RateLimiter {
-    buckets: Arc<HashMap<String, Mutex<RateLimiterBucket>>>,
+    buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
     queue_tx: mpsc::UnboundedSender<TaskMessage>,
     // queue: Arc<Mutex<Vec<TaskMessage>>>,
 }
@@ -100,7 +101,7 @@ impl RateLimiter {
     }
 
     async fn timeout<'a>(
-        buckets: Arc<HashMap<String, Mutex<RateLimiterBucket>>>,
+        buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
         costs: &'a TaskCosts,
     ) -> KrakenResult<Option<Duration>> {
         let mut timeout = Duration::default();
@@ -137,7 +138,7 @@ impl RateLimiter {
     }
 
     async fn set_costs<'a>(
-        buckets: Arc<HashMap<String, Mutex<RateLimiterBucket>>>,
+        buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
         costs: &'a TaskCosts,
     ) -> KrakenResult<()> {
         for (name, cost) in costs {
@@ -215,7 +216,7 @@ impl<S> TaskBuilder<S>
 where
     S: KrakenSigner + Unpin + 'static,
 {
-    pub fn cost(mut self, key: impl Into<String>, weight: u64) -> Self {
+    pub fn cost(mut self, key: impl Into<Cow<'static, str>>, weight: u64) -> Self {
         self.costs
             .entry(key.into())
             .and_modify(|e| *e = weight)
