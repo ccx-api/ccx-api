@@ -15,9 +15,18 @@ use futures::task::Poll;
 
 use super::KrakenSigner;
 use super::RequestBuilder;
+use crate::KrakenApiError;
 use crate::KrakenApiResult;
+use crate::KrakenResult;
+use crate::LibError;
 
 type TaskCosts = HashMap<String, u64>;
+type TaskMessageResult = KrakenResult<()>;
+
+struct TaskMessage {
+    costs: TaskCosts,
+    task_tx: oneshot::Sender<TaskMessageResult>,
+}
 
 #[derive(Default)]
 pub(crate) struct RateLimiterBuilder {
@@ -75,58 +84,83 @@ impl RateLimiter {
         let buckets = self.buckets.clone();
         actix_rt::spawn(async move {
             while let Some(TaskMessage { costs, task_tx }) = rx.next().await {
-                if let Some(timeout) = Self::timeout(buckets.clone(), costs).await {
-                    println!("XXX: recv SLEEP {:?}", timeout);
-                    let t = Instant::now();
-                    println!("XXX time before {:?}", t);
-                    sleep(timeout).await;
-                    println!("XXX time after {:?}", Instant::now() - t);
+                let buckets = buckets.clone();
+                let res = async move {
+                    if let Some(timeout) = Self::timeout(buckets.clone(), &costs).await? {
+                        log::debug!("RateLimiter: sleep for {:?}s", timeout);
+                        sleep(timeout).await;
+                    }
+                    Self::set_costs(buckets, &costs).await?;
+                    Ok(())
                 }
-
-                println!("XXX: recv task send");
-                let _ = task_tx.send(());
+                .await;
+                let _ = task_tx.send(res);
             }
         });
     }
 
-    async fn timeout(
+    async fn timeout<'a>(
         buckets: Arc<HashMap<String, Mutex<RateLimiterBucket>>>,
-        costs: TaskCosts,
-    ) -> Option<Duration> {
+        costs: &'a TaskCosts,
+    ) -> KrakenResult<Option<Duration>> {
         let mut timeout = Duration::default();
 
-        for (name, cost) in &costs {
-            if let Some(bucket) = buckets.get(name) {
-                let mut bucket = bucket.lock().await;
+        for (name, cost) in costs {
+            let mut bucket = match buckets.get(name) {
+                Some(bucket) => bucket.lock().await,
+                None => Err(LibError::other(format!(
+                    "RateLimiter: undefined bucket - {}",
+                    name
+                )))?,
+            };
 
-                // TODO: сделать delay
+            let delay = bucket.delay.duration_since(Instant::now());
+            if !delay.is_zero() {
+                timeout = delay;
+                continue;
+            }
 
-                let elapsed = Instant::now().duration_since(bucket.instant);
-                if elapsed > bucket.interval {
-                    bucket.instant = Instant::now();
-                    bucket.amount = 0;
-                }
-                bucket.amount += cost;
+            bucket.reset_outdated();
+            let new_amount = bucket.amount + cost;
 
-                if bucket.amount > bucket.limit {
-                    let elapsed = Instant::now().duration_since(bucket.instant);
-                    let bucket_timeout = bucket.interval - elapsed;
+            if new_amount > bucket.limit {
+                let elapsed = Instant::now().duration_since(bucket.time_instant);
+                let bucket_timeout = bucket.interval - elapsed;
 
-                    if bucket_timeout > timeout {
-                        timeout = bucket_timeout;
-                    }
+                if bucket_timeout > timeout {
+                    timeout = bucket_timeout;
                 }
             }
         }
 
-        (!timeout.is_zero()).then(|| timeout)
+        Ok((!timeout.is_zero()).then(|| timeout))
+    }
+
+    async fn set_costs<'a>(
+        buckets: Arc<HashMap<String, Mutex<RateLimiterBucket>>>,
+        costs: &'a TaskCosts,
+    ) -> KrakenResult<()> {
+        for (name, cost) in costs {
+            let mut bucket = match buckets.get(name) {
+                Some(bucket) => bucket.lock().await,
+                None => Err(LibError::other(format!(
+                    "RateLimiter: undefined bucket - {}",
+                    name
+                )))?,
+            };
+
+            bucket.reset_outdated();
+            bucket.amount += cost;
+        }
+
+        Ok(())
     }
 }
 
 pub(crate) struct RateLimiterBucket {
-    delay: Duration,
+    time_instant: Instant,
+    delay: Instant,
     interval: Duration,
-    instant: Instant,
     limit: u64,
     amount: u64,
 }
@@ -134,9 +168,9 @@ pub(crate) struct RateLimiterBucket {
 impl Default for RateLimiterBucket {
     fn default() -> Self {
         Self {
-            delay: Duration::default(),
+            time_instant: Instant::now(),
+            delay: Instant::now(),
             interval: Duration::default(),
-            instant: Instant::now(),
             limit: 0,
             amount: 0,
         }
@@ -145,7 +179,7 @@ impl Default for RateLimiterBucket {
 
 impl RateLimiterBucket {
     pub fn delay(mut self, delay: Duration) -> Self {
-        self.delay = delay;
+        self.delay = Instant::now() + delay;
         self
     }
 
@@ -157,6 +191,14 @@ impl RateLimiterBucket {
     pub fn limit(mut self, limit: u64) -> Self {
         self.limit = limit;
         self
+    }
+
+    fn reset_outdated(&mut self) {
+        let elapsed = Instant::now().duration_since(self.time_instant);
+        if elapsed > self.interval {
+            self.time_instant = Instant::now();
+            self.amount = 0;
+        }
     }
 }
 
@@ -189,9 +231,19 @@ where
         let req_builder = self.req_builder;
         let mut queue_tx = self.queue_tx.clone();
         let fut = async move {
-            let (task_tx, task_rx) = oneshot::channel::<()>();
-            let _ = queue_tx.send(TaskMessage { costs, task_tx }).await;
-            let _ = task_rx.await;
+            let (task_tx, task_rx) = oneshot::channel::<TaskMessageResult>();
+            queue_tx
+                .send(TaskMessage { costs, task_tx })
+                .await
+                .map_err(|_| LibError::other("RateLimiter: task channel was dropped"))?;
+            task_rx
+                .await
+                .map_err(|_| LibError::other("RateLimiter: task channel was dropped"))?
+                .map_err(|e| {
+                    log::error!("RateLimiter: task err. {:?}", e);
+                    e
+                })?;
+
             req_builder.send::<V>().await
         };
 
@@ -202,7 +254,7 @@ where
     }
 }
 
-pub(crate) struct Task<V>
+pub struct Task<V>
 where
     V: serde::de::DeserializeOwned + Debug,
 {
@@ -232,49 +284,43 @@ where
     }
 }
 
-pub(crate) struct TaskMetadata {
-    costs: TaskCosts,
-}
-
-struct TaskMessage {
-    costs: TaskCosts,
-    task_tx: oneshot::Sender<()>,
+#[derive(Debug)]
+pub struct TaskMetadata {
+    pub costs: TaskCosts,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use crate::ApiCred;
-    use crate::Proxy;
-    use crate::SpotApi;
-
     use crate::api::spot::AssetInfoResponse;
+    use crate::{ApiCred, Proxy, SpotApi};
 
     pub static CCX_KRAKEN_API_PREFIX: &str = "CCX_KRAKEN_API";
 
     #[actix_rt::test]
-    async fn test_queue() {
+    async fn test_rate_limiter_queue() {
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
 
-        let mut rate_limiter = RateLimiterBuilder::default()
+        let rate_limiter = RateLimiterBuilder::default()
             .bucket(
-                "key1",
+                "interval_1__limit_1",
                 RateLimiterBucket::default()
                     .interval(Duration::from_secs(1))
                     .limit(1),
             )
             .bucket(
-                "key2",
+                "interval_10__limit_2",
                 RateLimiterBucket::default()
                     .interval(Duration::from_secs(10))
                     .limit(2),
             )
             .start();
 
-        for _ in 1..10 {
-            let s = rate_limiter
+        let instant_now = Instant::now();
+        for _i in 1..=8 {
+            let task_res = rate_limiter
                 .task(
                     spot_api
                         .client
@@ -285,31 +331,125 @@ mod tests {
                         .try_query_arg("info", &None::<&str>)
                         .unwrap(),
                 )
-                .cost("key1", 1)
-                .cost("key2", 1)
+                .cost("interval_1__limit_1", 1)
+                .cost("interval_10__limit_2", 1)
                 .send::<AssetInfoResponse>()
                 .await;
 
-            println!("XXX RES!");
+            assert!(task_res.is_ok());
         }
 
-        // let res: Task<AssetInfoResponse> = rate_limiter
-        //     .task(
-        //         spot_api
-        //             .client
-        //             .get("/0/public/Assets")
-        //             .unwrap()
-        //             .try_query_arg("pairs", &None::<&str>)
-        //             .unwrap()
-        //             .try_query_arg("info", &None::<&str>)
-        //             .unwrap(),
-        //     )
-        //     .cost("key1", 1)
-        //     .cost("key2", 1)
-        //     .send();
-        // println!("task costs: {:?}", res.metadata());
-        // println!("task await {:?}", res.await);
+        assert!(Instant::now().duration_since(instant_now) >= Duration::from_secs(30));
+    }
 
-        // println!("queue {:?}", rate_limiter.queue.lock().await.len());
+    #[actix_rt::test]
+    async fn test_rate_limiter_metadata() {
+        let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
+
+        let rate_limiter = RateLimiterBuilder::default()
+            .bucket(
+                "interval_1__limit_1",
+                RateLimiterBucket::default()
+                    .interval(Duration::from_secs(1))
+                    .limit(1),
+            )
+            .bucket(
+                "interval_10__limit_2",
+                RateLimiterBucket::default()
+                    .interval(Duration::from_secs(10))
+                    .limit(2),
+            )
+            .start();
+
+        for _i in 1..=8 {
+            let task = rate_limiter
+                .task(
+                    spot_api
+                        .client
+                        .get("/0/public/Assets")
+                        .unwrap()
+                        .try_query_arg("pairs", &None::<&str>)
+                        .unwrap()
+                        .try_query_arg("info", &None::<&str>)
+                        .unwrap(),
+                )
+                .cost("interval_1__limit_1", 1)
+                .cost("interval_10__limit_2", 1)
+                .send::<AssetInfoResponse>();
+
+            assert_eq!(task.metadata().costs.get("interval_1__limit_1"), Some(&1));
+            assert_eq!(task.metadata().costs.get("interval_10__limit_2"), Some(&1));
+        }
+    }
+
+    #[actix_rt::test]
+    async fn test_rate_limiter_delay() {
+        let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
+
+        let rate_limiter = RateLimiterBuilder::default()
+            .bucket(
+                "delay_10__interval_1__limit_1",
+                RateLimiterBucket::default()
+                    .delay(Duration::from_secs(10))
+                    .interval(Duration::from_secs(10))
+                    .limit(1),
+            )
+            .start();
+
+        let instant_now = Instant::now();
+        for _i in 1..=2 {
+            let task_res = rate_limiter
+                .task(
+                    spot_api
+                        .client
+                        .get("/0/public/Assets")
+                        .unwrap()
+                        .try_query_arg("pairs", &None::<&str>)
+                        .unwrap()
+                        .try_query_arg("info", &None::<&str>)
+                        .unwrap(),
+                )
+                .cost("delay_10__interval_1__limit_1", 1)
+                .send::<AssetInfoResponse>()
+                .await;
+
+            assert!(task_res.is_ok());
+        }
+
+        assert!(Instant::now().duration_since(instant_now) >= Duration::from_secs(20));
+    }
+
+    #[actix_rt::test]
+    async fn test_rate_limiter_wrong_bucket() {
+        let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
+
+        let rate_limiter = RateLimiterBuilder::default()
+            .bucket(
+                "delay_10__interval_1__limit_1",
+                RateLimiterBucket::default()
+                    .delay(Duration::from_secs(10))
+                    .interval(Duration::from_secs(10))
+                    .limit(1),
+            )
+            .start();
+
+        let task_res = rate_limiter
+            .task(
+                spot_api
+                    .client
+                    .get("/0/public/Assets")
+                    .unwrap()
+                    .try_query_arg("pairs", &None::<&str>)
+                    .unwrap()
+                    .try_query_arg("info", &None::<&str>)
+                    .unwrap(),
+            )
+            .cost("interval_1__limit_1", 1)
+            .send::<AssetInfoResponse>()
+            .await;
+        assert!(task_res.is_err())
     }
 }

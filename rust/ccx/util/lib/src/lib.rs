@@ -10,6 +10,7 @@ mod cred;
 mod env;
 mod error;
 mod proxy;
+mod rate_limiter;
 mod seq;
 pub mod serde_util;
 
@@ -19,4 +20,5 @@ pub use self::cred::*;
 pub use self::env::*;
 pub use self::error::*;
 pub use self::proxy::*;
+pub use self::rate_limiter::*;
 pub use self::seq::*;
