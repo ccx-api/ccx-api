@@ -16,12 +16,12 @@ async fn main_() -> BinanceResult<()> {
 
     println!("Running...");
 
-    print_res(binance_spot.ping().await)?;
+    print_res(binance_spot.ping()?.await)?;
 
-    let time = print_res(binance_spot.time().await)?.server_time;
+    let time = print_res(binance_spot.time()?.await)?.server_time;
     println!("Server Time: {}", time);
 
-    let info = print_res(binance_spot.exchange_info().await)?;
+    let info = print_res(binance_spot.exchange_info()?.await)?;
     for symbol in info.symbols {
         if &symbol.base_asset != "BTC"
             || &symbol.quote_asset != "USDT" && &symbol.quote_asset != "EUR"

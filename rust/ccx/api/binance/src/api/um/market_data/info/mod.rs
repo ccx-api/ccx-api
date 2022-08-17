@@ -1,4 +1,6 @@
+use super::super::RL_WEIGHT_PER_MINUTE;
 use super::prelude::*;
+use crate::client::Task;
 
 mod filter;
 mod rate_limit;
@@ -43,12 +45,20 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> UmApi<Signer> {
+    impl<S> UmApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// Current exchange trading rules and symbol information.
         ///
         /// Weight: 1
-        pub async fn exchange_info(&self) -> BinanceResult<ExchangeInformation> {
-            self.client.get(FAPI_V1_EXCHANGE_INFO)?.send().await
+        pub fn exchange_info(&self) -> BinanceResult<Task<ExchangeInformation>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(FAPI_V1_EXCHANGE_INFO)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
     }
 }

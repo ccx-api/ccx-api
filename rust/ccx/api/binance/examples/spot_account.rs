@@ -1,9 +1,12 @@
 use std::fmt;
 
 use ccx_binance::api::spot::NewOrder;
+use ccx_binance::api::spot::NewOrderResult;
 use ccx_binance::api::spot::OrderResponseType;
 use ccx_binance::api::spot::OrderSide;
 use ccx_binance::api::spot::OrderType;
+use ccx_binance::client::Task;
+use ccx_binance::ApiCred;
 use ccx_binance::BinanceResult;
 use ccx_binance::Decimal;
 use ccx_binance::SpotApi;
@@ -21,7 +24,7 @@ async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance = SpotApi::from_env();
+    let binance = SpotApi::<ApiCred>::from_env();
 
     // let book = print_res(binance.ticker_book(BTCBUSD).await)?;
     // let time = print_res(binance.time().await)?;
@@ -50,7 +53,7 @@ async fn main_() -> BinanceResult<()> {
         OrderSide::Buy,
         d("44000"),
         Quantity::Base(d("0.0005")),
-    )
+    )?
     .await?;
 
     limit_order(
@@ -59,10 +62,10 @@ async fn main_() -> BinanceResult<()> {
         OrderSide::Buy,
         d("43000"),
         Quantity::Base(d("0.0005")),
-    )
+    )?
     .await?;
 
-    market_order(&binance, BTCBUSD, OrderSide::Sell, Quantity::Quote(d("22"))).await?;
+    market_order(&binance, BTCBUSD, OrderSide::Sell, Quantity::Quote(d("22")))?.await?;
 
     // market_order(
     //     &binance,
@@ -111,59 +114,59 @@ fn d(v: &'static str) -> Decimal {
     v.parse().unwrap()
 }
 
-async fn limit_order(
-    binance: &SpotApi,
+fn limit_order(
+    binance: &SpotApi<ApiCred>,
     symbol: &str,
     side: OrderSide,
     price: Decimal,
     quantity: Quantity,
-) -> BinanceResult<NewOrder> {
+) -> BinanceResult<Task<NewOrderResult>> {
     let (quantity, quote_quantity) = quantity.to_arg();
-    print_res(
-        binance
-            .create_order(
-                symbol,
-                side,
-                OrderType::LimitMaker,
-                None,
-                quantity,
-                quote_quantity,
-                None,
-                Some(price),
-                None,
-                None::<&str>,
-                Some(OrderResponseType::Result),
-                TimeWindow::now(),
-            )
-            .await,
-    )
+    let task = binance
+        .create_order(
+            symbol,
+            side,
+            OrderType::LimitMaker,
+            None,
+            quantity,
+            quote_quantity,
+            None,
+            Some(price),
+            None,
+            None::<&str>,
+            Some(OrderResponseType::Result),
+            TimeWindow::now(),
+        )?
+        .as_result()
+        .unwrap();
+    Ok(task)
 }
 
-async fn market_order(
-    binance: &SpotApi,
+fn market_order(
+    binance: &SpotApi<ApiCred>,
     symbol: &str,
     side: OrderSide,
     quantity: Quantity,
-) -> BinanceResult<NewOrder> {
+) -> BinanceResult<Task<NewOrderResult>> {
     let (quantity, quote_quantity) = quantity.to_arg();
-    print_res(
-        binance
-            .create_order(
-                symbol,
-                side,
-                OrderType::Market,
-                None,
-                quantity,
-                quote_quantity,
-                None,
-                None,
-                None,
-                None::<&str>,
-                Some(OrderResponseType::Result),
-                TimeWindow::now(),
-            )
-            .await,
-    )
+    let task = binance
+        .create_order(
+            symbol,
+            side,
+            OrderType::Market,
+            None,
+            quantity,
+            quote_quantity,
+            None,
+            None,
+            None,
+            None::<&str>,
+            Some(OrderResponseType::Result),
+            TimeWindow::now(),
+        )?
+        .as_result()
+        .unwrap();
+    Ok(task)
 }
 
 enum Quantity {

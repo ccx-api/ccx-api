@@ -1,6 +1,9 @@
 use super::prelude::*;
 use super::OrderType;
+use crate::client::Task;
 use crate::util::{Ask, Bid, OrderBook};
+
+use super::RL_WEIGHT_PER_MINUTE;
 
 pub const API_V3_PING: &str = "/api/v3/ping";
 pub const API_V3_TIME: &str = "/api/v3/time";
@@ -513,26 +516,42 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// Test connectivity to the Rest API.
         ///
         /// Weight: 1
-        pub async fn ping(&self) -> BinanceResult<Pong> {
-            self.client.get(API_V3_PING)?.send().await
+        pub fn ping(&self) -> BinanceResult<Task<Pong>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_V3_PING)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Test connectivity to the Rest API and get the current server time.
         ///
         /// Weight: 1
-        pub async fn time(&self) -> BinanceResult<ServerTime> {
-            self.client.get(API_V3_TIME)?.send().await
+        pub fn time(&self) -> BinanceResult<Task<ServerTime>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_V3_TIME)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Current exchange trading rules and symbol information.
         ///
         /// Weight: 1
-        pub async fn exchange_info(&self) -> BinanceResult<ExchangeInformation> {
-            self.client.get(API_V3_EXCHANGE_INFO)?.send().await
+        pub fn exchange_info(&self) -> BinanceResult<Task<ExchangeInformation>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_V3_EXCHANGE_INFO)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Order book.
@@ -547,18 +566,24 @@ mod with_network {
         /// 5000 | 50
         ///
         /// The default `limit` value is `N100`.
-        pub async fn depth<S: AsRef<str>>(
+        pub fn depth<SM: AsRef<str>>(
             &self,
-            symbol: S,
+            symbol: SM,
             limit: impl Into<Option<OrderBookLimit>>,
-        ) -> BinanceResult<SpotOrderBook> {
-            let limit = limit.into();
-            self.client
-                .get(API_V3_DEPTH)?
-                .query_arg("symbol", symbol.as_ref())?
-                .try_query_arg("limit", &limit.map(OrderBookLimit::as_str))?
-                .send()
-                .await
+        ) -> BinanceResult<Task<SpotOrderBook>> {
+            let limit: Option<OrderBookLimit> = limit.into();
+            let weight = limit.as_ref().map(|f| f.weight()).unwrap_or(1);
+
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_DEPTH)?
+                        .query_arg("symbol", symbol.as_ref())?
+                        .try_query_arg("limit", &limit.map(OrderBookLimit::as_str))?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, weight)
+                .send())
         }
 
         /// Recent trades list.
@@ -572,17 +597,21 @@ mod with_network {
         /// * `limit` - default 500; max 1000.
         ///
         /// Data Source: Memory
-        pub async fn trades<S: AsRef<str>>(
+        pub fn trades<SM: AsRef<str>>(
             &self,
-            symbol: S,
+            symbol: SM,
             limit: Option<usize>,
-        ) -> BinanceResult<Vec<Trade>> {
-            self.client
-                .get(API_V3_TRADES)?
-                .query_arg("symbol", symbol.as_ref())?
-                .try_query_arg("limit", &limit)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<Trade>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_TRADES)?
+                        .query_arg("symbol", symbol.as_ref())?
+                        .try_query_arg("limit", &limit)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Old Trade Lookup.
@@ -597,20 +626,24 @@ mod with_network {
         /// * `limit` - default 500; max 1000.
         ///
         /// Data Source: Database
-        pub async fn historical_trades<S: AsRef<str>>(
+        pub fn historical_trades<SM: AsRef<str>>(
             &self,
-            symbol: S,
+            symbol: SM,
             limit: Option<usize>,
             from_id: Option<u64>,
-        ) -> BinanceResult<Vec<Trade>> {
-            self.client
-                .get(API_V3_HISTORICAL_TRADES)?
-                .auth_header()?
-                .query_arg("symbol", symbol.as_ref())?
-                .try_query_arg("fromId", &from_id)?
-                .try_query_arg("limit", &limit)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<Trade>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_HISTORICAL_TRADES)?
+                        .auth_header()?
+                        .query_arg("symbol", symbol.as_ref())?
+                        .try_query_arg("fromId", &from_id)?
+                        .try_query_arg("limit", &limit)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 5)
+                .send())
         }
 
         /// Compressed/Aggregate trades list.
@@ -634,23 +667,27 @@ mod with_network {
         ///   will be returned.
         ///
         /// Data Source: Database
-        pub async fn agg_trades<S: AsRef<str>>(
+        pub fn agg_trades<SM: AsRef<str>>(
             &self,
-            symbol: S,
+            symbol: SM,
             from_id: Option<u64>,
             start_time: Option<u64>,
             end_time: Option<u64>,
             limit: Option<usize>,
-        ) -> BinanceResult<Vec<AggTrade>> {
-            self.client
-                .get(API_V3_AGG_TRADES)?
-                .query_arg("symbol", symbol.as_ref())?
-                .try_query_arg("fromId", &from_id)?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .try_query_arg("limit", &limit)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<AggTrade>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_AGG_TRADES)?
+                        .query_arg("symbol", symbol.as_ref())?
+                        .try_query_arg("fromId", &from_id)?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?
+                        .try_query_arg("limit", &limit)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Kline/Candlestick data.
@@ -671,22 +708,29 @@ mod with_network {
         /// * If `start_time` and `end_time` are not sent, the most recent klines are returned.
         ///
         /// Data Source: Database
-        pub async fn klines<S: AsRef<str>>(
+        pub fn klines<SM: AsRef<str>>(
             &self,
-            symbol: S,
+            symbol: SM,
             interval: ChartInterval,
             start_time: Option<u64>,
             end_time: Option<u64>,
             limit: Option<usize>,
-        ) -> BinanceResult<Vec<Kline>> {
-            self.client
-                .get(API_V3_KLINES)?
-                .query_args(&[("symbol", symbol.as_ref()), ("interval", interval.as_str())])?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .try_query_arg("limit", &limit)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<Kline>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_KLINES)?
+                        .query_args(&[
+                            ("symbol", symbol.as_ref()),
+                            ("interval", interval.as_str()),
+                        ])?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?
+                        .try_query_arg("limit", &limit)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Current average price.
@@ -699,12 +743,16 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn avg_price<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<AvgPrice> {
-            self.client
-                .get(API_V3_AVG_PRICE)?
-                .query_arg("symbol", symbol.as_ref())?
-                .send()
-                .await
+        pub fn avg_price<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<AvgPrice>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_AVG_PRICE)?
+                        .query_arg("symbol", symbol.as_ref())?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// 24hr Ticker Price Change Statistics
@@ -717,12 +765,16 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn ticker_24hr<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<TickerStats> {
-            self.client
-                .get(API_V3_TICKER_24HR)?
-                .query_arg("symbol", symbol.as_ref())?
-                .send()
-                .await
+        pub fn ticker_24hr<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<TickerStats>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_TICKER_24HR)?
+                        .query_arg("symbol", symbol.as_ref())?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// 24hr Ticker Price Change Statistics
@@ -732,8 +784,12 @@ mod with_network {
         /// Weight: 40
         ///
         /// Data Source: Memory
-        pub async fn ticker_24hr_all(&self) -> BinanceResult<Vec<TickerStats>> {
-            self.client.get(API_V3_TICKER_24HR)?.send().await
+        pub fn ticker_24hr_all(&self) -> BinanceResult<Task<Vec<TickerStats>>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_V3_TICKER_24HR)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 40)
+                .send())
         }
 
         /// Symbol price ticker.
@@ -746,12 +802,16 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn ticker_price<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<PriceTicker> {
-            self.client
-                .get(API_V3_TICKER_PRICE)?
-                .query_arg("symbol", symbol.as_ref())?
-                .send()
-                .await
+        pub fn ticker_price<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<PriceTicker>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_TICKER_PRICE)?
+                        .query_arg("symbol", symbol.as_ref())?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// All symbol price tickers.
@@ -761,8 +821,12 @@ mod with_network {
         /// Weight: 2
         ///
         /// Data Source: Memory
-        pub async fn ticker_price_all(&self) -> BinanceResult<Vec<PriceTicker>> {
-            self.client.get(API_V3_TICKER_PRICE)?.send().await
+        pub fn ticker_price_all(&self) -> BinanceResult<Task<Vec<PriceTicker>>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_V3_TICKER_PRICE)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 2)
+                .send())
         }
 
         /// Symbol order book ticker.
@@ -775,12 +839,16 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub async fn ticker_book<S: AsRef<str>>(&self, symbol: S) -> BinanceResult<BookTicker> {
-            self.client
-                .get(API_V3_TICKER_BOOK_TICKER)?
-                .query_arg("symbol", symbol.as_ref())?
-                .send()
-                .await
+        pub fn ticker_book<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<BookTicker>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_TICKER_BOOK_TICKER)?
+                        .query_arg("symbol", symbol.as_ref())?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// All symbol order book tickers.
@@ -790,8 +858,12 @@ mod with_network {
         /// Weight: 2
         ///
         /// Data Source: Memory
-        pub async fn ticker_book_all(&self) -> BinanceResult<Vec<BookTicker>> {
-            self.client.get(API_V3_TICKER_BOOK_TICKER)?.send().await
+        pub fn ticker_book_all(&self) -> BinanceResult<Task<Vec<BookTicker>>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_V3_TICKER_BOOK_TICKER)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 2)
+                .send())
         }
     }
 }

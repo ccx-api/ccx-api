@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use actix_http::encoding::Decoder;
-use actix_http::{Payload, BoxedPayloadStream, Method, Uri};
+use actix_http::{BoxedPayloadStream, Method, Payload, Uri};
 use serde::Serialize;
 
 use ccx_api_lib::make_client;
@@ -163,10 +163,9 @@ where
     }
 
     pub fn auth_header(mut self) -> BinanceResult<Self> {
-        self.request = self.request.append_header((
-            "X-MBX-APIKEY",
-            self.api_client.inner.config.api_key(),
-        ));
+        self.request = self
+            .request
+            .append_header(("X-MBX-APIKEY", self.api_client.inner.config.api_key()));
         Ok(self)
     }
 

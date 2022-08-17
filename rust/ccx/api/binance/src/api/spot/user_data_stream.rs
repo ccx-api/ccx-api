@@ -1,4 +1,7 @@
 use super::prelude::*;
+use crate::client::Task;
+
+use super::RL_WEIGHT_PER_MINUTE;
 
 pub const V1_USER_DATA_STREAM: &str = "/api/v1/userDataStream";
 
@@ -15,19 +18,23 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// Create a listenKey.
         ///
         /// Start a new user data stream.
         /// The stream will close after 60 minutes unless a keepalive is sent.
         ///
         /// Weight: 1
-        pub async fn user_data_stream(&self) -> BinanceResult<ListenKey> {
-            self.client
-                .post(V1_USER_DATA_STREAM)?
-                .auth_header()?
-                .send()
-                .await
+        pub fn user_data_stream(&self) -> BinanceResult<Task<ListenKey>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.post(V1_USER_DATA_STREAM)?.auth_header()?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
     }
 }

@@ -24,7 +24,7 @@ pub struct Symbol {
     pub quantity_precision: u16,
     pub base_asset_precision: u16,
     pub underlying_type: UnderlyingType,
-    pub underlying_sub_type: Vec<UnderlyingSubType>,
+    pub underlying_sub_type: Vec<String>,
     pub settle_plan: u64,
     /// Threshold for algo order with "priceProtect".
     pub trigger_protect: Decimal,
@@ -85,21 +85,6 @@ pub enum UnderlyingType {
     Coin,
     #[serde(rename = "INDEX")]
     Index,
-}
-
-// TODO check variants
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum UnderlyingSubType {
-    #[serde(rename = "STORAGE")]
-    Storage,
-    #[serde(rename = "DEFI")]
-    Defi,
-    #[serde(rename = "HOT")]
-    Hot,
-    #[serde(rename = "BSC")]
-    Bsc,
-    #[serde(rename = "NFT")]
-    Nft,
 }
 
 // TODO check variants

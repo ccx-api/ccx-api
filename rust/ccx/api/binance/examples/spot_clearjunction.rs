@@ -1,3 +1,4 @@
+use ccx_binance::ApiCred;
 use ccx_binance::BinanceResult;
 use ccx_binance::SpotApi;
 use ccx_binance::TimeWindow;
@@ -14,16 +15,16 @@ async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance_spot = SpotApi::from_env();
+    let binance_spot = SpotApi::<ApiCred>::from_env();
 
-    let time = print_res(binance_spot.time().await)?;
+    let time = print_res(binance_spot.time()?.await)?;
     let init_time = time.server_time;
 
     let amount = d("1");
 
     let _balance = print_res(
         binance_spot
-            .clearjunction_get_balance(EUR, TimeWindow::now())
+            .clearjunction_get_balance(EUR, TimeWindow::now())?
             .await,
     )?;
 
@@ -34,7 +35,7 @@ async fn main_() -> BinanceResult<()> {
 
     let _withdraw = print_res(
         binance_spot
-            .clearjunction_withdraw(EUR, amount, init_time, TimeWindow::now())
+            .clearjunction_withdraw(EUR, amount, init_time, TimeWindow::now())?
             .await,
     )?;
 

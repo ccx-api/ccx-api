@@ -58,7 +58,7 @@ async fn main() {
 
             let f = Box::pin(
                 binance_spot
-                    .depth(symbol.clone(), OrderBookLimit::N1000)
+                    .depth(symbol.clone(), OrderBookLimit::N1000)?
                     .into_stream()
                     .map(move |r| match r {
                         Ok(book) => X::Snapshot((symbol.clone(), book.into())),

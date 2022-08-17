@@ -1,3 +1,4 @@
+use std::time::Duration;
 use url::Url;
 
 use ccx_api_lib::env_var_with_prefix;
@@ -6,6 +7,9 @@ use crate::client::ApiCred;
 use crate::client::BinanceSigner;
 use crate::client::Config;
 use crate::client::Proxy;
+use crate::client::RateLimiter;
+use crate::client::RateLimiterBucket;
+use crate::client::RateLimiterBuilder;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
 use crate::client::CCX_BINANCE_API_PREFIX;
@@ -35,6 +39,8 @@ pub const STREAM_BASE: &str = "wss://fstream.binance.com/stream";
 pub const API_BASE_TESTNET: &str = "https://testnet.binancefuture.com/";
 pub const STREAM_BASE_TESTNET: &str = "wss://stream.binancefuture.com/stream";
 
+pub const RL_WEIGHT_PER_MINUTE: &str = "weight_per_minute";
+
 #[cfg(feature = "with_network")]
 pub use with_network::*;
 
@@ -47,7 +53,8 @@ mod with_network {
     where
         S: BinanceSigner,
     {
-        pub client: RestClient<S>,
+        pub(crate) client: RestClient<S>,
+        pub(crate) rate_limiter: RateLimiter,
     }
 
     impl<S> UmApi<S>
@@ -91,7 +98,18 @@ mod with_network {
 
         pub fn with_config(config: Config<S>) -> Self {
             let client = RestClient::new(config);
-            UmApi { client }
+            let rate_limiter = RateLimiterBuilder::default()
+                .bucket(
+                    RL_WEIGHT_PER_MINUTE,
+                    RateLimiterBucket::default()
+                        .interval(Duration::from_secs(60))
+                        .limit(1_200),
+                )
+                .start();
+            UmApi {
+                client,
+                rate_limiter,
+            }
         }
 
         /// Creates multiplexed websocket stream.

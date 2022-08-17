@@ -1,5 +1,5 @@
 use ccx_binance::api::um::UmApi;
-use ccx_binance::BinanceResult;
+use ccx_binance::{ApiCred, BinanceResult};
 use ccx_binance_examples_util::*;
 
 #[actix_rt::main]
@@ -11,16 +11,16 @@ async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance_usdtm = UmApi::from_env();
+    let binance_usdtm = UmApi::<ApiCred>::from_env();
 
     println!("Running...");
 
-    print_res(binance_usdtm.ping().await)?;
+    print_res(binance_usdtm.ping()?.await)?;
 
-    let time = print_res(binance_usdtm.time().await)?.server_time;
+    let time = print_res(binance_usdtm.time()?.await)?.server_time;
     println!("Server Time: {}", time);
 
-    let info = print_res(binance_usdtm.exchange_info().await)?;
+    let info = print_res(binance_usdtm.exchange_info()?.await)?;
     for symbol in info.symbols {
         // if &symbol.base_asset != "BTC" {
         //     continue;

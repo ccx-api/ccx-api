@@ -16,11 +16,11 @@ use futures::task::Poll;
 
 use super::BinanceSigner;
 use super::RequestBuilder;
-use crate::BinanceError;
 use crate::BinanceResult;
 use crate::LibError;
 
-type TaskCosts = HashMap<Cow<'static, str>, u64>;
+type BucketName = Cow<'static, str>;
+type TaskCosts = HashMap<BucketName, u32>;
 type TaskMessageResult = BinanceResult<()>;
 
 struct TaskMessage {
@@ -30,11 +30,11 @@ struct TaskMessage {
 
 #[derive(Default)]
 pub(crate) struct RateLimiterBuilder {
-    buckets: HashMap<Cow<'static, str>, RateLimiterBucket>,
+    buckets: HashMap<BucketName, RateLimiterBucket>,
 }
 
 impl RateLimiterBuilder {
-    pub fn bucket(mut self, key: impl Into<Cow<'static, str>>, bucket: RateLimiterBucket) -> Self {
+    pub fn bucket(mut self, key: impl Into<BucketName>, bucket: RateLimiterBucket) -> Self {
         match self.buckets.entry(key.into()) {
             Entry::Occupied(mut e) => *e.get_mut() = bucket,
             Entry::Vacant(e) => {
@@ -63,7 +63,7 @@ impl RateLimiterBuilder {
 
 #[derive(Clone)]
 pub(crate) struct RateLimiter {
-    buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
+    buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
     queue_tx: mpsc::UnboundedSender<TaskMessage>,
     // queue: Arc<Mutex<Vec<TaskMessage>>>,
 }
@@ -100,7 +100,7 @@ impl RateLimiter {
     }
 
     async fn timeout<'a>(
-        buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
+        buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         costs: &'a TaskCosts,
     ) -> BinanceResult<Option<Duration>> {
         let mut timeout = Duration::default();
@@ -137,7 +137,7 @@ impl RateLimiter {
     }
 
     async fn set_costs<'a>(
-        buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
+        buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         costs: &'a TaskCosts,
     ) -> BinanceResult<()> {
         for (name, cost) in costs {
@@ -161,8 +161,8 @@ pub(crate) struct RateLimiterBucket {
     time_instant: Instant,
     delay: Instant,
     interval: Duration,
-    limit: u64,
-    amount: u64,
+    limit: u32,
+    amount: u32,
 }
 
 impl Default for RateLimiterBucket {
@@ -188,7 +188,7 @@ impl RateLimiterBucket {
         self
     }
 
-    pub fn limit(mut self, limit: u64) -> Self {
+    pub fn limit(mut self, limit: u32) -> Self {
         self.limit = limit;
         self
     }
@@ -215,7 +215,7 @@ impl<S> TaskBuilder<S>
 where
     S: BinanceSigner + Unpin + 'static,
 {
-    pub fn cost(mut self, key: impl Into<Cow<'static, str>>, weight: u64) -> Self {
+    pub fn cost(mut self, key: impl Into<BucketName>, weight: u32) -> Self {
         self.costs
             .entry(key.into())
             .and_modify(|e| *e = weight)
@@ -230,8 +230,10 @@ where
         let costs = self.costs.clone();
         let req_builder = self.req_builder;
         let mut queue_tx = self.queue_tx.clone();
+
         let fut = async move {
             let (task_tx, task_rx) = oneshot::channel::<TaskMessageResult>();
+
             queue_tx
                 .send(TaskMessage { costs, task_tx })
                 .await

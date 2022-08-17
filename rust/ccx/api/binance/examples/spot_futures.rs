@@ -1,3 +1,4 @@
+use ccx_binance::ApiCred;
 use ccx_binance::BinanceResult;
 use ccx_binance::SpotApi;
 use ccx_binance::TimeWindow;
@@ -15,7 +16,7 @@ async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance_spot = SpotApi::from_env();
+    let binance_spot = SpotApi::<ApiCred>::from_env();
 
     // let time = print_res(binance_spot.time().await)?;
     // let start_time = time.server_time - 365 * 24 * 3600 * 1000;
@@ -24,7 +25,7 @@ async fn main_() -> BinanceResult<()> {
 
     let _cross_collateral_info = print_res(
         binance_spot
-            .futures_cross_collateral_info_v2(None::<&str>, None::<&str>, TimeWindow::now())
+            .futures_cross_collateral_info_v2(None::<&str>, None::<&str>, TimeWindow::now())?
             .await,
     )?;
 

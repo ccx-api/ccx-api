@@ -1,4 +1,7 @@
 use super::prelude::*;
+use crate::client::Task;
+
+use super::RL_WEIGHT_PER_MINUTE;
 
 pub const SAPI_V1_FUTURES_TRANSFER: &str = "/sapi/v1/futures/transfer";
 pub const SAPI_V2_FUTURES_LOAN_CONFIGS: &str = "/sapi/v1/futures/loan/configs";
@@ -84,39 +87,47 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// New Future Account Transfer (USER_DATA).
         ///
         /// Execute transfer between spot account and futures account.
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// * asset - The asset being transferred, e.g., USDT.
         /// * amount - The amount to be transferred.
-        pub async fn futures_create_transfer(
+        pub fn futures_create_transfer(
             &self,
             asset: impl Serialize,
             amount: Decimal,
             r#type: FuturesTransferType,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<NewFuturesAccountTransfer> {
-            self.client
-                .post(SAPI_V1_FUTURES_TRANSFER)?
-                .signed(time_window)?
-                .query_arg("asset", &asset)?
-                .query_arg("amount", &amount)?
-                .query_arg("type", &r#type)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<NewFuturesAccountTransfer>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_FUTURES_TRANSFER)?
+                        .signed(time_window)?
+                        .query_arg("asset", &asset)?
+                        .query_arg("amount", &amount)?
+                        .query_arg("type", &r#type)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Get Future Account Transaction History List (USER_DATA).
         ///
-        /// Weight: 5
+        /// Weight(IP): 10
         ///
         /// * current_page - Start from 1. Default: 1.
         /// * page_size - Default: 10 Max: 100.
-        pub async fn futures_transfer_history(
+        pub fn futures_transfer_history(
             &self,
             asset: impl Serialize,
             start_time: u64,
@@ -124,17 +135,21 @@ mod with_network {
             current_page: Option<u64>,
             page_size: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<FuturesAccountTransferHistoryList> {
-            self.client
-                .get(SAPI_V1_FUTURES_TRANSFER)?
-                .signed(time_window)?
-                .query_arg("asset", &asset)?
-                .query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .try_query_arg("current", &current_page)?
-                .try_query_arg("size", &page_size)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<FuturesAccountTransferHistoryList>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_FUTURES_TRANSFER)?
+                        .signed(time_window)?
+                        .query_arg("asset", &asset)?
+                        .query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?
+                        .try_query_arg("current", &current_page)?
+                        .try_query_arg("size", &page_size)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         // TODO Borrow For Cross-Collateral (TRADE)
@@ -147,22 +162,26 @@ mod with_network {
 
         /// Cross-Collateral Information V2 (USER_DATA)
         ///
-        /// Weight: 1
+        /// Weight(IP): 10
         ///
         /// * All loan and collateral data will be returned if loanCoin or collateralCoin is not sent.
-        pub async fn futures_cross_collateral_info_v2(
+        pub fn futures_cross_collateral_info_v2(
             &self,
             loan_coin: Option<impl Serialize>,
             collateral_coin: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<FuturesCrossCollateranlInformationV2>> {
-            self.client
-                .get(SAPI_V2_FUTURES_LOAN_CONFIGS)?
-                .signed(time_window)?
-                .try_query_arg("loanCoin", &loan_coin)?
-                .try_query_arg("collateralCoin", &collateral_coin)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<FuturesCrossCollateranlInformationV2>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V2_FUTURES_LOAN_CONFIGS)?
+                        .signed(time_window)?
+                        .try_query_arg("loanCoin", &loan_coin)?
+                        .try_query_arg("collateralCoin", &collateral_coin)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         // TODO Calculate Rate After Adjust Cross-Collateral LTV (USER_DATA)

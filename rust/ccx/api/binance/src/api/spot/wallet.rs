@@ -1,4 +1,7 @@
 use super::prelude::*;
+use crate::client::Task;
+
+use super::RL_WEIGHT_PER_MINUTE;
 
 pub const SAPI_V1_SYSTEM_STATUS: &str = "/sapi/v1/system/status";
 pub const SAPI_V1_CAPITAL_CONFIG_GETALL: &str = "/sapi/v1/capital/config/getall";
@@ -346,22 +349,35 @@ pub struct TradeFee {
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
-        pub async fn asset_transfer(
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
+        /// User Universal Transfer (USER_DATA)
+        ///
+        /// You need to enable Permits Universal Transfer option for the API Key which requests this endpoint.
+        ///
+        /// Weight(IP): 1
+        pub fn asset_transfer(
             &self,
             transfer_type: TransferKind,
             asset: impl Serialize,
             amount: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Transfer> {
-            self.client
-                .post(SAPI_V1_ASSET_TRANSFER)?
-                .signed(time_window)?
-                .query_arg("type", &transfer_type)?
-                .query_arg("asset", &asset)?
-                .query_arg("amount", &amount)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Transfer>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_ASSET_TRANSFER)?
+                        .signed(time_window)?
+                        .query_arg("type", &transfer_type)?
+                        .query_arg("asset", &asset)?
+                        .query_arg("amount", &amount)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Funding Wallet (USER_DATA)
@@ -370,50 +386,61 @@ mod with_network {
         ///
         /// * Currently supports querying the following business assets：Binance Pay, Binance Card,
         /// Binance Gift Card, Stock Token.
-        pub async fn asset_fundings(
+        pub fn asset_fundings(
             &self,
             asset: Option<impl Serialize>,
             need_btc_valuation: Option<bool>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<FundingAsset>> {
-            self.client
-                .post(SAPI_V1_ASSET_GET_FUNDING_ASSET)?
-                .signed(time_window)?
-                .try_query_arg("asset", &asset)?
-                .try_query_arg("needBtcValuation", &need_btc_valuation)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<FundingAsset>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_ASSET_GET_FUNDING_ASSET)?
+                        .signed(time_window)?
+                        .try_query_arg("asset", &asset)?
+                        .try_query_arg("needBtcValuation", &need_btc_valuation)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// System Status (System)
         ///
         /// Fetch system status.
-        pub async fn system_status(&self) -> BinanceResult<SystemStatus> {
-            self.client
-                .get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
-                .send()
-                .await
+        ///
+        /// Weight(IP): 1
+        pub async fn system_status(&self) -> BinanceResult<Task<SystemStatus>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// All Coins' Information (USER_DATA)
         ///
         /// Get information of coins (available for deposit and withdraw) for user.
         ///
-        /// Weight: 1
-        pub async fn all_coins_information(
+        /// Weight(IP): 10
+        pub fn all_coins_information(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<CoinInformation>> {
-            self.client
-                .get(SAPI_V1_CAPITAL_CONFIG_GETALL)?
-                .signed(time_window)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<CoinInformation>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_CAPITAL_CONFIG_GETALL)?
+                        .signed(time_window)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         /// Disable Fast Withdraw Switch (USER_DATA)
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// Caution:
         ///
@@ -423,6 +450,7 @@ mod with_network {
             &self,
             time_window: impl Into<TimeWindow>,
         ) -> BinanceResult<()> {
+            // FIXME: Task without response
             self.client
                 .post(SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW)?
                 .signed(time_window)?
@@ -432,7 +460,7 @@ mod with_network {
 
         /// Enable Fast Withdraw Switch (USER_DATA)
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// This request will enable fastwithdraw switch under your account.
         /// You need to enable "trade" option for the api key which requests this endpoint.
@@ -442,6 +470,7 @@ mod with_network {
             &self,
             time_window: impl Into<TimeWindow>,
         ) -> BinanceResult<()> {
+            // FIXME: Task without response
             self.client
                 .post(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
                 .signed(time_window)?
@@ -453,31 +482,35 @@ mod with_network {
         ///
         /// Fetch deposit address with network.
         ///
-        /// Weight: 1
+        /// Weight(IP): 10
         ///
         /// If network is not send, return with default network of the coin.
         /// You can get network and isDefault in networkList in the response of
         ///    Get /sapi/v1/capital/config/getall (HMAC SHA256).
-        pub async fn get_deposit_address(
+        pub fn get_deposit_address(
             &self,
             coin: impl Serialize,
             network: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<DepositAddress> {
-            self.client
-                .get(SAPI_V1_CAPITAL_DEPOSIT_ADDRESS)?
-                .signed(time_window)?
-                .query_arg("coin", &coin)?
-                .try_query_arg("network", &network)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<DepositAddress>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_CAPITAL_DEPOSIT_ADDRESS)?
+                        .signed(time_window)?
+                        .query_arg("coin", &coin)?
+                        .try_query_arg("network", &network)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         /// Withdraw(SAPI)
         ///
         /// Submit a withdraw request.
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// * withdrawOrderId - client id for withdraw
         /// * addressTag - Secondary address identifier for coins like XRP,XMR etc.
@@ -489,7 +522,7 @@ mod with_network {
         /// If network is not send, return with default network of the coin.
         /// You can get network and isDefault in networkList in the response of
         ///    Get /sapi/v1/capital/config/getall (HMAC SHA256).
-        pub async fn withdraw(
+        pub fn withdraw(
             &self,
             coin: impl Serialize,
             withdraw_order_id: Option<impl Serialize>,
@@ -500,27 +533,31 @@ mod with_network {
             transaction_fee_flag: Option<bool>,
             name: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<NewWithdraw> {
-            self.client
-                .post(SAPI_V1_CAPITAL_WITHDRAW_APPLY)?
-                .signed(time_window)?
-                .query_arg("coin", &coin)?
-                .try_query_arg("withdrawOrderId", &withdraw_order_id)?
-                .try_query_arg("network", &network)?
-                .query_arg("address", &address)?
-                .try_query_arg("addressTag", &address_tag)?
-                .query_arg("amount", &amount)?
-                .try_query_arg("transactionFeeFlag", &transaction_fee_flag)?
-                .try_query_arg("name", &name)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<NewWithdraw>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_CAPITAL_WITHDRAW_APPLY)?
+                        .signed(time_window)?
+                        .query_arg("coin", &coin)?
+                        .try_query_arg("withdrawOrderId", &withdraw_order_id)?
+                        .try_query_arg("network", &network)?
+                        .query_arg("address", &address)?
+                        .try_query_arg("addressTag", &address_tag)?
+                        .query_arg("amount", &amount)?
+                        .try_query_arg("transactionFeeFlag", &transaction_fee_flag)?
+                        .try_query_arg("name", &name)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Deposit History (supporting network) (USER_DATA)
         ///
         /// Fetch deposit history.
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// * startTime - Default: 90 days from current timestamp
         /// * endTime - Default: present timestamp
@@ -528,7 +565,7 @@ mod with_network {
         /// * network may not be in the response for old deposit.
         /// * Please notice the default startTime and endTime to make sure that time interval is within 0-90 days.
         /// * If both startTime and endTime are sent, time between startTime and endTime must be less than 90 days.
-        pub async fn deposit_history(
+        pub fn deposit_history(
             &self,
             coin: Option<impl Serialize>,
             status: Option<DepositStatus>,
@@ -537,25 +574,29 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<Deposit>> {
-            self.client
-                .get(SAPI_V1_CAPITAL_DEPOSIT_HISTORY)?
-                .signed(time_window)?
-                .try_query_arg("coin", &coin)?
-                .try_query_arg("status", &status)?
-                .try_query_arg("offset", &offset)?
-                .try_query_arg("limit", &limit)?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<Deposit>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_CAPITAL_DEPOSIT_HISTORY)?
+                        .signed(time_window)?
+                        .try_query_arg("coin", &coin)?
+                        .try_query_arg("status", &status)?
+                        .try_query_arg("offset", &offset)?
+                        .try_query_arg("limit", &limit)?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Withdraw History (supporting network) (USER_DATA)
         ///
         /// Fetch withdraw history.
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// * startTime - Default: 90 days from current timestamp
         /// * endTime - Default: present timestamp
@@ -563,7 +604,7 @@ mod with_network {
         /// * network may not be in the response for old withdraw.
         /// * Please notice the default startTime and endTime to make sure that time interval is within 0-90 days.
         /// * If both startTime and endTime are sent, time between startTime and endTime must be less than 90 days.
-        pub async fn withdraw_history(
+        pub fn withdraw_history(
             &self,
             coin: Option<impl Serialize>,
             status: Option<WithdrawStatus>,
@@ -572,155 +613,187 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<Withdraw>> {
-            self.client
-                .get(SAPI_V1_CAPITAL_WITHDRAW_HISTORY)?
-                .signed(time_window)?
-                .try_query_arg("coin", &coin)?
-                .try_query_arg("status", &status)?
-                .try_query_arg("offset", &offset)?
-                .try_query_arg("limit", &limit)?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<Withdraw>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_CAPITAL_WITHDRAW_HISTORY)?
+                        .signed(time_window)?
+                        .try_query_arg("coin", &coin)?
+                        .try_query_arg("status", &status)?
+                        .try_query_arg("offset", &offset)?
+                        .try_query_arg("limit", &limit)?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Account Status (USER_DATA)
         ///
         /// Fetch account status detail.
         ///
-        /// Weight: 1
-        pub async fn account_status(
+        /// Weight(IP): 1
+        pub fn account_status(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<AccountStatus> {
-            self.client
-                .get(SAPI_V1_ACCOUNT_STATUS)?
-                .signed(time_window)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<AccountStatus>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_ACCOUNT_STATUS)?
+                        .signed(time_window)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Account API Trading Status (USER_DATA)
         ///
         /// Fetch account api trading status detail.
         ///
-        /// Weight: 1
-        pub async fn account_trading_status(
+        /// Weight(IP): 1
+        pub fn account_trading_status(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<AccountTradingStatus> {
-            self.client
-                .get(SAPI_V1_ACCOUNT_TRADING_STATUS)?
-                .signed(time_window)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<AccountTradingStatus>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_ACCOUNT_TRADING_STATUS)?
+                        .signed(time_window)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// DustLog(USER_DATA)
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// * Only return last 100 records
         /// * Only return records after 2020/12/01
-        pub async fn asset_dribblet(
+        pub fn asset_dribblet(
             &self,
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<AssetDribblet> {
-            self.client
-                .get(SAPI_V1_ASSET_DRIBLET)?
-                .signed(time_window)?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<AssetDribblet>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_ASSET_DRIBLET)?
+                        .signed(time_window)?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Dust Transfer (USER_DATA)
         ///
         /// Convert dust assets to BNB.
         ///
-        /// Weight: 10
+        /// Weight(UID): 10
         ///
         /// * You need to openEnable Spot & Margin Trading permission
         ///   for the API Key which requests this endpoint.
-        pub async fn asset_dust(
+        pub fn asset_dust(
             &self,
             asset: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<AssetDust> {
-            self.client
-                .post(SAPI_V1_ASSET_DUST)?
-                .signed(time_window)?
-                .query_arg("asset", &asset)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<AssetDust>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_ASSET_DUST)?
+                        .signed(time_window)?
+                        .query_arg("asset", &asset)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         /// Asset Dividend Record (USER_DATA)
         ///
         /// Query asset dividend record.
         ///
-        /// Weight: 10
-        pub async fn asset_dividend(
+        /// Weight(IP): 10
+        pub fn asset_dividend(
             &self,
             asset: Option<impl Serialize>,
             limit: Option<u16>,
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<AssetDividend> {
-            self.client
-                .get(SAPI_V1_ASSET_DIVIDEND)?
-                .signed(time_window)?
-                .try_query_arg("asset", &asset)?
-                .try_query_arg("limit", &limit)?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<AssetDividend>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_ASSET_DIVIDEND)?
+                        .signed(time_window)?
+                        .try_query_arg("asset", &asset)?
+                        .try_query_arg("limit", &limit)?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         /// Asset Detail (USER_DATA)
         ///
         /// Fetch details of assets supported on Binance.
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// * Please get network and other deposit or withdraw details
         ///   from GET /sapi/v1/capital/config/getall.
-        pub async fn asset_detail(
+        pub fn asset_detail(
             &self,
             asset: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<AssetDetail> {
-            self.client
-                .get(SAPI_V1_ASSET_DETAIL)?
-                .signed(time_window)?
-                .try_query_arg("asset", &asset)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<AssetDetail>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_ASSET_DETAIL)?
+                        .signed(time_window)?
+                        .try_query_arg("asset", &asset)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Trade Fee (USER_DATA)
         ///
         /// Fetch trade fee
         ///
-        /// Weight: 1
-        pub async fn trade_fee(
+        /// Weight(IP): 1
+        pub fn trade_fee(
             &self,
             symbol: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<TradeFee>> {
-            self.client
-                .get(SAPI_V1_ASSET_TRADE_FEE)?
-                .signed(time_window)?
-                .try_query_arg("symbol", &symbol)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<TradeFee>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_ASSET_TRADE_FEE)?
+                        .signed(time_window)?
+                        .try_query_arg("symbol", &symbol)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
     }
 }

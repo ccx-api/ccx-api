@@ -1,5 +1,10 @@
 use super::prelude::*;
 use super::SymbolPermission;
+use crate::client::Task;
+
+use super::RL_ORDERS_PER_DAY;
+use super::RL_ORDERS_PER_SECOND;
+use super::RL_WEIGHT_PER_MINUTE;
 
 pub const API_V3_ORDER_TEST: &str = "/api/v3/order/test";
 pub const API_V3_ORDER: &str = "/api/v3/order";
@@ -67,14 +72,13 @@ pub enum OrderResponseType {
     Full,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct NewTestOrder {}
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum NewOrder {
-    Ack(NewOrderAck),
-    Result(NewOrderResult),
-    Full(NewOrderFull),
+    Ack(Task<NewOrderAck>),
+    Result(Task<NewOrderResult>),
+    Full(Task<NewOrderFull>),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -260,32 +264,32 @@ pub struct MyTrade {
 
 impl NewOrder {
     pub fn is_ack(&self) -> bool {
-        self.as_ack().is_some()
+        matches!(self, NewOrder::Ack(_))
     }
 
     pub fn is_result(&self) -> bool {
-        self.as_result().is_some()
+        matches!(self, NewOrder::Result(_))
     }
 
     pub fn is_full(&self) -> bool {
-        self.as_full().is_some()
+        matches!(self, NewOrder::Full(_))
     }
 
-    pub fn as_ack(&self) -> Option<&NewOrderAck> {
+    pub fn as_ack(self) -> Option<Task<NewOrderAck>> {
         match self {
             NewOrder::Ack(order) => Some(order),
             _ => None,
         }
     }
 
-    pub fn as_result(&self) -> Option<&NewOrderResult> {
+    pub fn as_result(self) -> Option<Task<NewOrderResult>> {
         match self {
             NewOrder::Result(order) => Some(order),
             _ => None,
         }
     }
 
-    pub fn as_full(&self) -> Option<&NewOrderFull> {
+    pub fn as_full(self) -> Option<Task<NewOrderFull>> {
         match self {
             NewOrder::Full(order) => Some(order),
             _ => None,
@@ -302,7 +306,11 @@ mod with_network {
 
     use crate::client::RequestBuilder;
 
-    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// Test New Order (TRADE)
         ///
         /// Test new order creation and signature/recvWindow long.
@@ -311,7 +319,7 @@ mod with_network {
         /// Weight: 1
         ///
         /// Same as Api::order
-        pub async fn create_order_test(
+        pub fn create_order_test(
             &self,
             symbol: impl Serialize,
             side: OrderSide,
@@ -325,7 +333,7 @@ mod with_network {
             new_client_order_id: Option<impl Serialize>,
             new_order_resp_type: Option<OrderResponseType>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<NewTestOrder> {
+        ) -> BinanceResult<Task<NewTestOrder>> {
             let request = self.prepare_order_request(
                 symbol,
                 side,
@@ -342,17 +350,21 @@ mod with_network {
                 time_window,
             )?;
 
-            request.send().await
+            Ok(self
+                .rate_limiter
+                .task(request)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// New Order (TRADE)
         ///
         /// Send in a new order.
         ///
-        /// Weight: 1
+        /// Weight: 2
         ///
         ///
-        pub async fn create_order(
+        pub fn create_order(
             &self,
             symbol: impl Serialize,
             side: OrderSide,
@@ -387,11 +399,17 @@ mod with_network {
                 OrderType::Limit | OrderType::Market => OrderResponseType::Full,
                 _ => OrderResponseType::Ack,
             });
+            let task = self
+                .rate_limiter
+                .task(request)
+                .cost(RL_WEIGHT_PER_MINUTE, 2)
+                .cost(RL_ORDERS_PER_SECOND, 1)
+                .cost(RL_ORDERS_PER_DAY, 1);
 
             Ok(match new_order_resp_type {
-                OrderResponseType::Ack => NewOrder::Ack(request.send().await?),
-                OrderResponseType::Result => NewOrder::Result(request.send().await?),
-                OrderResponseType::Full => NewOrder::Full(request.send().await?),
+                OrderResponseType::Ack => NewOrder::Ack(task.send::<NewOrderAck>()),
+                OrderResponseType::Result => NewOrder::Result(task.send::<NewOrderResult>()),
+                OrderResponseType::Full => NewOrder::Full(task.send::<NewOrderFull>()),
             })
         }
 
@@ -410,7 +428,7 @@ mod with_network {
             new_order_resp_type: Option<OrderResponseType>,
             is_test: bool,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<RequestBuilder<Signer>> {
+        ) -> BinanceResult<RequestBuilder<S>> {
             let endpoint = if is_test {
                 API_V3_ORDER_TEST
             } else {
@@ -492,33 +510,37 @@ mod with_network {
         ///
         /// Cancel an active order.
         ///
-        /// Weight: 1
+        /// Weight(IP): 1
         ///
         /// * newClientOrderId Used to uniquely identify this cancel. Automatically generated by default.
         ///
         /// Either orderId or origClientOrderId must be sent.
-        pub async fn cancel_order(
+        pub fn cancel_order(
             &self,
             symbol: impl Serialize,
             order_id: Option<u64>,
             orig_client_order_id: Option<impl Serialize>,
             new_client_order_id: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<CancelledOrder> {
+        ) -> BinanceResult<Task<CancelledOrder>> {
             if order_id.is_none() && orig_client_order_id.is_none() {
                 Err(ApiError::mandatory_field_omitted(
                     "order_id or orig_client_order_id",
                 ))?
             }
-            self.client
-                .delete(API_V3_ORDER)?
-                .signed(time_window)?
-                .query_arg("symbol", &symbol)?
-                .try_query_arg("orderId", &order_id)?
-                .try_query_arg("origClientOrderId", &orig_client_order_id)?
-                .try_query_arg("newClientOrderId", &new_client_order_id)?
-                .send()
-                .await
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .delete(API_V3_ORDER)?
+                        .signed(time_window)?
+                        .query_arg("symbol", &symbol)?
+                        .try_query_arg("orderId", &order_id)?
+                        .try_query_arg("origClientOrderId", &orig_client_order_id)?
+                        .try_query_arg("newClientOrderId", &new_client_order_id)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Cancel all Open Orders on a Symbol (TRADE)
@@ -526,76 +548,89 @@ mod with_network {
         /// Cancels all active orders on a symbol.
         /// This includes OCO orders.
         ///
-        /// Weight: 1
-        pub async fn cancel_all_orders(
+        /// Weight(IP): 1
+        pub fn cancel_all_orders(
             &self,
             symbol: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<CancelledOrder>> {
-            self.client
-                .delete(API_V3_OPEN_ORDERS)?
-                .signed(time_window)?
-                .query_arg("symbol", &symbol)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<CancelledOrder>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .delete(API_V3_OPEN_ORDERS)?
+                        .signed(time_window)?
+                        .query_arg("symbol", &symbol)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Query Order (USER_DATA)
         ///
         /// Check an order's status.
         ///
-        /// Weight: 1
+        /// Weight(IP): 2
         ///
         /// Either orderId or origClientOrderId must be sent.
         /// For some historical orders cummulativeQuoteQty will be < 0,
         ///   meaning the data is not available at this time.
-        pub async fn get_order(
+        pub fn get_order(
             &self,
             symbol: impl Serialize,
             order_id: Option<u64>,
             orig_client_order_id: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Order> {
+        ) -> BinanceResult<Task<Order>> {
             if order_id.is_none() && orig_client_order_id.is_none() {
                 Err(ApiError::mandatory_field_omitted(
                     "order_id or orig_client_order_id",
                 ))?
             }
-            self.client
-                .get(API_V3_ORDER)?
-                .signed(time_window)?
-                .query_arg("symbol", &symbol)?
-                .try_query_arg("orderId", &order_id)?
-                .try_query_arg("origClientOrderId", &orig_client_order_id)?
-                .send()
-                .await
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_ORDER)?
+                        .signed(time_window)?
+                        .query_arg("symbol", &symbol)?
+                        .try_query_arg("orderId", &order_id)?
+                        .try_query_arg("origClientOrderId", &orig_client_order_id)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 2)
+                .send())
         }
 
         /// Current Open Orders (USER_DATA)
         ///
         /// Get all open orders on a symbol. Careful when accessing this with no symbol.
         ///
-        /// Weight: 1 for a single symbol; 40 when the symbol parameter is omitted
+        /// Weight(IP): 3 for a single symbol; 40 when the symbol parameter is omitted;
         ///
         /// If the symbol is not sent, orders for all symbols will be returned in an array.
-        pub async fn open_orders(
+        pub fn open_orders(
             &self,
             symbol: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<Order>> {
-            self.client
-                .get(API_V3_OPEN_ORDERS)?
-                .signed(time_window)?
-                .try_query_arg("symbol", &symbol)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<Order>>> {
+            let weight: u32 = symbol.is_some().then_some(3).unwrap_or(40);
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_OPEN_ORDERS)?
+                        .signed(time_window)?
+                        .try_query_arg("symbol", &symbol)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, weight)
+                .send())
         }
 
         /// All Orders (USER_DATA)
         ///
         /// Get all account orders; active, canceled, or filled.
         ///
-        /// Weight: 5 with symbol
+        /// Weight(IP): 10 with symbol
         ///
         /// * limit: Default 500; max 1000.
         ///
@@ -604,7 +639,7 @@ mod with_network {
         /// For some historical orders cummulativeQuoteQty will be < 0, meaning the data
         ///   is not available at this time.
         /// If startTime and/or endTime provided, orderId is not required.
-        pub async fn all_orders(
+        pub fn all_orders(
             &self,
             symbol: impl AsRef<str>,
             start_time: Option<u64>,
@@ -612,17 +647,21 @@ mod with_network {
             order_id: Option<u64>,
             limit: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<Order>> {
-            self.client
-                .get(API_V3_ALL_ORDERS)?
-                .signed(time_window)?
-                .query_arg("symbol", symbol.as_ref())?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .try_query_arg("orderId", &order_id)?
-                .try_query_arg("limit", &limit)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<Order>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_ALL_ORDERS)?
+                        .signed(time_window)?
+                        .query_arg("symbol", symbol.as_ref())?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?
+                        .try_query_arg("orderId", &order_id)?
+                        .try_query_arg("limit", &limit)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         // TODO create_order_list
@@ -635,29 +674,29 @@ mod with_network {
         ///
         /// Get current account information.
         ///
-        /// Weight: 5
-        pub async fn account(
+        /// Weight(IP): 10
+        pub fn account(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<AccountInformation> {
-            self.client
-                .get(API_V3_ACCOUNT)?
-                .signed(time_window)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<AccountInformation>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_V3_ACCOUNT)?.signed(time_window)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         /// Account Trade List (USER_DATA).
         ///
         /// Get trades for a specific account and symbol.
         ///
-        /// Weight: 5
+        /// Weight(IP): 10
         ///
         /// * from_id: TradeId to fetch from. Default gets most recent trades.
         /// * limit: Default 500; max 1000.
         ///
         /// If fromId is set, it will get id >= that fromId. Otherwise most recent trades are returned.
-        pub async fn my_trades(
+        pub fn my_trades(
             &self,
             symbol: impl AsRef<str>,
             start_time: Option<u64>,
@@ -665,17 +704,21 @@ mod with_network {
             from_id: Option<u64>,
             limit: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<MyTrade>> {
-            self.client
-                .get(API_V3_MY_TRADES)?
-                .signed(time_window)?
-                .query_arg("symbol", symbol.as_ref())?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .try_query_arg("fromId", &from_id)?
-                .try_query_arg("limit", &limit)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<MyTrade>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_V3_MY_TRADES)?
+                        .signed(time_window)?
+                        .query_arg("symbol", symbol.as_ref())?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?
+                        .try_query_arg("fromId", &from_id)?
+                        .try_query_arg("limit", &limit)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
     }
 }

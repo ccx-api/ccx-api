@@ -16,9 +16,9 @@ async fn main_() -> BinanceResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance_spot = SpotApi::from_env();
+    let binance_spot = SpotApi::<ApiCred>::from_env();
 
-    print_res(binance_spot.depth(SYMBOL, OrderBookLimit::N10).await)?;
+    print_res(binance_spot.depth(SYMBOL, OrderBookLimit::N10)?.await)?;
     // print_res(binance_spot.depth(SYMBOL, None).await)?;
     // print_res(binance_spot.trades(SYMBOL, None).await)?;
     // print_res(binance_spot.historical_trades(SYMBOL, None, None).await)?;

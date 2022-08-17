@@ -5,6 +5,8 @@ use ccx_api_lib::env_var_with_prefix;
 use crate::client::ApiCred;
 use crate::client::Config;
 use crate::client::Proxy;
+use crate::client::RateLimiterBucket;
+use crate::client::RateLimiterBuilder;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
 use crate::client::CCX_BINANCE_API_PREFIX;
@@ -51,6 +53,10 @@ pub const STREAM_BASE: &str = "wss://stream.binance.com/stream";
 pub const API_BASE_TESTNET: &str = "https://testnet.binance.vision/";
 pub const STREAM_BASE_TESTNET: &str = "wss://testnet.binance.vision/stream";
 
+pub const RL_WEIGHT_PER_MINUTE: &str = "weight_per_minute";
+pub const RL_ORDERS_PER_SECOND: &str = "orders_per_second";
+pub const RL_ORDERS_PER_DAY: &str = "orders_per_day";
+
 mod prelude {
     pub use crate::api::prelude::*;
 
@@ -63,6 +69,8 @@ pub use with_network::*;
 
 #[cfg(feature = "with_network")]
 mod with_network {
+    use crate::client::RateLimiter;
+
     use super::*;
 
     #[derive(Clone)]
@@ -71,6 +79,7 @@ mod with_network {
         S: BinanceSigner,
     {
         pub client: RestClient<S>,
+        pub(crate) rate_limiter: RateLimiter,
     }
 
     impl<S> SpotApi<S>
@@ -113,8 +122,35 @@ mod with_network {
         }
 
         pub fn with_config(config: Config<S>) -> Self {
+            use std::time::Duration;
+
             let client = RestClient::new(config);
-            SpotApi { client }
+            let rate_limiter = RateLimiterBuilder::default()
+                .bucket(
+                    RL_WEIGHT_PER_MINUTE,
+                    RateLimiterBucket::default()
+                        .interval(Duration::from_secs(60))
+                        .limit(1_200),
+                )
+                .bucket(
+                    RL_ORDERS_PER_SECOND,
+                    RateLimiterBucket::default()
+                        .delay(Duration::from_secs(1))
+                        .interval(Duration::from_secs(1))
+                        .limit(10),
+                )
+                .bucket(
+                    RL_ORDERS_PER_DAY,
+                    RateLimiterBucket::default()
+                        .interval(Duration::from_secs(86_400))
+                        .limit(200_000),
+                )
+                .start();
+
+            SpotApi {
+                client,
+                rate_limiter,
+            }
         }
 
         /// Creates multiplexed websocket stream.

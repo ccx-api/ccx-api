@@ -1,4 +1,7 @@
 use super::prelude::*;
+use crate::client::Task;
+
+use super::RL_WEIGHT_PER_MINUTE;
 
 pub const SAPI_V1_BROKER_INFO: &str = "/sapi/v1/broker/info";
 pub const SAPI_V1_BROKER_SUB_ACCOUNT: &str = "/sapi/v1/broker/subAccount";
@@ -174,22 +177,30 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// Create a Sub Account.
         ///
         /// * This request will generate a sub account under your brokerage master account.
         /// * You need to enable "trade" option for the api key which requests this endpoint.
-        pub async fn broker_subaccount_create(
+        pub fn broker_subaccount_create(
             &self,
             tag: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountCreated> {
-            self.client
-                .post(SAPI_V1_BROKER_SUB_ACCOUNT)?
-                .signed(time_window)?
-                .try_query_arg("tag", &tag)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountCreated>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_BROKER_SUB_ACCOUNT)?
+                        .signed(time_window)?
+                        .try_query_arg("tag", &tag)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         // TODO Enable Margin for Sub Account.
@@ -201,42 +212,50 @@ mod with_network {
         /// * You need to enable "trade" option for the api key which requests this endpoint.
         /// * Sub account should be enable margin before its api-key's marginTrade being enabled.
         /// * Sub account should be enable futures before its api-key's futuresTrade being enabled.
-        pub async fn broker_subaccount_api_key_create(
+        pub fn broker_subaccount_api_key_create(
             &self,
             subaccount_id: impl Serialize,
             can_trade: bool,
             margin_trade: Option<bool>,
             futures_trade: Option<bool>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountApiKey> {
-            self.client
-                .post(SAPI_V1_BROKER_SUB_ACCOUNT_API)?
-                .signed(time_window)?
-                .query_arg("subAccountId", &subaccount_id)?
-                .query_arg("canTrade", &can_trade)?
-                .try_query_arg("marginTrade", &margin_trade)?
-                .try_query_arg("futuresTrade", &futures_trade)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountApiKey>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_BROKER_SUB_ACCOUNT_API)?
+                        .signed(time_window)?
+                        .query_arg("subAccountId", &subaccount_id)?
+                        .query_arg("canTrade", &can_trade)?
+                        .try_query_arg("marginTrade", &margin_trade)?
+                        .try_query_arg("futuresTrade", &futures_trade)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Delete Sub Account Api Key
         ///
         /// * This request will delete a api key for a sub account
         /// * You need to enable "trade" option for the api key which requests this endpoint
-        pub async fn broker_subaccount_api_key_delete(
+        pub fn broker_subaccount_api_key_delete(
             &self,
             subaccount_id: impl Serialize,
             subaccount_api_key: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountApiKeyDeleted> {
-            self.client
-                .delete(SAPI_V1_BROKER_SUB_ACCOUNT_API)?
-                .signed(time_window)?
-                .query_arg("subAccountId", &subaccount_id)?
-                .query_arg("subAccountApiKey", &subaccount_api_key)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountApiKeyDeleted>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .delete(SAPI_V1_BROKER_SUB_ACCOUNT_API)?
+                        .signed(time_window)?
+                        .query_arg("subAccountId", &subaccount_id)?
+                        .query_arg("subAccountApiKey", &subaccount_api_key)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         // TODO Query Sub Account Api Key
@@ -246,21 +265,25 @@ mod with_network {
         ///
         /// * `page` - default 1.
         /// * `size` - default 500.
-        pub async fn broker_subaccounts(
+        pub fn broker_subaccounts(
             &self,
             sub_account_id: Option<impl Serialize>,
             page: Option<u32>,
             size: Option<u32>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<BrokerSubaccount>> {
-            self.client
-                .get(SAPI_V1_BROKER_SUB_ACCOUNT)?
-                .signed(time_window)?
-                .try_query_arg("subAccountId", &sub_account_id)?
-                .try_query_arg("page", &page)?
-                .try_query_arg("size", &size)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<BrokerSubaccount>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_BROKER_SUB_ACCOUNT)?
+                        .signed(time_window)?
+                        .try_query_arg("subAccountId", &sub_account_id)?
+                        .try_query_arg("page", &page)?
+                        .try_query_arg("size", &size)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         // TODO Change Sub Account Commission
@@ -270,15 +293,15 @@ mod with_network {
         // TODO Query Sub Account COIN-Ⓜ Futures Commission Adjustment
 
         /// Broker Account Information
-        pub async fn broker_account_info(
+        pub fn broker_account_info(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerAccountInfo> {
-            self.client
-                .get(SAPI_V1_BROKER_INFO)?
-                .signed(time_window)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerAccountInfo>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(SAPI_V1_BROKER_INFO)?.signed(time_window)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Sub Account Transfer（SPOT）
@@ -290,7 +313,7 @@ mod with_network {
         ///     endpoint.
         /// * Transfer from master account if fromId not sent.
         /// * Transfer to master account if toId not sent.
-        pub async fn broker_transfer_create(
+        pub fn broker_transfer_create(
             &self,
             from_id: Option<impl Serialize>,
             to_id: Option<impl Serialize>,
@@ -298,17 +321,21 @@ mod with_network {
             asset: impl Serialize,
             amount: Decimal,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountTransferCreated> {
-            self.client
-                .post(SAPI_V1_BROKER_TRANSFER)?
-                .signed(time_window)?
-                .try_query_arg("fromId", &from_id)?
-                .try_query_arg("toId", &to_id)?
-                .try_query_arg("clientTranId", &client_tran_id)?
-                .query_arg("asset", &asset)?
-                .query_arg("amount", &amount)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountTransferCreated>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_BROKER_TRANSFER)?
+                        .signed(time_window)?
+                        .try_query_arg("fromId", &from_id)?
+                        .try_query_arg("toId", &to_id)?
+                        .try_query_arg("clientTranId", &client_tran_id)?
+                        .query_arg("asset", &asset)?
+                        .query_arg("amount", &amount)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Query Sub Account Transfer History（SPOT）
@@ -322,7 +349,7 @@ mod with_network {
         /// * If showAllStatus is false, the status in response will show three types:
         ///     INIT,PROCESS,SUCCESS.
         /// * Either fromId or toId must be sent. Return fromId equal master account by default.
-        pub async fn broker_transfer_history(
+        pub fn broker_transfer_history(
             &self,
             from_id: Option<impl Serialize>,
             to_id: Option<impl Serialize>,
@@ -333,20 +360,24 @@ mod with_network {
             page: Option<u16>,
             limit: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<BrokerSubaccountTransfer>> {
-            self.client
-                .get(SAPI_V1_BROKER_TRANSFER)?
-                .signed(time_window)?
-                .try_query_arg("fromId", &from_id)?
-                .try_query_arg("toId", &to_id)?
-                .try_query_arg("clientTranId", &client_tran_id)?
-                .try_query_arg("showAllStatus", &show_all_status)?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .try_query_arg("page", &page)?
-                .try_query_arg("limit", &limit)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<BrokerSubaccountTransfer>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_BROKER_TRANSFER)?
+                        .signed(time_window)?
+                        .try_query_arg("fromId", &from_id)?
+                        .try_query_arg("toId", &to_id)?
+                        .try_query_arg("clientTranId", &client_tran_id)?
+                        .try_query_arg("showAllStatus", &show_all_status)?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?
+                        .try_query_arg("page", &page)?
+                        .try_query_arg("limit", &limit)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         // TODO Sub Account Transfer（FUTURES）
@@ -372,7 +403,7 @@ mod with_network {
         ///     is within 0-7 days.
         /// * If both startTime and endTime are sent, time between startTime and endTime must be
         ///     less than 7 days.
-        pub async fn broker_subaccount_deposit_history(
+        pub fn broker_subaccount_deposit_history(
             &self,
             sub_account_id: Option<impl Serialize>,
             coin: Option<impl Serialize>,
@@ -382,19 +413,23 @@ mod with_network {
             limit: Option<u16>,
             offset: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Vec<BrokerSubaccountDeposit>> {
-            self.client
-                .get(SAPI_V1_BROKER_SUB_ACCOUNT_DEPOSIT_HIST)?
-                .signed(time_window)?
-                .try_query_arg("subAccountId", &sub_account_id)?
-                .try_query_arg("coin", &coin)?
-                .try_query_arg("status", &status)?
-                .try_query_arg("startTime", &start_time)?
-                .try_query_arg("endTime", &end_time)?
-                .try_query_arg("limit", &limit)?
-                .try_query_arg("offset", &offset)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<Vec<BrokerSubaccountDeposit>>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_BROKER_SUB_ACCOUNT_DEPOSIT_HIST)?
+                        .signed(time_window)?
+                        .try_query_arg("subAccountId", &sub_account_id)?
+                        .try_query_arg("coin", &coin)?
+                        .try_query_arg("status", &status)?
+                        .try_query_arg("startTime", &start_time)?
+                        .try_query_arg("endTime", &end_time)?
+                        .try_query_arg("limit", &limit)?
+                        .try_query_arg("offset", &offset)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .send())
         }
 
         /// Query Sub Account Spot Asset info
@@ -403,21 +438,25 @@ mod with_network {
         /// * size - default 10, max 20
         ///
         /// * If subAccountId is not sent, the size must be sent.
-        pub async fn broker_subaccount_asset_info(
+        pub fn broker_subaccount_asset_info(
             &self,
             sub_account_id: Option<impl Serialize>,
             page: Option<u16>,
             size: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountAssetInfoList> {
-            self.client
-                .get(SAPI_V1_BROKER_SUB_ACCOUNT_SPOT_SUMMARY)?
-                .signed(time_window)?
-                .try_query_arg("subAccountId", &sub_account_id)?
-                .try_query_arg("page", &page)?
-                .try_query_arg("size", &size)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountAssetInfoList>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_BROKER_SUB_ACCOUNT_SPOT_SUMMARY)?
+                        .signed(time_window)?
+                        .try_query_arg("subAccountId", &sub_account_id)?
+                        .try_query_arg("page", &page)?
+                        .try_query_arg("size", &size)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         // TODO Query Subaccount Margin Asset info
@@ -427,73 +466,89 @@ mod with_network {
         // TODO Query Broker Futures Commission Rebate Record
 
         /// Get IP Restriction for Sub Account Api Key
-        pub async fn broker_subaccount_api_ip_restriction_get(
+        pub fn broker_subaccount_api_ip_restriction_get(
             &self,
             sub_account_id: impl Serialize,
             sub_account_api_key: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountApiIpRestriction> {
-            self.client
-                .get(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION)?
-                .signed(time_window)?
-                .query_arg("subAccountId", &sub_account_id)?
-                .query_arg("subAccountApiKey", &sub_account_api_key)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountApiIpRestriction>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION)?
+                        .signed(time_window)?
+                        .query_arg("subAccountId", &sub_account_id)?
+                        .query_arg("subAccountApiKey", &sub_account_api_key)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Enable or Disable IP Restriction for Sub Account Api Key
-        pub async fn broker_subaccount_api_ip_restriction_set(
+        pub fn broker_subaccount_api_ip_restriction_set(
             &self,
             sub_account_id: impl Serialize,
             sub_account_api_key: impl Serialize,
             ip_restrict: bool,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountApiIpRestriction> {
-            self.client
-                .post(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION)?
-                .signed(time_window)?
-                .query_arg("subAccountId", &sub_account_id)?
-                .query_arg("subAccountApiKey", &sub_account_api_key)?
-                .query_arg("ipRestrict", &ip_restrict)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountApiIpRestriction>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION)?
+                        .signed(time_window)?
+                        .query_arg("subAccountId", &sub_account_id)?
+                        .query_arg("subAccountApiKey", &sub_account_api_key)?
+                        .query_arg("ipRestrict", &ip_restrict)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Add IP Restriction for Sub Account Api Key
-        pub async fn broker_subaccount_api_ip_address_add(
+        pub fn broker_subaccount_api_ip_address_add(
             &self,
             sub_account_id: impl Serialize,
             sub_account_api_key: impl Serialize,
             ip_address: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountApiIpAddressAdded> {
-            self.client
-                .post(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION_IP_LIST)?
-                .signed(time_window)?
-                .query_arg("subAccountId", &sub_account_id)?
-                .query_arg("subAccountApiKey", &sub_account_api_key)?
-                .query_arg("ipAddress", &ip_address)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountApiIpAddressAdded>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION_IP_LIST)?
+                        .signed(time_window)?
+                        .query_arg("subAccountId", &sub_account_id)?
+                        .query_arg("subAccountApiKey", &sub_account_api_key)?
+                        .query_arg("ipAddress", &ip_address)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Delete IP Restriction for Sub Account Api Key
-        pub async fn broker_subaccount_api_ip_address_delete(
+        pub fn broker_subaccount_api_ip_address_delete(
             &self,
             sub_account_id: impl Serialize,
             sub_account_api_key: impl Serialize,
             ip_address: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<BrokerSubaccountApiIpAddressDeleted> {
-            self.client
-                .delete(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION_IP_LIST)?
-                .signed(time_window)?
-                .query_arg("subAccountId", &sub_account_id)?
-                .query_arg("subAccountApiKey", &sub_account_api_key)?
-                .query_arg("ipAddress", &ip_address)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<BrokerSubaccountApiIpAddressDeleted>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .delete(SAPI_V1_BROKER_SUB_ACCOUNT_API_IP_RESTRICTION_IP_LIST)?
+                        .signed(time_window)?
+                        .query_arg("subAccountId", &sub_account_id)?
+                        .query_arg("subAccountApiKey", &sub_account_api_key)?
+                        .query_arg("ipAddress", &ip_address)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         // TODO Universal Transfer

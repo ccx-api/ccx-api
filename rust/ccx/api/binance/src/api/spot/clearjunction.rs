@@ -1,4 +1,7 @@
 use super::prelude::*;
+use crate::client::Task;
+
+use super::RL_WEIGHT_PER_MINUTE;
 
 pub const SAPI_V1_FIAT_CLEARJUNCTION_WITHDRAW: &str = "/sapi/v1/fiat/clearjunction/withdraw";
 pub const SAPI_V1_FIAT_CLEARJUNCTION_QUERY_TRANSACTION: &str =
@@ -76,7 +79,11 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> SpotApi<Signer> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// Submit withdraw `[SAPI]`
         ///
         /// Submit a new withdrawal.
@@ -91,21 +98,25 @@ mod with_network {
         ///   already 15 mins ago, binance side will reject the request directly.
         /// * Note.3 Transaction frequency limit is 1 transaction per second. Any request with initTime
         ///   less then 1min from last one will be rejected.
-        pub async fn clearjunction_withdraw(
+        pub fn clearjunction_withdraw(
             &self,
             currency: impl Serialize,
             amount: Decimal,
             init_time: u64,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<ClearjunctionWithdraw> {
-            self.client
-                .post(SAPI_V1_FIAT_CLEARJUNCTION_WITHDRAW)?
-                .signed(time_window)?
-                .query_arg("currency", &currency)?
-                .query_arg("amount", &amount)?
-                .query_arg("initTime", &init_time)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<ClearjunctionWithdraw>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_FIAT_CLEARJUNCTION_WITHDRAW)?
+                        .signed(time_window)?
+                        .query_arg("currency", &currency)?
+                        .query_arg("amount", &amount)?
+                        .query_arg("initTime", &init_time)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Query transaction `[USER_DATA]`
@@ -115,17 +126,21 @@ mod with_network {
         /// Weight: 1
         ///
         /// * transactionId - the same id from withdraw response.
-        pub async fn clearjunction_query_transaction(
+        pub fn clearjunction_query_transaction(
             &self,
             transaction_id: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<ClearjunctionTransaction> {
-            self.client
-                .get(SAPI_V1_FIAT_CLEARJUNCTION_QUERY_TRANSACTION)?
-                .signed(time_window)?
-                .query_arg("transactionId", &transaction_id)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<ClearjunctionTransaction>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_FIAT_CLEARJUNCTION_QUERY_TRANSACTION)?
+                        .signed(time_window)?
+                        .query_arg("transactionId", &transaction_id)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// List transactions `[USER_DATA]`
@@ -135,21 +150,25 @@ mod with_network {
         /// Weight: 1
         ///
         /// * transactionId - the same id from withdraw response.
-        pub async fn clearjunction_list_transaction(
+        pub fn clearjunction_list_transaction(
             &self,
             begin_time: u64,
             end_time: u64,
             currency: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<ClearjunctionTransaction> {
-            self.client
-                .get(SAPI_V1_FIAT_CLEARJUNCTION_LIST_TRANSACTION)?
-                .signed(time_window)?
-                .query_arg("beginTime", &begin_time)?
-                .query_arg("endTime", &end_time)?
-                .try_query_arg("currency", &currency)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<ClearjunctionTransaction>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_FIAT_CLEARJUNCTION_LIST_TRANSACTION)?
+                        .signed(time_window)?
+                        .query_arg("beginTime", &begin_time)?
+                        .query_arg("endTime", &end_time)?
+                        .try_query_arg("currency", &currency)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Check balance `[USER_DATA]`
@@ -157,17 +176,21 @@ mod with_network {
         /// Get user walllet balance.
         ///
         /// Weight: 1
-        pub async fn clearjunction_get_balance(
+        pub fn clearjunction_get_balance(
             &self,
             currency: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<ClearjunctionBalance> {
-            self.client
-                .get(SAPI_V1_FIAT_CLEARJUNCTION_GET_BALANCE)?
-                .signed(time_window)?
-                .query_arg("currency", &currency)?
-                .send()
-                .await
+        ) -> BinanceResult<Task<ClearjunctionBalance>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(SAPI_V1_FIAT_CLEARJUNCTION_GET_BALANCE)?
+                        .signed(time_window)?
+                        .query_arg("currency", &currency)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
     }
 }

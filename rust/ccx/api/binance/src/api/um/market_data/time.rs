@@ -1,4 +1,6 @@
+use super::super::RL_WEIGHT_PER_MINUTE;
 use super::prelude::*;
+use crate::client::Task;
 
 pub const FAPI_V1_TIME: &str = "/fapi/v1/time";
 
@@ -15,12 +17,20 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<Signer: crate::client::BinanceSigner> UmApi<Signer> {
+    impl<S> UmApi<S>
+    where
+        S: crate::client::BinanceSigner,
+        S: Unpin + 'static,
+    {
         /// Test connectivity to the Rest API and get the current server time.
         ///
         /// Weight: 1
-        pub async fn time(&self) -> BinanceResult<ServerTime> {
-            self.client.get(FAPI_V1_TIME)?.send().await
+        pub fn time(&self) -> BinanceResult<Task<ServerTime>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(FAPI_V1_TIME)?)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
     }
 }
