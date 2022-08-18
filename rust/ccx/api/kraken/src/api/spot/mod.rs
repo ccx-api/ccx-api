@@ -1,11 +1,14 @@
+use std::time::Duration;
 use url::Url;
 
 use crate::client::ApiCred;
 use crate::client::Config;
 use crate::client::Proxy;
+use crate::client::RateLimiterTier;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
 use crate::client::CCX_KRAKEN_API_PREFIX;
+use crate::client::{RateLimiter, RateLimiterBucket};
 
 // TODO mod error;
 // TODO mod savings;
@@ -28,6 +31,10 @@ use crate::client::KrakenSigner;
 pub const API_BASE: &str = "https://api.kraken.com/";
 pub const STREAM_BASE: &str = "wss://ws.kraken.com/";
 
+pub const RL_PUBLIC_PER_SECOND: &'static str = "public";
+pub const RL_PRIVATE_PER_MINUTE: &'static str = "private";
+pub const RL_MATCHING_ENGINE_PER_MINUTE: &'static str = "matching_engine";
+
 mod prelude {
     pub use super::types::*;
     pub use crate::api::prelude::*;
@@ -41,13 +48,14 @@ pub use with_network::*;
 
 #[cfg(feature = "with_network")]
 mod with_network {
-    use crate::KrakenResult;
+    use crate::{client::RateLimiterBuilder, KrakenResult};
 
     use super::*;
 
     #[derive(Clone)]
     pub struct SpotApi<S: KrakenSigner = ApiCred> {
-        pub client: RestClient<S>,
+        pub(crate) client: RestClient<S>,
+        pub(crate) rate_limiter: RateLimiter,
     }
 
     impl SpotApi<ApiCred> {
@@ -55,14 +63,20 @@ mod with_network {
         /// "CCX_KRAKEN_API_KEY", "CCX_KRAKEN_API_SECRET"
         pub fn from_env() -> SpotApi<ApiCred> {
             let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-            SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy)
+            let tier = RateLimiterTier::Starter;
+            SpotApi::new(
+                ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX),
+                proxy,
+                tier,
+            )
         }
 
         /// Reads config from env vars with names like:
         /// "${prefix}_KEY", "${prefix}_SECRET"
         pub fn from_env_with_prefix(prefix: &str) -> SpotApi<ApiCred> {
             let proxy = Proxy::from_env_with_prefix(prefix);
-            SpotApi::new(ApiCred::from_env_with_prefix(prefix), proxy)
+            let tier = RateLimiterTier::Starter;
+            SpotApi::new(ApiCred::from_env_with_prefix(prefix), proxy, tier)
         }
     }
 
@@ -70,15 +84,41 @@ mod with_network {
     where
         S: KrakenSigner,
     {
-        pub fn new(signer: S, proxy: Option<Proxy>) -> Self {
+        pub fn new(signer: S, proxy: Option<Proxy>, tier: RateLimiterTier) -> Self {
             let api_base = Url::parse(API_BASE).unwrap();
             let stream_base = Url::parse(STREAM_BASE).unwrap();
-            SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
+            SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy, tier))
         }
 
         pub fn with_config(config: Config<S>) -> Self {
+            let limits = config.tier.limits();
             let client = RestClient::new(config);
-            SpotApi { client }
+            let rate_limiter = RateLimiterBuilder::default()
+                .bucket(
+                    RL_PUBLIC_PER_SECOND,
+                    RateLimiterBucket::default()
+                        .delay(Duration::from_secs(1))
+                        .interval(Duration::from_secs(1))
+                        .limit(1),
+                )
+                .bucket(
+                    RL_PRIVATE_PER_MINUTE,
+                    RateLimiterBucket::default()
+                        .interval(Duration::from_secs(60))
+                        .limit(limits.private),
+                )
+                .bucket(
+                    RL_MATCHING_ENGINE_PER_MINUTE,
+                    RateLimiterBucket::default()
+                        .interval(Duration::from_secs(60))
+                        .limit(limits.matching_engine),
+                )
+                .start();
+
+            SpotApi {
+                client,
+                rate_limiter,
+            }
         }
 
         /// Creates multiplexed websocket stream.

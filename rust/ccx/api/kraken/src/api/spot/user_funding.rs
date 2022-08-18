@@ -1,6 +1,9 @@
 use ccx_api_lib::serde_util::is_false;
 
 use super::prelude::*;
+use crate::client::Task;
+
+use super::RL_PRIVATE_PER_MINUTE;
 
 pub const API_0_PRIVATE_DEPOSIT_METHODS: &str = "/0/private/DepositMethods";
 pub const API_0_PRIVATE_DEPOSIT_ADDRESSES: &str = "/0/private/DepositAddresses";
@@ -96,7 +99,7 @@ pub struct WithdrawFundsResponse {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GetStatusOfRecentWithdrawalsRequest<'a> {
     asset: &'a str,
-    method: Option<&'a str>
+    method: Option<&'a str>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -161,7 +164,7 @@ pub struct Withdraw {
     pub status: WithdrawStatus,
 
     /// Additional status properties.
-    pub status_prop: Option<WithdrawStatusProperties>
+    pub status_prop: Option<WithdrawStatusProperties>,
 }
 
 /// Withdrawal status according to [IFEX financial transaction states][1].
@@ -206,23 +209,31 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<S: crate::client::KrakenSigner> SpotApi<S> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::KrakenSigner,
+        S: Unpin + 'static,
+    {
         /// Get Deposit Methods
         ///
         /// Retrieve methods available for depositing a particular asset.
         ///
         /// * `asset` - Asset being deposited
-        pub async fn get_deposit_methods(
+        pub fn get_deposit_methods(
             &self,
             nonce: Nonce,
             asset: &str,
-        ) -> KrakenApiResult<GetDepositMethodsResponse> {
-            self.client
-                .post(API_0_PRIVATE_DEPOSIT_METHODS)?
-                .signed(nonce)?
-                .request_body(GetDepositMethodsRequest { asset })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<GetDepositMethodsResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_DEPOSIT_METHODS)?
+                        .signed(nonce)?
+                        .request_body(GetDepositMethodsRequest { asset })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Get Deposit Methods
@@ -230,18 +241,22 @@ mod with_network {
         /// Retrieve methods available for depositing a particular asset.
         ///
         /// * `asset` - Asset being deposited
-        pub async fn get_deposit_addresses(
+        pub fn get_deposit_addresses(
             &self,
             nonce: Nonce,
             asset: &str,
             method: &str,
-        ) -> KrakenApiResult<GetDepositAddressesResponse> {
-            self.client
-                .post(API_0_PRIVATE_DEPOSIT_ADDRESSES)?
-                .signed(nonce)?
-                .request_body(GetDepositAddressesRequest { asset, method })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<GetDepositAddressesResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_DEPOSIT_ADDRESSES)?
+                        .signed(nonce)?
+                        .request_body(GetDepositAddressesRequest { asset, method })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Get Withdrawal Information
@@ -252,23 +267,23 @@ mod with_network {
         /// * `asset` - Asset being withdrawn
         /// * `key` - Withdrawal key name, as set up on your account
         /// * `amount` - Amount to be withdrawn
-        pub async fn get_withdrawal_information(
+        pub fn get_withdrawal_information(
             &self,
             nonce: Nonce,
             asset: &str,
             key: &str,
             amount: &str,
-        ) -> KrakenApiResult<GetWithdrawalInformationResponse> {
-            self.client
-                .post(API_0_PRIVATE_WITHDRAW_INFO)?
-                .signed(nonce)?
-                .request_body(GetWithdrawalInformationRequest {
-                    asset,
-                    key,
-                    amount,
-                })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<GetWithdrawalInformationResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_WITHDRAW_INFO)?
+                        .signed(nonce)?
+                        .request_body(GetWithdrawalInformationRequest { asset, key, amount })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Withdraw Funds
@@ -278,19 +293,23 @@ mod with_network {
         /// * `asset` - Asset being withdrawn
         /// * `key` - Withdrawal key name, as set up on your account
         /// * `amount` - Amount to be withdrawn
-        pub async fn withdraw_funds(
+        pub fn withdraw_funds(
             &self,
             nonce: Nonce,
             asset: &str,
             key: &str,
             amount: &str,
-        ) -> KrakenApiResult<WithdrawFundsResponse> {
-            self.client
-                .post(API_0_PRIVATE_WITHDRAW)?
-                .signed(nonce)?
-                .request_body(WithdrawFundsRequest { asset, key, amount })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<WithdrawFundsResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_WITHDRAW)?
+                        .signed(nonce)?
+                        .request_body(WithdrawFundsRequest { asset, key, amount })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Get Status of Recent Withdrawals.
@@ -299,21 +318,22 @@ mod with_network {
         ///
         /// * `asset` - Asset being withdrawn.
         /// * `method` - Name of the withdrawal method.
-        pub async fn get_status_of_recent_withdrawals(
+        pub fn get_status_of_recent_withdrawals(
             &self,
             nonce: Nonce,
             asset: &str,
             method: Option<&str>,
-        ) -> KrakenApiResult<GetStatusOfRecentWithdrawalsResponse> {
-            self.client
-                .post(API_0_PRIVATE_WITHDRAW_STATUS)?
-                .signed(nonce)?
-                .request_body(GetStatusOfRecentWithdrawalsRequest {
-                    asset,
-                    method
-                })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<GetStatusOfRecentWithdrawalsResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_WITHDRAW_STATUS)?
+                        .signed(nonce)?
+                        .request_body(GetStatusOfRecentWithdrawalsRequest { asset, method })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Request Withdrawal Cancelation
@@ -323,21 +343,22 @@ mod with_network {
         ///
         /// * `asset` - Asset being withdrawn.
         /// * `method` - Name of the withdrawal method.
-        pub async fn request_withdrawal_cancelation(
+        pub fn request_withdrawal_cancelation(
             &self,
             nonce: Nonce,
             asset: &str,
             refid: &str,
-        ) -> KrakenApiResult<WithdrawalCancelationResponse> {
-            self.client
-                .post(API_0_PRIVATE_WITHDRAW_CANCEL)?
-                .signed(nonce)?
-                .request_body(WithdrawalCancelationRequest {
-                    asset,
-                    refid,
-                })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<WithdrawalCancelationResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_WITHDRAW_CANCEL)?
+                        .signed(nonce)?
+                        .request_body(WithdrawalCancelationRequest { asset, refid })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
     }
 }

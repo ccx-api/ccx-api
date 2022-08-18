@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use super::prelude::*;
+use crate::client::Task;
 use crate::util::{Ask, Bid, OrderBook};
+
+use super::RL_PUBLIC_PER_SECOND;
 
 pub const API_0_PUBLIC_TIME: &str = "/0/public/Time";
 pub const API_0_PUBLIC_SYSTEM_STATUS: &str = "/0/public/SystemStatus";
@@ -273,19 +276,31 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<S: crate::client::KrakenSigner> SpotApi<S> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::KrakenSigner,
+        S: Unpin + 'static,
+    {
         /// Get Server Time.
         ///
         /// Get the server's time.
-        pub async fn time(&self) -> KrakenApiResult<ServerTimeResponse> {
-            self.client.get(API_0_PUBLIC_TIME)?.send().await
+        pub fn time(&self) -> KrakenResult<Task<ServerTimeResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_0_PUBLIC_TIME)?)
+                .cost(RL_PUBLIC_PER_SECOND, 1)
+                .send())
         }
 
         /// Get System Status.
         ///
         /// Get the current system status or trading mode.
-        pub async fn status(&self) -> KrakenApiResult<SystemStatusResponse> {
-            self.client.get(API_0_PUBLIC_SYSTEM_STATUS)?.send().await
+        pub fn status(&self) -> KrakenResult<Task<SystemStatusResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(self.client.get(API_0_PUBLIC_SYSTEM_STATUS)?)
+                .cost(RL_PUBLIC_PER_SECOND, 1)
+                .send())
         }
 
         /// Get Asset Info.
@@ -294,17 +309,21 @@ mod with_network {
         ///
         /// * assets - Comma delimited list of assets to get info on.
         /// * aclass - Asset class. (optional, default: currency)
-        pub async fn asset_info(
+        pub fn asset_info(
             &self,
             assets: Option<&str>,
             aclass: Option<AssetClass>,
-        ) -> KrakenApiResult<AssetInfoResponse> {
-            self.client
-                .get(API_0_PUBLIC_ASSETS)?
-                .try_query_arg("asset", &assets)?
-                .try_query_arg("aclass", &aclass)?
-                .send()
-                .await
+        ) -> KrakenResult<Task<AssetInfoResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_0_PUBLIC_ASSETS)?
+                        .try_query_arg("asset", &assets)?
+                        .try_query_arg("aclass", &aclass)?,
+                )
+                .cost(RL_PUBLIC_PER_SECOND, 1)
+                .send())
         }
 
         /// Get Tradable Asset Pairs.
@@ -312,17 +331,21 @@ mod with_network {
         /// Get tradable asset pairs.
         ///
         /// * pairs - Asset pairs to get data for.
-        pub async fn asset_pairs(
+        pub fn asset_pairs(
             &self,
             pairs: Option<&str>,
             info: Option<AssetPairInfoKind>,
-        ) -> KrakenApiResult<AssetPairResponse> {
-            self.client
-                .get(API_0_PUBLIC_ASSET_PAIRS)?
-                .try_query_arg("pairs", &pairs)?
-                .try_query_arg("info", &info)?
-                .send()
-                .await
+        ) -> KrakenResult<Task<AssetPairResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_0_PUBLIC_ASSET_PAIRS)?
+                        .try_query_arg("pairs", &pairs)?
+                        .try_query_arg("info", &info)?,
+                )
+                .cost(RL_PUBLIC_PER_SECOND, 1)
+                .send())
         }
 
         /// Get Ticker Information.
@@ -330,12 +353,16 @@ mod with_network {
         /// Note: Today's prices start at midnight UTC.
         ///
         /// * pair - Asset pair to get data for.
-        pub async fn ticker(&self, pair: &str) -> KrakenApiResult<AssetTickerResponse> {
-            self.client
-                .get(API_0_PUBLIC_TICKER)?
-                .query_arg("pair", &pair)?
-                .send()
-                .await
+        pub fn ticker(&self, pair: &str) -> KrakenResult<Task<AssetTickerResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_0_PUBLIC_TICKER)?
+                        .query_arg("pair", &pair)?,
+                )
+                .cost(RL_PUBLIC_PER_SECOND, 1)
+                .send())
         }
 
         /// Get Depth Information.
@@ -344,17 +371,21 @@ mod with_network {
         ///
         /// * pair - Asset pair to get data for.
         /// * count - Maximum number of asks/bids. (optional, default: 100)
-        pub async fn depth(
+        pub fn depth(
             &self,
             pair: &str,
             count: Option<OrderBookLimit>,
-        ) -> KrakenApiResult<AssetDepthResponse> {
-            self.client
-                .get(API_0_PUBLIC_DEPTH)?
-                .query_arg("pair", &pair)?
-                .try_query_arg("count", &count.map(|i| i.as_u16()))?
-                .send()
-                .await
+        ) -> KrakenResult<Task<AssetDepthResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .get(API_0_PUBLIC_DEPTH)?
+                        .query_arg("pair", &pair)?
+                        .try_query_arg("count", &count.map(|i| i.as_u16()))?,
+                )
+                .cost(RL_PUBLIC_PER_SECOND, 1)
+                .send())
         }
     }
 }

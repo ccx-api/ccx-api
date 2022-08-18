@@ -20,6 +20,6 @@ async fn main_() -> KrakenApiResult<()> {
 
     let kraken_spot = SpotApi::from_env();
 
-    print_res(kraken_spot.get_account_balance(seq.ts_next()).await)?;
+    print_res(kraken_spot.get_account_balance(seq.ts_next())?.await)?;
     KrakenApiError::ok(())
 }

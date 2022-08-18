@@ -1,4 +1,7 @@
 use super::prelude::*;
+use crate::client::Task;
+
+use super::{RL_MATCHING_ENGINE_PER_MINUTE, RL_PRIVATE_PER_MINUTE};
 
 pub const API_0_PRIVATE_ADD_ORDER: &str = "/0/private/AddOrder";
 
@@ -55,12 +58,16 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<S: crate::client::KrakenSigner> SpotApi<S> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::KrakenSigner,
+        S: Unpin + 'static,
+    {
         /// Validate inputs only. Do not submit order.
         ///
         /// Note: See the AssetPairs endpoint for details on the available trading pairs,
         /// their price and quantity precisions, order minimums, available leverage, etc.
-        pub async fn validate_order(
+        pub fn validate_order(
             &self,
             nonce: Nonce,
             userref: Option<u32>,
@@ -79,38 +86,42 @@ mod with_network {
             close_price: Option<Decimal>,
             close_price2: Option<Decimal>,
             deadline: Option<&str>,
-        ) -> KrakenApiResult<ValidateOrderResponse> {
-            self.client
-                .post(API_0_PRIVATE_ADD_ORDER)?
-                .signed(nonce)?
-                .request_body(AddOrderRequest {
-                    userref,
-                    ordertype,
-                    r#type,
-                    volume,
-                    pair,
-                    price,
-                    price2,
-                    leverage,
-                    oflags,
-                    timeinforce,
-                    starttm,
-                    expiretm,
-                    close_ordertype,
-                    close_price,
-                    close_price2,
-                    deadline,
-                    validate: true,
-                })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<ValidateOrderResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_ADD_ORDER)?
+                        .signed(nonce)?
+                        .request_body(AddOrderRequest {
+                            userref,
+                            ordertype,
+                            r#type,
+                            volume,
+                            pair,
+                            price,
+                            price2,
+                            leverage,
+                            oflags,
+                            timeinforce,
+                            starttm,
+                            expiretm,
+                            close_ordertype,
+                            close_price,
+                            close_price2,
+                            deadline,
+                            validate: true,
+                        })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Place a new order.
         ///
         /// Note: See the AssetPairs endpoint for details on the available trading pairs,
         /// their price and quantity precisions, order minimums, available leverage, etc.
-        pub async fn add_order(
+        pub fn add_order(
             &self,
             nonce: Nonce,
             userref: Option<u32>,
@@ -129,31 +140,36 @@ mod with_network {
             close_price: Option<Decimal>,
             close_price2: Option<Decimal>,
             deadline: Option<&str>,
-        ) -> KrakenApiResult<AddOrderResponse> {
-            self.client
-                .post(API_0_PRIVATE_ADD_ORDER)?
-                .signed(nonce)?
-                .request_body(AddOrderRequest {
-                    userref,
-                    ordertype,
-                    r#type,
-                    volume,
-                    pair,
-                    price,
-                    price2,
-                    leverage,
-                    oflags,
-                    timeinforce,
-                    starttm,
-                    expiretm,
-                    close_ordertype,
-                    close_price,
-                    close_price2,
-                    deadline,
-                    validate: false,
-                })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<AddOrderResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_ADD_ORDER)?
+                        .signed(nonce)?
+                        .request_body(AddOrderRequest {
+                            userref,
+                            ordertype,
+                            r#type,
+                            volume,
+                            pair,
+                            price,
+                            price2,
+                            leverage,
+                            oflags,
+                            timeinforce,
+                            starttm,
+                            expiretm,
+                            close_ordertype,
+                            close_price,
+                            close_price2,
+                            deadline,
+                            validate: false,
+                        })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .cost(RL_MATCHING_ENGINE_PER_MINUTE, 1)
+                .send())
         }
     }
 }

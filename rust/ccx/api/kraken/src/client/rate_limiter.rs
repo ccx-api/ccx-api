@@ -16,12 +16,12 @@ use futures::task::Poll;
 
 use super::KrakenSigner;
 use super::RequestBuilder;
-use crate::KrakenApiError;
 use crate::KrakenApiResult;
 use crate::KrakenResult;
 use crate::LibError;
 
-type TaskCosts = HashMap<Cow<'static, str>, u64>;
+type BucketName = Cow<'static, str>;
+type TaskCosts = HashMap<BucketName, u32>;
 type TaskMessageResult = KrakenResult<()>;
 
 struct TaskMessage {
@@ -31,11 +31,11 @@ struct TaskMessage {
 
 #[derive(Default)]
 pub(crate) struct RateLimiterBuilder {
-    buckets: HashMap<Cow<'static, str>, RateLimiterBucket>,
+    buckets: HashMap<BucketName, RateLimiterBucket>,
 }
 
 impl RateLimiterBuilder {
-    pub fn bucket(mut self, key: impl Into<Cow<'static, str>>, bucket: RateLimiterBucket) -> Self {
+    pub fn bucket(mut self, key: impl Into<BucketName>, bucket: RateLimiterBucket) -> Self {
         match self.buckets.entry(key.into()) {
             Entry::Occupied(mut e) => *e.get_mut() = bucket,
             Entry::Vacant(e) => {
@@ -64,7 +64,7 @@ impl RateLimiterBuilder {
 
 #[derive(Clone)]
 pub(crate) struct RateLimiter {
-    buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
+    buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
     queue_tx: mpsc::UnboundedSender<TaskMessage>,
     // queue: Arc<Mutex<Vec<TaskMessage>>>,
 }
@@ -101,7 +101,7 @@ impl RateLimiter {
     }
 
     async fn timeout<'a>(
-        buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
+        buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         costs: &'a TaskCosts,
     ) -> KrakenResult<Option<Duration>> {
         let mut timeout = Duration::default();
@@ -138,7 +138,7 @@ impl RateLimiter {
     }
 
     async fn set_costs<'a>(
-        buckets: Arc<HashMap<Cow<'static, str>, Mutex<RateLimiterBucket>>>,
+        buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         costs: &'a TaskCosts,
     ) -> KrakenResult<()> {
         for (name, cost) in costs {
@@ -162,8 +162,8 @@ pub(crate) struct RateLimiterBucket {
     time_instant: Instant,
     delay: Instant,
     interval: Duration,
-    limit: u64,
-    amount: u64,
+    limit: u32,
+    amount: u32,
 }
 
 impl Default for RateLimiterBucket {
@@ -189,7 +189,7 @@ impl RateLimiterBucket {
         self
     }
 
-    pub fn limit(mut self, limit: u64) -> Self {
+    pub fn limit(mut self, limit: u32) -> Self {
         self.limit = limit;
         self
     }
@@ -216,7 +216,7 @@ impl<S> TaskBuilder<S>
 where
     S: KrakenSigner + Unpin + 'static,
 {
-    pub fn cost(mut self, key: impl Into<Cow<'static, str>>, weight: u64) -> Self {
+    pub fn cost(mut self, key: impl Into<BucketName>, weight: u32) -> Self {
         self.costs
             .entry(key.into())
             .and_modify(|e| *e = weight)
@@ -295,14 +295,17 @@ mod tests {
     use super::*;
 
     use crate::api::spot::AssetInfoResponse;
+    use crate::client::{signer, RateLimiterTier};
     use crate::{ApiCred, Proxy, SpotApi};
 
     pub static CCX_KRAKEN_API_PREFIX: &str = "CCX_KRAKEN_API";
 
     #[actix_rt::test]
     async fn test_rate_limiter_queue() {
+        let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
+        let tier = RateLimiterTier::Starter;
+        let spot_api = SpotApi::new(signer, proxy, tier);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(
@@ -345,8 +348,10 @@ mod tests {
 
     #[actix_rt::test]
     async fn test_rate_limiter_metadata() {
+        let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
+        let tier = RateLimiterTier::Starter;
+        let spot_api = SpotApi::new(signer, proxy, tier);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(
@@ -386,8 +391,10 @@ mod tests {
 
     #[actix_rt::test]
     async fn test_rate_limiter_delay() {
+        let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
+        let tier = RateLimiterTier::Starter;
+        let spot_api = SpotApi::new(signer, proxy, tier);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(
@@ -424,8 +431,10 @@ mod tests {
 
     #[actix_rt::test]
     async fn test_rate_limiter_wrong_bucket() {
+        let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX), proxy);
+        let tier = RateLimiterTier::Starter;
+        let spot_api = SpotApi::new(signer, proxy, tier);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(

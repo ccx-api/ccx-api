@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
 use super::prelude::*;
+use crate::client::Task;
+
+use super::{RL_MATCHING_ENGINE_PER_MINUTE, RL_PRIVATE_PER_MINUTE};
 
 pub const API_0_PRIVATE_BALANCE: &str = "/0/private/Balance";
 pub const API_0_PRIVATE_CLOSED_ORDERS: &str = "/0/private/ClosedOrders";
@@ -112,20 +115,28 @@ pub use with_network::*;
 mod with_network {
     use super::*;
 
-    impl<S: crate::client::KrakenSigner> SpotApi<S> {
+    impl<S> SpotApi<S>
+    where
+        S: crate::client::KrakenSigner,
+        S: Unpin + 'static,
+    {
         /// Get Account Balance.
         ///
         /// Retrieve all cash balances, net of pending withdrawals.
-        pub async fn get_account_balance(
+        pub fn get_account_balance(
             &self,
             nonce: Nonce,
-        ) -> KrakenApiResult<AccountBalanceResponse> {
-            self.client
-                .post(API_0_PRIVATE_BALANCE)?
-                .signed(nonce)?
-                .request_body(())?
-                .send()
-                .await
+        ) -> KrakenResult<Task<AccountBalanceResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_BALANCE)?
+                        .signed(nonce)?
+                        .request_body(())?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Get Closed Orders.
@@ -133,7 +144,7 @@ mod with_network {
         /// Retrieve information about orders that have been closed (filled or cancelled). 50 results are returned at a time, the most recent by default.
         ///
         /// Note: If an order's tx ID is given for start or end time, the order's opening time (opentm) is used.
-        pub async fn get_closed_orders(
+        pub fn get_closed_orders(
             &self,
             nonce: Nonce,
             trades: Option<bool>,
@@ -142,42 +153,52 @@ mod with_network {
             end: Option<f64>,
             ofs: Option<u32>,
             closetime: Option<CloseTime>,
-        ) -> KrakenApiResult<GetClosedOrdersResponse> {
-            self.client
-                .post(API_0_PRIVATE_CLOSED_ORDERS)?
-                .signed(nonce)?
-                .request_body(GetClosedOrdersRequest {
-                    trades,
-                    userref,
-                    start,
-                    end,
-                    ofs,
-                    closetime,
-                })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<GetClosedOrdersResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_CLOSED_ORDERS)?
+                        .signed(nonce)?
+                        .request_body(GetClosedOrdersRequest {
+                            trades,
+                            userref,
+                            start,
+                            end,
+                            ofs,
+                            closetime,
+                        })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .cost(RL_MATCHING_ENGINE_PER_MINUTE, 1)
+                .send())
         }
 
         /// Query Orders Info .
         ///
         /// Retrieve information about specific orders..
-        pub async fn query_orders_info(
+        pub fn query_orders_info(
             &self,
             nonce: Nonce,
             trades: Option<bool>,
             userref: Option<u32>,
             txid: TxIds<'_>,
-        ) -> KrakenApiResult<QueryOrdersInfoResponse> {
-            self.client
-                .post(API_0_PRIVATE_QUERY_ORDERS)?
-                .signed(nonce)?
-                .request_body(QueryOrdersInfoRequest {
-                    trades,
-                    userref,
-                    txid,
-                })?
-                .send()
-                .await
+        ) -> KrakenResult<Task<QueryOrdersInfoResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_QUERY_ORDERS)?
+                        .signed(nonce)?
+                        .request_body(QueryOrdersInfoRequest {
+                            trades,
+                            userref,
+                            txid,
+                        })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .cost(RL_MATCHING_ENGINE_PER_MINUTE, 1)
+                .send())
         }
     }
 }
