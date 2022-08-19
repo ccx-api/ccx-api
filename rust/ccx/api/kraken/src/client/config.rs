@@ -1,3 +1,4 @@
+use std::time::Duration;
 use url::Url;
 
 use crate::client::KrakenSigner;
@@ -7,9 +8,14 @@ pub use ccx_api_lib::Proxy;
 
 pub static CCX_KRAKEN_API_PREFIX: &str = "CCX_KRAKEN_API";
 
-pub(crate) struct RateLimiterTierLimits {
-    pub(crate) private: u32,
-    pub(crate) matching_engine: u32,
+pub(crate) struct RateLimiterTierLimit {
+    pub(crate) private: RateLimiterTierLimitValue,
+    pub(crate) matching_engine: RateLimiterTierLimitValue,
+}
+
+pub(crate) struct RateLimiterTierLimitValue {
+    pub(crate) max: u32,
+    pub(crate) period: Duration,
 }
 
 #[derive(Clone)]
@@ -19,30 +25,45 @@ pub enum RateLimiterTier {
     Pro,
 }
 
-/// Values are calculated by adding the Maximum Counter value and the expected count
-/// decay (in a minute) of a given tier.
-///
 /// Reference:
 /// - API Rate Limits: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits
 /// - Matching Engine Limits: https://support.kraken.com/hc/en-us/articles/360045239571
 ///
-/// STARTER:        PRIVATE = 15 + 20 (0.33 * 60), MATCHING_ENGINE = 60 + 60
-/// INTERMEDIATE:   PRIVATE = 20 + 30 (0.5 * 60), MATCHING_ENGINE = 125 + 140
-/// PRO:            PRIVATE = 20 + 60 (1 * 60), MATCHING_ENGINE = 180 + 225
+/// STARTER:        PRIVATE = 15 (-0.33/s), MATCHING_ENGINE = 60
+/// INTERMEDIATE:   PRIVATE = 20 (-0.33/s), MATCHING_ENGINE = 140
+/// PRO:            PRIVATE = 20 (-1/s), MATCHING_ENGINE = 225
 impl RateLimiterTier {
-    pub(crate) fn limits(&self) -> RateLimiterTierLimits {
+    pub(crate) fn limits(&self) -> RateLimiterTierLimit {
         match self {
-            Self::Starter => RateLimiterTierLimits {
-                private: 15 + 20,
-                matching_engine: 60 + 60,
+            Self::Starter => RateLimiterTierLimit {
+                private: RateLimiterTierLimitValue {
+                    max: 15,
+                    period: Duration::from_secs(3),
+                },
+                matching_engine: RateLimiterTierLimitValue {
+                    max: 60,
+                    period: Duration::from_secs(60),
+                },
             },
-            Self::Intermediate => RateLimiterTierLimits {
-                private: 20 + 30,
-                matching_engine: 125 + 140,
+            Self::Intermediate => RateLimiterTierLimit {
+                private: RateLimiterTierLimitValue {
+                    max: 20,
+                    period: Duration::from_secs(2),
+                },
+                matching_engine: RateLimiterTierLimitValue {
+                    max: 140,
+                    period: Duration::from_secs(60),
+                },
             },
-            Self::Pro => RateLimiterTierLimits {
-                private: 20 + 60,
-                matching_engine: 180 + 225,
+            Self::Pro => RateLimiterTierLimit {
+                private: RateLimiterTierLimitValue {
+                    max: 20,
+                    period: Duration::from_secs(1),
+                },
+                matching_engine: RateLimiterTierLimitValue {
+                    max: 225,
+                    period: Duration::from_secs(60),
+                },
             },
         }
     }

@@ -121,13 +121,11 @@ impl RateLimiter {
                 continue;
             }
 
-            bucket.reset_outdated();
+            bucket.update_state();
             let new_amount = bucket.amount + cost;
 
             if new_amount > bucket.limit {
-                let elapsed = Instant::now().duration_since(bucket.time_instant);
-                let bucket_timeout = bucket.interval - elapsed;
-
+                let bucket_timeout = bucket.get_timeout();
                 if bucket_timeout > timeout {
                     timeout = bucket_timeout;
                 }
@@ -150,7 +148,7 @@ impl RateLimiter {
                 )))?,
             };
 
-            bucket.reset_outdated();
+            bucket.update_state();
             bucket.amount += cost;
         }
 
@@ -159,6 +157,7 @@ impl RateLimiter {
 }
 
 pub(crate) struct RateLimiterBucket {
+    mode: RateLimiterBucketMode,
     time_instant: Instant,
     delay: Instant,
     interval: Duration,
@@ -169,6 +168,7 @@ pub(crate) struct RateLimiterBucket {
 impl Default for RateLimiterBucket {
     fn default() -> Self {
         Self {
+            mode: RateLimiterBucketMode::default(),
             time_instant: Instant::now(),
             delay: Instant::now(),
             interval: Duration::default(),
@@ -179,6 +179,11 @@ impl Default for RateLimiterBucket {
 }
 
 impl RateLimiterBucket {
+    pub fn mode(mut self, mode: RateLimiterBucketMode) -> Self {
+        self.mode = mode;
+        self
+    }
+
     pub fn delay(mut self, delay: Duration) -> Self {
         self.delay = Instant::now() + delay;
         self
@@ -194,12 +199,50 @@ impl RateLimiterBucket {
         self
     }
 
-    fn reset_outdated(&mut self) {
-        let elapsed = Instant::now().duration_since(self.time_instant);
-        if elapsed > self.interval {
-            self.time_instant = Instant::now();
-            self.amount = 0;
+    fn update_state(&mut self) {
+        match self.mode {
+            RateLimiterBucketMode::Interval => {
+                let elapsed = Instant::now().duration_since(self.time_instant);
+                if elapsed > self.interval {
+                    self.time_instant = Instant::now();
+                    self.amount = 0;
+                }
+            }
+            RateLimiterBucketMode::Decrease => {
+                let elapsed = Instant::now().duration_since(self.time_instant);
+                let available =
+                    (elapsed.as_secs_f32() / self.interval.as_secs_f32()).floor() as u32;
+                if available > 0 {
+                    self.time_instant = Instant::now();
+                    self.amount = if self.amount > available {
+                        self.amount - available
+                    } else {
+                        0
+                    };
+                }
+            }
         }
+    }
+
+    fn get_timeout(&self) -> Duration {
+        match self.mode {
+            RateLimiterBucketMode::Interval => {
+                let elapsed = Instant::now().duration_since(self.time_instant);
+                self.interval - elapsed
+            }
+            RateLimiterBucketMode::Decrease => self.interval,
+        }
+    }
+}
+
+pub(crate) enum RateLimiterBucketMode {
+    Interval,
+    Decrease,
+}
+
+impl Default for RateLimiterBucketMode {
+    fn default() -> Self {
+        RateLimiterBucketMode::Interval
     }
 }
 
@@ -295,7 +338,7 @@ mod tests {
     use super::*;
 
     use crate::api::spot::AssetInfoResponse;
-    use crate::client::{signer, RateLimiterTier};
+    use crate::client::RateLimiterTier;
     use crate::{ApiCred, Proxy, SpotApi};
 
     pub static CCX_KRAKEN_API_PREFIX: &str = "CCX_KRAKEN_API";
@@ -461,5 +504,43 @@ mod tests {
             .send::<AssetInfoResponse>()
             .await;
         assert!(task_res.is_err())
+    }
+
+    #[actix_rt::test]
+    async fn test_rate_limiter_decrease() {
+        let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+        let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+        let tier = RateLimiterTier::Starter;
+        let spot_api = SpotApi::new(signer, proxy, tier);
+
+        let rate_limiter = RateLimiterBuilder::default()
+            .bucket(
+                "interval_3__limit_5",
+                RateLimiterBucket::default()
+                    .mode(RateLimiterBucketMode::Decrease)
+                    .interval(Duration::from_secs(3))
+                    .limit(5),
+            )
+            .start();
+
+        let instant_now = Instant::now();
+        for i in 1..10 {
+            let _task_res = rate_limiter
+                .task(
+                    spot_api
+                        .client
+                        .get("/0/public/Assets")
+                        .unwrap()
+                        .try_query_arg("pairs", &None::<&str>)
+                        .unwrap()
+                        .try_query_arg("info", &None::<&str>)
+                        .unwrap(),
+                )
+                .cost("interval_3__limit_5", 1)
+                .send::<AssetInfoResponse>()
+                .await;
+        }
+
+        assert!(Instant::now().duration_since(instant_now) >= Duration::from_secs(13));
     }
 }

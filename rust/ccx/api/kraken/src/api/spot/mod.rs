@@ -4,11 +4,13 @@ use url::Url;
 use crate::client::ApiCred;
 use crate::client::Config;
 use crate::client::Proxy;
+use crate::client::RateLimiter;
+use crate::client::RateLimiterBucket;
+use crate::client::RateLimiterBucketMode;
 use crate::client::RateLimiterTier;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
 use crate::client::CCX_KRAKEN_API_PREFIX;
-use crate::client::{RateLimiter, RateLimiterBucket};
 
 // TODO mod error;
 // TODO mod savings;
@@ -93,6 +95,7 @@ mod with_network {
         pub fn with_config(config: Config<S>) -> Self {
             let limits = config.tier.limits();
             let client = RestClient::new(config);
+
             let rate_limiter = RateLimiterBuilder::default()
                 .bucket(
                     RL_PUBLIC_PER_SECOND,
@@ -104,14 +107,15 @@ mod with_network {
                 .bucket(
                     RL_PRIVATE_PER_MINUTE,
                     RateLimiterBucket::default()
-                        .interval(Duration::from_secs(60))
-                        .limit(limits.private),
+                        .mode(RateLimiterBucketMode::Decrease)
+                        .interval(limits.private.period)
+                        .limit(limits.private.max),
                 )
                 .bucket(
                     RL_MATCHING_ENGINE_PER_MINUTE,
                     RateLimiterBucket::default()
-                        .interval(Duration::from_secs(60))
-                        .limit(limits.matching_engine),
+                        .interval(limits.matching_engine.period)
+                        .limit(limits.matching_engine.max),
                 )
                 .start();
 

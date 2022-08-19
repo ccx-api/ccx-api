@@ -120,7 +120,7 @@ impl RateLimiter {
                 continue;
             }
 
-            bucket.reset_outdated();
+            bucket.update_state();
             let new_amount = bucket.amount + cost;
 
             if new_amount > bucket.limit {
@@ -149,7 +149,7 @@ impl RateLimiter {
                 )))?,
             };
 
-            bucket.reset_outdated();
+            bucket.update_state();
             bucket.amount += cost;
         }
 
@@ -193,7 +193,7 @@ impl RateLimiterBucket {
         self
     }
 
-    fn reset_outdated(&mut self) {
+    fn update_state(&mut self) {
         let elapsed = Instant::now().duration_since(self.time_instant);
         if elapsed > self.interval {
             self.time_instant = Instant::now();
