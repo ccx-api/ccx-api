@@ -12,7 +12,7 @@ use ccx_api_lib::ClientResponse;
 
 use super::*;
 use crate::client::limits::UsedRateLimits;
-use crate::client::{WebsocketClient, WebsocketStream};
+use crate::client::WebsocketStream;
 use crate::error::*;
 use crate::proto::TimeWindow;
 
@@ -100,12 +100,7 @@ where
         self.request(Method::DELETE, endpoint)
     }
 
-    pub async fn web_socket(&self) -> BinanceResult<WebsocketClient> {
-        let url = self.inner.config.stream_base.clone();
-        Ok(WebsocketClient::connect(self.clone(), url).await?)
-    }
-
-    pub async fn web_socket2(&self) -> BinanceResult<WebsocketStream> {
+    pub async fn web_socket(&self) -> BinanceResult<WebsocketStream> {
         let url = self.inner.config.stream_base.clone();
         Ok(WebsocketStream::connect(self.clone(), url).await?)
     }
@@ -217,39 +212,39 @@ where
         }
     }
 
-    pub async fn send_no_response(mut self) -> BinanceResult<()> {
-        self = if let Some(sign) = self.sign.clone() {
-            self = self.query_arg("timestamp", &sign.timestamp())?;
-            let recv_window = sign.recv_window();
-            if !recv_window.is_default() {
-                self = self.query_arg("recvWindow", &*recv_window)?;
-            }
-            self.sign().await?
-        } else {
-            self
-        };
-        log::debug!("{}  {}", self.request.get_method(), self.request.get_uri(),);
-        let tm = Instant::now();
-        let mut res = self.request.send().await?;
-        let d1 = tm.elapsed();
-        let resp = res.body().limit(16 * 1024 * 1024).await?;
-        let d2 = tm.elapsed() - d1;
-        log::debug!(
-            "Request time elapsed:  {:0.1}ms + {:0.1}ms",
-            d1.as_secs_f64() * 1000.0,
-            d2.as_secs_f64() * 1000.0,
-        );
-        log::debug!(
-            "Response: {} «{}»",
-            res.status(),
-            String::from_utf8_lossy(&resp)
-        );
-        if let Err(err) = check_response(res) {
-            // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
-            Err(err)?
-        };
-        Ok(())
-    }
+    // pub async fn send_no_response(mut self) -> BinanceResult<()> {
+    //     self = if let Some(sign) = self.sign.clone() {
+    //         self = self.query_arg("timestamp", &sign.timestamp())?;
+    //         let recv_window = sign.recv_window();
+    //         if !recv_window.is_default() {
+    //             self = self.query_arg("recvWindow", &*recv_window)?;
+    //         }
+    //         self.sign().await?
+    //     } else {
+    //         self
+    //     };
+    //     log::debug!("{}  {}", self.request.get_method(), self.request.get_uri(),);
+    //     let tm = Instant::now();
+    //     let mut res = self.request.send().await?;
+    //     let d1 = tm.elapsed();
+    //     let resp = res.body().limit(16 * 1024 * 1024).await?;
+    //     let d2 = tm.elapsed() - d1;
+    //     log::debug!(
+    //         "Request time elapsed:  {:0.1}ms + {:0.1}ms",
+    //         d1.as_secs_f64() * 1000.0,
+    //         d2.as_secs_f64() * 1000.0,
+    //     );
+    //     log::debug!(
+    //         "Response: {} «{}»",
+    //         res.status(),
+    //         String::from_utf8_lossy(&resp)
+    //     );
+    //     if let Err(err) = check_response(res) {
+    //         // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
+    //         Err(err)?
+    //     };
+    //     Ok(())
+    // }
 
     async fn sign(self) -> BinanceResult<Self> {
         let query = self.request.get_uri().query().unwrap_or("");

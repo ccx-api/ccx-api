@@ -345,6 +345,8 @@ pub struct TradeFee {
     pub taker_commission: Decimal,
 }
 
+type NoResponse = HashMap<(), ()>;
+
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
@@ -410,7 +412,7 @@ mod with_network {
         /// Fetch system status.
         ///
         /// Weight(IP): 1
-        pub async fn system_status(&self) -> BinanceResult<Task<SystemStatus>> {
+        pub fn system_status(&self) -> BinanceResult<Task<SystemStatus>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?)
@@ -446,16 +448,19 @@ mod with_network {
         ///
         /// * This request will disable fastwithdraw switch under your account.
         /// * You need to enable "trade" option for the api key which requests this endpoint.
-        pub async fn disable_fast_withdraw_switch(
+        pub fn disable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<()> {
-            // FIXME: Task without response
-            self.client
-                .post(SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW)?
-                .signed(time_window)?
-                .send_no_response()
-                .await
+        ) -> BinanceResult<Task<NoResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_ACCOUNT_DISABLE_FAST_WITHDRAW)?
+                        .signed(time_window)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Enable Fast Withdraw Switch (USER_DATA)
@@ -466,16 +471,19 @@ mod with_network {
         /// You need to enable "trade" option for the api key which requests this endpoint.
         /// When Fast Withdraw Switch is on, transferring funds to a Binance account will be done
         ///   instantly. There is no on-chain transaction, no transaction ID and no withdrawal fee.
-        pub async fn enable_fast_withdraw_switch(
+        pub fn enable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<()> {
-            // FIXME: Task without response
-            self.client
-                .post(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
-                .signed(time_window)?
-                .send_no_response()
-                .await
+        ) -> BinanceResult<Task<NoResponse>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?
+                        .signed(time_window)?,
+                )
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .send())
         }
 
         /// Deposit Address (supporting network) (USER_DATA)

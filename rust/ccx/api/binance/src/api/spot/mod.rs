@@ -155,7 +155,7 @@ mod with_network {
 
         /// Creates multiplexed websocket stream.
         pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
-            self.client.web_socket2().await
+            self.client.web_socket().await
         }
     }
 }

@@ -1,179 +1,220 @@
 use std::io;
+use std::time::{Duration, Instant};
 
-use awc::ws;
+use actix::io::SinkWrite;
+use actix::prelude::*;
+use actix_codec::Framed;
+use actix_http::ws::Codec;
+use actix_web_actors::ws;
+use awc::BoxedSocket;
 use futures::channel::mpsc;
-use futures::SinkExt;
-use string_cache::DefaultAtom as Atom;
+use futures::stream::SplitSink;
+use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::*;
-use crate::error::*;
-use crate::{WsCommand, WsEvent, WsStream, WsSubscription};
+use ccx_api_lib::Seq;
 
-pub struct WebsocketClient {
-    tx: WebsocketClientTx,
-    rx: mpsc::Receiver<WsEvent>,
+use crate::client::RestClient;
+use crate::error::{BinanceError, BinanceResult};
+use crate::{UpstreamApiRequest, UpstreamWebsocketMessage, WsCommand, WsEvent, WsSubscription};
+
+/// How often heartbeat pings are sent.
+const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
+/// How long before lack of client response causes a timeout.
+const CLIENT_TIMEOUT: Duration = Duration::from_secs(30);
+
+#[derive(actix::Message, Clone, Debug, Serialize, Deserialize)]
+#[rtype(result = "()")]
+struct M<T>(pub T);
+
+pub struct WebsocketStream {
+    tx: WebsocketStreamTx,
+    rx: mpsc::UnboundedReceiver<UpstreamWebsocketMessage<WsEvent>>,
 }
 
-pub struct WebsocketClientTx {
-    tx: mpsc::Sender<WsCommand>,
+pub struct WebsocketStreamTx {
+    addr: Addr<Websocket>,
 }
 
-impl WebsocketClient {
+pub struct Websocket {
+    sink: SinkWrite<ws::Message, SplitSink<Framed<BoxedSocket, Codec>, ws::Message>>,
+    tx: mpsc::UnboundedSender<UpstreamWebsocketMessage<WsEvent>>,
+    hb: Instant,
+    id_seq: Seq<u64>,
+}
+
+impl Actor for Websocket {
+    type Context = Context<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        self.hb(ctx);
+    }
+}
+
+/// Handler for `ws::Message`.
+impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
+    fn handle(&mut self, msg: Result<ws::Frame, ws::ProtocolError>, ctx: &mut Self::Context) {
+        let msg = match msg {
+            Ok(msg) => msg,
+            Err(e) => {
+                log::warn!("WebSocket broken: {:?}", e);
+                ctx.stop();
+                return;
+            }
+        };
+
+        match msg {
+            ws::Frame::Ping(msg) => {
+                self.hb = Instant::now();
+                if let Err(_msg) = self.sink.write(ws::Message::Pong(msg)) {
+                    log::warn!("Failed to send Pong. Disconnecting.");
+                    ctx.stop()
+                }
+            }
+            ws::Frame::Pong(_) => {
+                self.hb = Instant::now();
+            }
+            ws::Frame::Binary(_bin) => {
+                log::warn!("unexpected binary message (ignored)");
+            }
+            ws::Frame::Text(msg) => {
+                use log::Level::*;
+
+                let res = serde_json::from_slice(&msg);
+                log::log!(
+                    if res.is_err() { Error } else { Trace },
+                    "json message from server: {}",
+                    String::from_utf8_lossy(&msg)
+                );
+                match res {
+                    Err(e) => {
+                        log::error!("Failed to deserialize server message: {:?}", e);
+                    }
+                    Ok(msg) => {
+                        if let Err(e) = self.tx.unbounded_send(msg) {
+                            log::warn!("Failed to notify downstream: {:?}", e);
+                            ctx.stop()
+                        }
+                    }
+                }
+            }
+            ws::Frame::Close(_) => {
+                ctx.stop();
+            }
+            ws::Frame::Continuation(_) => {
+                ctx.stop();
+            }
+        }
+    }
+}
+
+impl actix::io::WriteHandler<ws::ProtocolError> for Websocket {}
+
+impl Handler<M<WsCommand>> for Websocket {
+    type Result = ();
+
+    fn handle(&mut self, M(cmd): M<WsCommand>, ctx: &mut Self::Context) {
+        let msg = UpstreamApiRequest {
+            id: self.id_seq.next(),
+            payload: cmd,
+        };
+        let msg = serde_json::to_string(&msg).expect("json encode");
+        log::debug!("Sending to server: `{}`", msg);
+        if let Err(_msg) = self.sink.write(ws::Message::Text(msg.into())) {
+            ctx.stop();
+        }
+    }
+}
+
+impl Websocket {
+    #[rustfmt::skip]
+    pub(crate) fn new(
+        sink: SinkWrite<ws::Message, SplitSink<Framed<BoxedSocket, Codec>, ws::Message>>,
+        tx: mpsc::UnboundedSender<UpstreamWebsocketMessage<WsEvent>>,
+    ) -> Self {
+        let hb = Instant::now();
+        let id_seq = Seq::new();
+        Self { sink, tx, hb, id_seq }
+    }
+
+    /// helper method that sends ping to client every second.
+    ///
+    /// also this method checks heartbeats from client
+    fn hb(&mut self, ctx: &mut <Self as Actor>::Context) {
+        ctx.run_interval(HEARTBEAT_INTERVAL, move |act, ctx| {
+            if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
+                log::warn!("Websocket client heartbeat failed, disconnecting!");
+                ctx.stop();
+                return;
+            }
+            if let Err(_msg) = act.sink.write(ws::Message::Ping("".into())) {
+                log::warn!("Websocket client failed to send ping, stopping!");
+                ctx.stop()
+            };
+        });
+    }
+}
+
+impl WebsocketStream {
     pub async fn connect<S: crate::client::BinanceSigner>(
         api_client: RestClient<S>,
         url: Url,
     ) -> BinanceResult<Self> {
-        use futures::stream::StreamExt;
+        use futures::StreamExt;
 
         log::debug!("Connecting WS: {}", url.as_str());
 
-        let (_resp, connection) = api_client.client().ws(url.as_str()).connect().await?;
+        let (response, connection) = api_client.client_h1().ws(url.as_str()).connect().await?;
+        log::debug!("{:?}", response);
 
-        // Сообщения на / с апстрима, приходящие через сокет.
-        let (mut up_sink, mut up_stream) = connection.split();
-        // Сообщения на / с апстрима, для внутреннего использования.
-        let (mut up_tx, up_rx) = futures::channel::mpsc::channel(0);
-        // Внутренний передатчик сообщений клиенту и клиентский получатель сообщений.
-        let (mut dn_sink, dn_rx) = futures::channel::mpsc::channel(0);
-        // Клиентский передатчик сообщений и внутренний слушатель.
-        let (dn_tx, mut dn_stream) = futures::channel::mpsc::channel(0);
-
-        actix_rt::spawn(async move {
-            // Перенаправляем внутренние сообщения апстриму в канал апстрима.
-            let _ = up_sink.send_all(&mut up_rx.map(Ok)).await;
+        let (sink, stream) = connection.split();
+        let (tx, rx) = mpsc::unbounded();
+        let addr = Websocket::create(move |ctx| {
+            Websocket::add_stream(stream, ctx);
+            Websocket::new(SinkWrite::new(sink, ctx), tx)
         });
 
-        actix_rt::spawn({
-            let mut up_tx = up_tx.clone();
-            async move {
-                // Получаем команды от клиента и передаём их по внутреннему каналу апстриму.
-                while let Some(cmd) = dn_stream.next().await {
-                    match serde_json::to_string(&cmd) {
-                        Ok(msg) => {
-                            let _ = up_tx.send(ws::Message::Text(msg.into())).await;
-                        }
-                        Err(e) => {
-                            log::warn!("Communication error: {:?}", e)
-                        }
-                    }
-                }
-                // Клиентский канал закрылся, закрываем соединение с апстримом.
-                let _ = up_tx.send(ws::Message::Close(None)).await;
-            }
-        });
-
-        actix_rt::spawn(async move {
-            let res: BinanceResult<()> = async {
-                // Слушаем сообщения апстрима, по внутреннему каналу отвечаем апстриму на пинги,
-                // передаём декодированные события клиенту.
-                'iter_frames: while let Some(frame) = up_stream.next().await {
-                    let res: BinanceResult<Option<WsEvent>> = async {
-                        match frame? {
-                            ws::Frame::Close(e) => {
-                                up_tx.send(ws::Message::Close(e)).await.map_err(|_e| {
-                                    BinanceError::IoError(io::ErrorKind::ConnectionAborted.into())
-                                })?;
-                                Ok(None)
-                            }
-                            ws::Frame::Ping(d) => {
-                                up_tx.send(ws::Message::Pong(d)).await.map_err(|_e| {
-                                    BinanceError::IoError(io::ErrorKind::ConnectionAborted.into())
-                                })?;
-                                Ok(None)
-                            }
-                            ws::Frame::Pong(_) => Ok(None),
-                            ws::Frame::Text(msg) => Ok(Some(serde_json::from_slice(&msg)?)),
-                            ws::Frame::Binary(_d) => Ok(None),
-                            ws::Frame::Continuation(_d) => Ok(None),
-                        }
-                    }
-                    .await;
-                    match res.transpose() {
-                        Some(Ok(res)) => {
-                            if let Err(_e) = dn_sink.send(res).await {
-                                let _ = up_tx.send(ws::Message::Close(None)).await;
-                                break 'iter_frames;
-                            }
-                        }
-                        Some(Err(e)) => {
-                            log::warn!("Communication error 1: {:?}", e);
-                            if let BinanceError::IoError(e) = &e {
-                                if e.kind() != io::ErrorKind::ConnectionAborted {
-                                    let _ = up_tx.send(ws::Message::Close(None)).await;
-                                }
-                            }
-                            break 'iter_frames;
-                        }
-                        None => {}
-                    }
-                }
-                Ok(())
-            }
-            .await;
-            if let Err(e) = res {
-                eprintln!("Communication error 2: {:?}", e)
-                // let _ = dn_sink.send(Err(e)).await;
-            }
-        });
-
-        Ok(WebsocketClient {
-            tx: WebsocketClientTx { tx: dn_tx },
-            rx: dn_rx,
-        })
-
-        // ClientBuilder::from_url(&self.url)
-        //     .async_connect(None)
-        //     .map(move |(duplex, _)| {
-        //         //                 let (sink, stream) = duplex.split();
-        //         //                 let (tx, rx) = futures01::sync::mpsc::channel(0);
-        //         //                 let rx = sink
-        //         //                     .sink_map_err(drop)
-        //         //                     .send_all(rx.filter_map(|m| m).map_err(drop))
-        //         //                     .map(drop);
-        //         //                 tokio::runtime::current_thread::spawn(rx);
-        //         //                 let stream = stream
-        //         //                     .and_then(move |message| {
-        //         //                         // dbg!("Received Message: {:?}", message);
-        //         //                         let (up, dn) = match message {
-        //         //                             OwnedMessage::Close(e) => (Some(OwnedMessage::Close(e)), None),
-        //         //                             OwnedMessage::Ping(d) => (Some(OwnedMessage::Pong(d)), None),
-        //         //                             OwnedMessage::Pong(_) => (None, None),
-        //         //                             OwnedMessage::Text(msg) => (None, Some(msg)),
-        //         //                             OwnedMessage::Binary(_d) => {
-        //         //                                 // warn!("Unexpected binary data {:?}", d);
-        //         //                                 (None, None)
-        //         //                             }
-        //         //                         };
-        //         //                         tx.clone()
-        //         //                             .send(up)
-        //         //                             .map_err(|_| {
-        //         //                                 WebSocketError::IoError(io::ErrorKind::ConnectionAborted.into())
-        //         //                             })
-        //         //                             .map(|_| dn)
-        //         //                     })
-        //         //                     .filter_map(|v: Option<String>| v)
-        //         //                     .map_err(Error::from)
-        //         //                     .and_then(|msg| serde_json::from_str(&msg).map_err(Error::from))
-        //         //                     .compat();
-        //         //                 stream
-        //     })
-        //     .map_err(Error::from)
-        //     .await
+        let tx = WebsocketStreamTx { addr };
+        Ok(WebsocketStream { tx, rx })
     }
 
-    pub fn split(self) -> (WebsocketClientTx, mpsc::Receiver<WsEvent>) {
+    pub fn split(
+        self,
+    ) -> (
+        WebsocketStreamTx,
+        mpsc::UnboundedReceiver<UpstreamWebsocketMessage<WsEvent>>,
+    ) {
         (self.tx, self.rx)
     }
 }
 
-impl WebsocketClientTx {
-    pub async fn subscribe(
-        &mut self,
-        market: impl Into<Atom>,
-        stream: WsStream,
-    ) -> std::result::Result<(), mpsc::SendError> {
-        let cmd = WsCommand::Subscribe1([WsSubscription::new(market, stream)]);
-        Ok(self.tx.send(cmd).await?)
+impl std::ops::Deref for WebsocketStream {
+    type Target = WebsocketStreamTx;
+
+    fn deref(&self) -> &Self::Target {
+        &self.tx
+    }
+}
+
+impl WebsocketStreamTx {
+    pub async fn subscribe_one(
+        &self,
+        subscription: impl Into<WsSubscription>,
+    ) -> BinanceResult<()> {
+        let cmd = WsCommand::Subscribe1([subscription.into()]);
+        Ok(self
+            .addr
+            .send(M(cmd))
+            .await
+            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
+    }
+
+    pub async fn subscribe_list(&self, subscriptions: Box<[WsSubscription]>) -> BinanceResult<()> {
+        let cmd = WsCommand::Subscribe(subscriptions);
+        Ok(self
+            .addr
+            .send(M(cmd))
+            .await
+            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
     }
 }
