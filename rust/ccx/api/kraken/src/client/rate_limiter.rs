@@ -87,6 +87,7 @@ impl RateLimiter {
             while let Some(TaskMessage { costs, task_tx }) = rx.next().await {
                 let buckets = buckets.clone();
                 let res = async move {
+                    log::debug!("RateLimiter: new task. State of buckets: {:?}", buckets);
                     if let Some(timeout) = Self::timeout(buckets.clone(), &costs).await? {
                         log::debug!("RateLimiter: sleep for {:?}s", timeout);
                         sleep(timeout).await;
@@ -110,7 +111,7 @@ impl RateLimiter {
             let mut bucket = match buckets.get(name) {
                 Some(bucket) => bucket.lock().await,
                 None => Err(LibError::other(format!(
-                    "RateLimiter: undefined bucket - {}",
+                    "RateLimiter: undefined bucket {}",
                     name
                 )))?,
             };
@@ -123,6 +124,12 @@ impl RateLimiter {
 
             bucket.update_state();
             let new_amount = bucket.amount + cost;
+            log::debug!(
+                "RateLimiter: current amount {}; task cost {}; bucket limit: {}",
+                bucket.amount,
+                cost,
+                bucket.limit
+            );
 
             if new_amount > bucket.limit {
                 let bucket_timeout = bucket.get_timeout();
@@ -143,13 +150,20 @@ impl RateLimiter {
             let mut bucket = match buckets.get(name) {
                 Some(bucket) => bucket.lock().await,
                 None => Err(LibError::other(format!(
-                    "RateLimiter: undefined bucket - {}",
+                    "RateLimiter: undefined bucket {}",
                     name
                 )))?,
             };
 
             bucket.update_state();
             bucket.amount += cost;
+
+            log::debug!(
+                "RateLimiter: bucket {} :: new amount {}; bucket limit: {}",
+                bucket.amount,
+                name,
+                bucket.limit
+            );
         }
 
         Ok(())
