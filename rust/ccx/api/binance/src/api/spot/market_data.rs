@@ -1,5 +1,6 @@
 use super::prelude::*;
 use super::OrderType;
+use super::RlPriorityLevel;
 use crate::client::Task;
 use crate::util::{Ask, Bid, OrderBook};
 
@@ -540,6 +541,7 @@ mod with_network {
                 .rate_limiter
                 .task(self.client.get(API_V3_TIME)?)
                 .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .priority(RlPriorityLevel::Normal as u8)
                 .send())
         }
 

@@ -1,4 +1,5 @@
 use super::prelude::*;
+use super::RlPriorityLevel;
 use crate::client::Task;
 
 use super::{RL_MATCHING_ENGINE_PER_MINUTE, RL_PRIVATE_PER_MINUTE};
@@ -114,6 +115,7 @@ mod with_network {
                         })?,
                 )
                 .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .priority(RlPriorityLevel::High as u8)
                 .send())
         }
 
@@ -169,6 +171,7 @@ mod with_network {
                 )
                 .cost(RL_PRIVATE_PER_MINUTE, 1)
                 .cost(RL_MATCHING_ENGINE_PER_MINUTE, 1)
+                .priority(RlPriorityLevel::High as u8)
                 .send())
         }
     }

@@ -37,6 +37,11 @@ pub const RL_PUBLIC_PER_SECOND: &'static str = "public";
 pub const RL_PRIVATE_PER_MINUTE: &'static str = "private";
 pub const RL_MATCHING_ENGINE_PER_MINUTE: &'static str = "matching_engine";
 
+pub enum RlPriorityLevel {
+    Normal = 1,
+    High = 2,
+}
+
 mod prelude {
     pub use super::types::*;
     pub use crate::api::prelude::*;
@@ -107,7 +112,7 @@ mod with_network {
                 .bucket(
                     RL_PRIVATE_PER_MINUTE,
                     RateLimiterBucket::default()
-                        .mode(RateLimiterBucketMode::Decrease)
+                        .mode(RateLimiterBucketMode::KrakenDecrease)
                         .interval(limits.private.period)
                         .limit(limits.private.max),
                 )

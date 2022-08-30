@@ -1,4 +1,5 @@
 use super::prelude::*;
+use super::RlPriorityLevel;
 use super::SymbolPermission;
 use crate::client::Task;
 
@@ -404,7 +405,8 @@ mod with_network {
                 .task(request)
                 .cost(RL_WEIGHT_PER_MINUTE, 2)
                 .cost(RL_ORDERS_PER_SECOND, 1)
-                .cost(RL_ORDERS_PER_DAY, 1);
+                .cost(RL_ORDERS_PER_DAY, 1)
+                .priority(RlPriorityLevel::High as u8);
 
             Ok(match new_order_resp_type {
                 OrderResponseType::Ack => NewOrder::Ack(task.send::<NewOrderAck>()),
@@ -540,6 +542,7 @@ mod with_network {
                         .try_query_arg("newClientOrderId", &new_client_order_id)?,
                 )
                 .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .priority(RlPriorityLevel::High as u8)
                 .send())
         }
 
@@ -563,6 +566,7 @@ mod with_network {
                         .query_arg("symbol", &symbol)?,
                 )
                 .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .priority(RlPriorityLevel::High as u8)
                 .send())
         }
 

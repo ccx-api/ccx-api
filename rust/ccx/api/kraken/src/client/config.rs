@@ -29,9 +29,9 @@ pub enum RateLimiterTier {
 /// - API Rate Limits: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits
 /// - Matching Engine Limits: https://support.kraken.com/hc/en-us/articles/360045239571
 ///
-/// STARTER:        PRIVATE = 15 (-0.33/s), MATCHING_ENGINE = 60
-/// INTERMEDIATE:   PRIVATE = 20 (-0.33/s), MATCHING_ENGINE = 140
-/// PRO:            PRIVATE = 20 (-1/s), MATCHING_ENGINE = 225
+/// STARTER:        PRIVATE = 15 (-0.33/1sec), MATCHING_ENGINE = 60/1min
+/// INTERMEDIATE:   PRIVATE = 20 (-0.33/1sec, MATCHING_ENGINE = 140/1min
+/// PRO:            PRIVATE = 20 (-1/1sec), MATCHING_ENGINE = 225/1min
 impl RateLimiterTier {
     pub(crate) fn limits(&self) -> RateLimiterTierLimit {
         match self {

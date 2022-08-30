@@ -24,8 +24,9 @@ type TaskCosts = HashMap<BucketName, u32>;
 type TaskMessageResult = BinanceResult<()>;
 
 struct TaskMessage {
+    priority: u8,
     costs: TaskCosts,
-    task_tx: oneshot::Sender<TaskMessageResult>,
+    tx: oneshot::Sender<TaskMessageResult>,
 }
 
 #[derive(Default)]
@@ -45,18 +46,19 @@ impl RateLimiterBuilder {
     }
 
     pub fn start(self) -> RateLimiter {
-        let (queue_tx, queue_rx) = mpsc::unbounded::<TaskMessage>();
+        let (tasks_tx, tasks_rx) = mpsc::unbounded::<TaskMessage>();
+        let buckets = self
+            .buckets
+            .into_iter()
+            .map(|(k, v)| (k, Mutex::new(v.into())))
+            .collect();
+
         let rate_limiter = RateLimiter {
-            buckets: Arc::new(
-                self.buckets
-                    .into_iter()
-                    .map(|(k, v)| (k, Mutex::new(v.into())))
-                    .collect(),
-            ),
-            queue_tx,
-            // queue: Arc::new(Mutex::new(Vec::new())),
+            buckets: Arc::new(buckets),
+            tasks_tx,
+            queue: Arc::new(Mutex::new(Vec::new())),
         };
-        rate_limiter.recv(queue_rx);
+        rate_limiter.recv(tasks_rx);
         rate_limiter
     }
 }
@@ -64,8 +66,8 @@ impl RateLimiterBuilder {
 #[derive(Clone)]
 pub(crate) struct RateLimiter {
     buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-    queue_tx: mpsc::UnboundedSender<TaskMessage>,
-    // queue: Arc<Mutex<Vec<TaskMessage>>>,
+    tasks_tx: mpsc::UnboundedSender<TaskMessage>,
+    queue: Arc<Mutex<Vec<TaskMessage>>>,
 }
 
 impl RateLimiter {
@@ -74,28 +76,67 @@ impl RateLimiter {
         S: BinanceSigner + Unpin,
     {
         TaskBuilder {
-            req_builder: builder,
+            priority: 0,
             costs: TaskCosts::new(),
-            queue_tx: self.queue_tx.clone(),
+            req_builder: builder,
+            tasks_tx: self.tasks_tx.clone(),
         }
     }
 
     fn recv(&self, mut rx: mpsc::UnboundedReceiver<TaskMessage>) {
         let buckets = self.buckets.clone();
+        let queue = self.queue.clone();
         actix_rt::spawn(async move {
-            while let Some(TaskMessage { costs, task_tx }) = rx.next().await {
+            while let Some(task_message) = rx.next().await {
+                let is_first_task = {
+                    let mut guard = queue.lock().await;
+                    guard.push(task_message);
+                    // higher priority at the end
+                    guard.sort_by(|a, b| a.priority.cmp(&b.priority));
+                    guard.len() == 1
+                };
+
+                if is_first_task {
+                    Self::handler(buckets.clone(), queue.clone()).await;
+                }
+            }
+        });
+    }
+
+    async fn handler<'a>(
+        buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
+        queue: Arc<Mutex<Vec<TaskMessage>>>,
+    ) {
+        let buckets = buckets.clone();
+        let queue = queue.clone();
+        actix_rt::spawn(async move {
+            loop {
+                let TaskMessage {
+                    priority,
+                    costs,
+                    tx,
+                } = match queue.lock().await.pop() {
+                    Some(task) => task,
+                    None => {
+                        log::debug!("RateLimiter: stop queue handler (queue is empty)");
+                        break;
+                    }
+                };
+                log::debug!("RateLimiter: received task with priority {}", priority);
+
                 let buckets = buckets.clone();
                 let res = async move {
-                    log::debug!("RateLimiter: new task. State of buckets: {:?}", buckets);
-                    if let Some(timeout) = Self::timeout(buckets.clone(), &costs).await? {
-                        log::debug!("RateLimiter: sleep for {:?}s", timeout);
-                        sleep(timeout).await;
+                    if let Some(dur) = Self::timeout(buckets.clone(), &costs).await? {
+                        log::debug!("RateLimiter: sleep for {:?}", dur);
+                        sleep(dur).await;
                     }
                     Self::set_costs(buckets, &costs).await?;
                     Ok(())
                 }
                 .await;
-                let _ = task_tx.send(res);
+
+                log::debug!("RateLimiter: completed task with priority {}", priority);
+                let _ = tx.send(res);
             }
         });
     }
@@ -117,6 +158,7 @@ impl RateLimiter {
 
             let delay = bucket.delay.duration_since(Instant::now());
             if !delay.is_zero() {
+                log::debug!("RateLimiter: bucket {} :: Delayed start {:?}", name, delay);
                 timeout = delay;
                 continue;
             }
@@ -124,17 +166,23 @@ impl RateLimiter {
             bucket.update_state();
             let new_amount = bucket.amount + cost;
             log::debug!(
-                "RateLimiter: current amount {}; task cost {}; bucket limit: {}",
-                bucket.amount,
+                "RateLimiter: bucket {} :: Task cost {}; prev amount {}; bucket limit: {};",
+                name,
                 cost,
+                bucket.amount,
                 bucket.limit
             );
 
             if new_amount > bucket.limit {
-                let elapsed = Instant::now().duration_since(bucket.time_instant);
-                let bucket_timeout = bucket.interval - elapsed;
+                let bucket_timeout = bucket.get_timeout();
+                log::debug!("RateLimiter: bucket {} :: Limit has been reached", name);
 
                 if bucket_timeout > timeout {
+                    log::debug!(
+                        "RateLimiter: bucket {} :: Need sleep {:?}.",
+                        name,
+                        bucket_timeout
+                    );
                     timeout = bucket_timeout;
                 }
             }
@@ -160,9 +208,9 @@ impl RateLimiter {
             bucket.amount += cost;
 
             log::debug!(
-                "RateLimiter: bucket {} :: new amount {}; bucket limit: {}",
-                bucket.amount,
+                "RateLimiter: bucket {} :: New amount {}; bucket limit: {}",
                 name,
+                bucket.amount,
                 bucket.limit
             );
         }
@@ -214,21 +262,32 @@ impl RateLimiterBucket {
             self.amount = 0;
         }
     }
+
+    fn get_timeout(&self) -> Duration {
+        let elapsed = Instant::now().duration_since(self.time_instant);
+        self.interval - elapsed
+    }
 }
 
 pub(crate) struct TaskBuilder<S>
 where
     S: BinanceSigner + Unpin + 'static,
 {
-    req_builder: RequestBuilder<S>,
+    priority: u8,
     costs: TaskCosts,
-    queue_tx: mpsc::UnboundedSender<TaskMessage>,
+    req_builder: RequestBuilder<S>,
+    tasks_tx: mpsc::UnboundedSender<TaskMessage>,
 }
 
 impl<S> TaskBuilder<S>
 where
     S: BinanceSigner + Unpin + 'static,
 {
+    pub fn priority(mut self, priority: u8) -> Self {
+        self.priority = priority;
+        self
+    }
+
     pub fn cost(mut self, key: impl Into<BucketName>, weight: u32) -> Self {
         self.costs
             .entry(key.into())
@@ -241,19 +300,22 @@ where
     where
         V: serde::de::DeserializeOwned + Debug,
     {
+        let priority = self.priority;
         let costs = self.costs.clone();
         let req_builder = self.req_builder;
-        let mut queue_tx = self.queue_tx.clone();
+        let mut tasks_tx = self.tasks_tx.clone();
 
         let fut = async move {
-            let (task_tx, task_rx) = oneshot::channel::<TaskMessageResult>();
-
-            queue_tx
-                .send(TaskMessage { costs, task_tx })
+            let (tx, rx) = oneshot::channel::<TaskMessageResult>();
+            tasks_tx
+                .send(TaskMessage {
+                    priority,
+                    costs,
+                    tx,
+                })
                 .await
                 .map_err(|_| LibError::other("RateLimiter: task channel was dropped"))?;
-            task_rx
-                .await
+            rx.await
                 .map_err(|_| LibError::other("RateLimiter: task channel was dropped"))?
                 .map_err(|e| {
                     log::error!("RateLimiter: task err. {:?}", e);
@@ -307,6 +369,8 @@ pub struct TaskMetadata {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::{AtomicU8, Ordering};
+
     use super::*;
 
     use crate::api::spot::ServerTime;
@@ -338,7 +402,7 @@ mod tests {
             )
             .start();
 
-        let instant_now = Instant::now();
+        let instant = Instant::now();
         for _i in 1..=8 {
             let task_res = rate_limiter
                 .task(spot_api.client.get("/api/v3/time").unwrap())
@@ -351,7 +415,7 @@ mod tests {
             assert!(task_res.is_ok());
         }
 
-        assert!(Instant::now().duration_since(instant_now) >= Duration::from_secs(30));
+        assert!(instant.elapsed() >= Duration::from_secs(30));
     }
 
     #[actix_rt::test]
@@ -409,7 +473,7 @@ mod tests {
             )
             .start();
 
-        let instant_now = Instant::now();
+        let instant = Instant::now();
         for _i in 1..=2 {
             let task_res = rate_limiter
                 .task(spot_api.client.get("/api/v3/time").unwrap())
@@ -420,7 +484,7 @@ mod tests {
             assert!(task_res.is_ok());
         }
 
-        assert!(Instant::now().duration_since(instant_now) >= Duration::from_secs(20));
+        assert!(instant.elapsed() >= Duration::from_secs(20));
     }
 
     #[actix_rt::test]
@@ -448,5 +512,85 @@ mod tests {
             .send::<ServerTime>()
             .await;
         assert!(task_res.is_err())
+    }
+
+    #[actix_rt::test]
+    async fn test_rate_limiter_priority() {
+        let proxy = Proxy::from_env_with_prefix(CCX_BINANCE_API_PREFIX);
+        let spot_api = SpotApi::new(
+            ApiCred::from_env_with_prefix(CCX_BINANCE_API_PREFIX),
+            true,
+            proxy,
+        );
+
+        let rate_limiter = RateLimiterBuilder::default()
+            .bucket(
+                "interval_3__limit_5",
+                RateLimiterBucket::default()
+                    .interval(Duration::from_secs(1))
+                    .limit(1),
+            )
+            .start();
+
+        let instant = Instant::now();
+        let counter = Arc::new(AtomicU8::new(0));
+        let position = Arc::new(AtomicU8::new(0));
+        {
+            let counter = counter.clone();
+            let position = position.clone();
+            let rate_limiter = rate_limiter.clone();
+            let spot_api = spot_api.clone();
+            actix::spawn(async move {
+                while counter.load(Ordering::SeqCst) < 6 {
+                    sleep(Duration::from_millis(10)).await;
+                }
+
+                let _task_res = rate_limiter
+                    .task(spot_api.client.get("/api/v3/time").unwrap())
+                    .cost("interval_3__limit_5", 1)
+                    .priority(1)
+                    .send::<ServerTime>()
+                    .await;
+                println!(
+                    "Time now: {:?}",
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs()
+                );
+                let current = counter.fetch_add(1, Ordering::SeqCst) + 1;
+                position.store(current, Ordering::SeqCst);
+                println!("PRIORITY POS: {}", current);
+            });
+        }
+
+        for _ in 1..10 {
+            let counter = counter.clone();
+            let rate_limiter = rate_limiter.clone();
+            let spot_api = spot_api.clone();
+            actix::spawn(async move {
+                let _task_res = rate_limiter
+                    .task(spot_api.client.get("/api/v3/time").unwrap())
+                    .cost("interval_3__limit_5", 1)
+                    .send::<ServerTime>()
+                    .await;
+                println!(
+                    "Time now: {:?}",
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs()
+                );
+                let current = counter.fetch_add(1, Ordering::SeqCst) + 1;
+                println!("TASK POS: {}", current);
+            });
+        }
+
+        while counter.load(Ordering::SeqCst) < 10 {
+            sleep(Duration::from_millis(100)).await;
+        }
+
+        assert!((7..=8).contains(&position.load(Ordering::SeqCst)));
+        assert!(instant.elapsed() >= Duration::from_secs(9));
     }
 }
