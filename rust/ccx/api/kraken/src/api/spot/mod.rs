@@ -107,7 +107,7 @@ mod with_network {
                     RateLimiterBucket::default()
                         .delay(Duration::from_secs(10))
                         .interval(Duration::from_secs(10))
-                        .limit(1),
+                        .limit(10),
                 )
                 .bucket(
                     RL_PRIVATE_PER_MINUTE,
