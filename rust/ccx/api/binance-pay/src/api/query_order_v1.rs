@@ -7,10 +7,10 @@ use crate::error::LibResult;
 use crate::json_string;
 use crate::opt_uuid_simple;
 use crate::types::enums::StatusOrder;
-use crate::types::enums::StatusRequest;
 use crate::types::enums::TradeType;
 use crate::types::time::Time;
 use crate::uuid_simple;
+use crate::BinancePayResponse;
 
 pub const V1_BINANCEPAY_OPENAPI_ORDER_QUERY: &str = "/binancepay/openapi/order/query";
 
@@ -96,23 +96,12 @@ pub struct PayerInfo {
     pub nationality: Option<String>, //	string	N	-	payer nationality
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct V1QueryOrderResponse {
-    pub status: StatusRequest, // string	            Y	"SUCCESS" or "FAIL"	status of the API request
-    pub code: String,          // string	            Y	-	request result code, refer to
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<V1QueryOrderResult>, // QueryOrderResult	    N	-	response body, refer to
-    #[serde(rename = "errorMessage")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error_message: Option<String>, // string	            Y	-
-}
-
 impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn v1_query_order(
         &self,
         request: V1QueryOrderRequest,
         time_window: impl Into<Time>,
-    ) -> LibResult<V1QueryOrderResponse> {
+    ) -> LibResult<BinancePayResponse<V1QueryOrderResult>> {
         self.client
             .post_json(V1_BINANCEPAY_OPENAPI_ORDER_QUERY, request)?
             .signed(time_window)?
@@ -162,7 +151,7 @@ mod tests {
             }
         }
         "#;
-        let response: V1QueryOrderResponse =
+        let response: BinancePayResponse<V1QueryOrderResult> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_query_response response :: {:#?}", response);
     }
@@ -188,7 +177,7 @@ mod tests {
             }
         }
         "#;
-        let response: V1QueryOrderResponse =
+        let response: BinancePayResponse<V1QueryOrderResult> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_query_response response :: {:#?}", response);
     }

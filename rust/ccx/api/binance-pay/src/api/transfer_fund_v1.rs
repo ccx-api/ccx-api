@@ -7,11 +7,11 @@ use uuid::Uuid;
 
 use crate::api::Api;
 use crate::error::LibResult;
-use crate::types::enums::StatusRequest;
 use crate::types::enums::TransferStatus;
 use crate::types::enums::TransferType;
 use crate::types::time::Time;
 use crate::uuid_simple;
+use crate::BinancePayResponse;
 
 pub const BINANCEPAY_OPENAPI_TRANSFER_FUND: &str = "/binancepay/openapi/wallet/transfer";
 
@@ -36,23 +36,12 @@ pub struct V1TransferResult {
     pub currency: String, //	string	Y	Not limited, as long as it is within the range.	transfer currency, e.g. "BUSD"
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct V1TransferFundResponse {
-    pub status: StatusRequest, // string	            Y	"SUCCESS" or "FAIL"	status of the API request
-    pub code: String,          // string	            Y	-	request result code, refer to
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<V1TransferResult>, // TransferResult	    N	-	response body, refer to
-    #[serde(rename = "errorMessage")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error_message: Option<String>, // string	            Y	-
-}
-
 impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn v1_transfer_fund(
         &self,
         request: V1TransferFundRequest,
         time_window: impl Into<Time>,
-    ) -> LibResult<V1TransferFundResponse> {
+    ) -> LibResult<BinancePayResponse<V1TransferResult>> {
         self.client
             .post_json(BINANCEPAY_OPENAPI_TRANSFER_FUND, request)?
             .signed(time_window)?
@@ -108,7 +97,7 @@ mod tests {
             "errorMessage": ""
         }
         "#;
-        let response: V1TransferFundResponse =
+        let response: BinancePayResponse<V1TransferResult> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_transfer_response response :: {:#?}", response);
     }

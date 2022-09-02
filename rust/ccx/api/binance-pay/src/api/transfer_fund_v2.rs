@@ -7,11 +7,11 @@ use uuid::Uuid;
 
 use crate::api::Api;
 use crate::error::LibResult;
-use crate::types::enums::StatusRequest;
 use crate::types::enums::TransferStatus;
 use crate::types::enums::TransferType;
 use crate::types::time::Time;
 use crate::uuid_simple;
+use crate::BinancePayResponse;
 
 pub const BINANCEPAY_OPENAPI_TRANSFER_FUND: &str = "/binancepay/openapi/wallet/transfer";
 
@@ -36,23 +36,12 @@ pub struct V2TransferResult {
     pub transfer_type: TransferType,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct V2TransferFundResponse {
-    pub status: StatusRequest, // string	            Y	"SUCCESS" or "FAIL"	status of the API request
-    pub code: String,          // string	            Y	-	request result code, refer to
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<V2TransferResult>, // TransferResult	    N	-	response body, refer to
-    #[serde(rename = "errorMessage")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error_message: Option<String>, // string	            Y	-
-}
-
 impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn v2_transfer_fund(
         &self,
         request: V2TransferFundRequest,
         time_window: impl Into<Time>,
-    ) -> LibResult<V2TransferFundResponse> {
+    ) -> LibResult<BinancePayResponse<V2TransferResult>> {
         self.client
             .post_json(BINANCEPAY_OPENAPI_TRANSFER_FUND, request)?
             .signed(time_window)?
@@ -97,7 +86,7 @@ mod tests {
             "errorMessage": ""
         }
         "#;
-        let response: V2TransferFundResponse =
+        let response: BinancePayResponse<V2TransferResult> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_transfer_response_1 response :: {:#?}", response);
     }
@@ -119,7 +108,7 @@ mod tests {
             "errorMessage": ""
         }
         "#;
-        let response: V2TransferFundResponse =
+        let response: BinancePayResponse<V2TransferResult> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_transfer_response_2 response :: {:#?}", response);
     }

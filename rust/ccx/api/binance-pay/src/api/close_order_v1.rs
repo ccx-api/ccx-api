@@ -4,8 +4,8 @@ use serde::Serialize;
 use crate::api::Api;
 use crate::error::LibResult;
 use crate::opt_uuid_simple;
-use crate::types::enums::StatusRequest;
 use crate::types::time::Time;
+use crate::BinancePayResponse;
 
 pub const BINANCEPAY_OPENAPI_ORDER_CLOSE: &str = "/binancepay/openapi/order/close";
 
@@ -24,29 +24,12 @@ pub struct V1CloseOrderRequest {
     pub prepay_id: Option<String>, //  string	N	-   letter or digit, no other symbol allowed, can not be empty if merchantTradeNo is empty	Binance unique order id
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct V1CloseOrderResponse {
-    pub status: StatusRequest, // string	            Y	"SUCCESS" or "FAIL"	status of the API request
-    pub code: String,          // string	            Y	-	request result code, refer to
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<bool>, // bool         	    N	-	response body, refer to
-    #[serde(rename = "errorMessage")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error_message: Option<String>, // string	            Y	-
-}
-
-impl V1CloseOrderResponse {
-    pub fn is_success(&self) -> bool {
-        self.status == StatusRequest::Success && self.data.unwrap_or(false)
-    }
-}
-
 impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn v1_close_order(
         &self,
         request: V1CloseOrderRequest,
         time_window: impl Into<Time>,
-    ) -> LibResult<V1CloseOrderResponse> {
+    ) -> LibResult<BinancePayResponse<bool>> {
         self.client
             .post_json(BINANCEPAY_OPENAPI_ORDER_CLOSE, request)?
             .signed(time_window)?
@@ -108,7 +91,7 @@ mod tests {
             "errorMessage": null
         }
         "#;
-        let response: V1CloseOrderResponse =
+        let response: BinancePayResponse<bool> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_close_response response :: {:#?}", response);
     }

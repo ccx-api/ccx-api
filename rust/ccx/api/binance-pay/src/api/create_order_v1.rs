@@ -4,10 +4,10 @@ use serde::Serialize;
 
 use crate::api::Api;
 use crate::error::LibResult;
-use crate::types::enums::StatusRequest;
 use crate::types::enums::TradeType;
 use crate::types::time::Time;
 use crate::uuid_simple;
+use crate::BinancePayResponse;
 
 const V1_BINANCEPAY_OPENAPI_ORDER: &str = "/binancepay/openapi/order";
 
@@ -51,23 +51,12 @@ pub struct V1OrderResult {
     pub qr_content: String, // string	    Y	-	qr contend info
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct V1CreateOrderResponse {
-    pub status: StatusRequest, // string       Y   -   "SUCCESS" or "FAIL"	status of the API request
-    pub code: String,          // string       Y	-	request result code, refer to
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<V1OrderResult>, // OrderResult  Y	-	response body, refer to
-    #[serde(rename = "errorMessage")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error_message: Option<String>, // string       Y	-
-}
-
 impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn v1_create_order(
         &self,
         request: V1CreateOrderRequest,
         time_window: impl Into<Time>,
-    ) -> LibResult<V1CreateOrderResponse> {
+    ) -> LibResult<BinancePayResponse<V1OrderResult>> {
         self.client
             .post_json(V1_BINANCEPAY_OPENAPI_ORDER, request)?
             .signed(time_window)?

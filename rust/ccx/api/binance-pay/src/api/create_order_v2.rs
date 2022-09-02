@@ -4,7 +4,6 @@ use url::Url;
 use crate::api::Api;
 use crate::error::LibResult;
 use crate::types::buyer::Buyer;
-use crate::types::enums::StatusRequest;
 use crate::types::enums::TerminalType;
 use crate::types::goods::OrderGoods;
 use crate::types::merchant::Merchant;
@@ -12,6 +11,7 @@ use crate::types::order_env::OrderEnv;
 use crate::types::shipping::Shipping;
 use crate::types::time::Time;
 use crate::uuid_simple;
+use crate::BinancePayResponse;
 
 const V2_BINANCEPAY_OPENAPI_ORDER: &str = "/binancepay/openapi/v2/order";
 
@@ -85,23 +85,12 @@ pub struct V2OrderResult {
     pub universal_url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct V2CreateOrderResponse {
-    pub status: StatusRequest, // string       Y   -   "SUCCESS" or "FAIL"	status of the API request
-    pub code: String,          // string       Y	-	request result code, refer to
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<V2OrderResult>, // OrderResult  Y	-	response body, refer to
-    #[serde(rename = "errorMessage")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error_message: Option<String>, // string       Y	-
-}
-
 impl<S: crate::client::BinancePaySigner> Api<S> {
     pub async fn v2_create_order(
         &self,
         request: V2CreateOrderRequest,
         time_window: impl Into<Time>,
-    ) -> LibResult<V2CreateOrderResponse> {
+    ) -> LibResult<BinancePayResponse<V2OrderResult>> {
         self.client
             .post_json(V2_BINANCEPAY_OPENAPI_ORDER, request)?
             .signed(time_window)?
@@ -162,7 +151,7 @@ mod tests {
             "errorMessage": ""
         }
         "#;
-        let response: V2CreateOrderResponse =
+        let response: BinancePayResponse<V2OrderResult> =
             serde_json::from_str(example).expect("Failed from_str");
         println!(
             "test_serde_create_order_response response :: {:#?}",
