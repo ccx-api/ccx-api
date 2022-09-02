@@ -49,12 +49,12 @@ impl RequestError {
 
 #[derive(Debug, Serialize, Deserialize, Error)]
 pub struct BinanceError {
-    status: StatusRequest,
-    code: String,
+    pub status: StatusRequest,
+    pub code: String,
     #[serde(rename = "errorMessage")]
-    error_message: String,
+    pub error_message: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    params: Option<Vec<String>>,
+    pub params: Option<Vec<String>>,
 }
 
 impl fmt::Display for BinanceError {

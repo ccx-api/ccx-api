@@ -1,3 +1,6 @@
+use crate::error::BinanceError;
+use crate::error::LibError;
+use crate::error::LibResult;
 use crate::types::enums::StatusRequest;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -21,8 +24,17 @@ where
     T: serde::Serialize,
     T: serde::de::DeserializeOwned,
 {
-    pub fn is_success(&self) -> bool {
-        self.status == StatusRequest::Success && self.data.is_some()
+    pub fn to_result(self) -> LibResult<T> {
+        match (self.status, self.data) {
+            (StatusRequest::Success, Some(data)) => Ok(data),
+            (StatusRequest::Success, None) => Err(LibError::other("Unknown result."))?,
+            (status @ StatusRequest::Fail, _) => Err(LibError::BinanceError(BinanceError {
+                status,
+                code: self.code,
+                error_message: self.error_message.unwrap_or_default(),
+                params: None,
+            }))?,
+        }
     }
 }
 
