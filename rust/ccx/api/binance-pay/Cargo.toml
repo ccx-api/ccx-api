@@ -59,3 +59,8 @@ uuid = { version = "0.8", features = ["serde", "v4"] }
 webpki-roots = { version = "0.22", optional = true }
 
 ccx-api-lib = { path = "../../util/lib" }
+
+[dev-dependencies]
+env_logger = "0.8"
+dotenv = "0.15"
+ccx-binance-pay-examples-util = { path = "examples/util" }

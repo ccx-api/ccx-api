@@ -53,4 +53,3 @@ fn sign(query: &str, secret: &[u8]) -> String {
     let res = mac.finalize().into_bytes();
     hex::encode(res)
 }
-

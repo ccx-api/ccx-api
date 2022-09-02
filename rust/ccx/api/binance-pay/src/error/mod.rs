@@ -5,6 +5,7 @@ use std::string::FromUtf8Error;
 use futures::channel::oneshot::Canceled;
 use thiserror::Error;
 
+use crate::StatusRequest;
 use ccx_api_lib::SignError;
 
 pub mod common_error;
@@ -48,8 +49,11 @@ impl RequestError {
 
 #[derive(Debug, Serialize, Deserialize, Error)]
 pub struct BinanceError {
-    code: i32,
-    msg: String,
+    status: StatusRequest,
+    code: String,
+    #[serde(rename = "errorMessage")]
+    error_message: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     params: Option<Vec<String>>,
 }
 
@@ -57,8 +61,8 @@ impl fmt::Display for BinanceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "BinanceError {{ code: {}; reason: {}",
-            self.code, self.msg
+            "BinanceError {{ status: {:?}; code: {}; reason: {}",
+            self.status, self.code, self.error_message
         )?;
         if let Some(params) = &self.params {
             write!(f, "; params: {:?}", params)?;

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use actix_http::encoding::Decoder;
-use actix_http::{Payload, BoxedPayloadStream};
+use actix_http::{BoxedPayloadStream, Payload};
 use awc::http::Method;
 use awc::http::StatusCode;
 use serde::Serialize;

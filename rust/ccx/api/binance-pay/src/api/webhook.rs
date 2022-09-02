@@ -34,7 +34,11 @@ impl BizStatus {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BinancePayWebHookRequest {
+pub struct BinancePayWebHookRequest<T>
+where
+    T: serde::Serialize,
+    T: serde::de::DeserializeOwned,
+{
     #[serde(rename = "bizType")]
     pub biz_type: String, //  string  Y   -   "PAY"
     #[serde(rename = "bizId")]
@@ -44,7 +48,7 @@ pub struct BinancePayWebHookRequest {
     pub biz_status: BizStatus, //	string	Y	-	"PAY_SUCCESS"
     #[serde(rename = "data")]
     #[serde(with = "json_string")]
-    pub notification: Notification, //	string	Y	-	JSON string, data details refer to
+    pub notification: T, //	string	Y	-	JSON string, data details refer to
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -109,16 +113,17 @@ pub struct Notification {
     pub total_fee: Decimal, //  decimal	Y	-	order amount
     pub currency: String, //  string	Y	-	order currency
     #[serde(rename = "transactTime")]
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub transact_time: Option<i64>, //  long	N	-	Timestamp when transaction happened
     #[serde(rename = "openUserId")]
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub open_user_id: Option<String>, //  string	N	-	Consumer unique id
     #[serde(rename = "transactionId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub transaction_id: Option<String>, // string	N	-	issued once the payment is successful
     pub commission: Decimal, //  decimal	Y	-	Commission fee if any
     #[serde(rename = "payerInfo")]
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub payer_info: Option<PayerInfo>, //  string	N	-   only merchant got approved by Binance Operation's approval will receive this payerInfo	payer information, refer to
 }
 
@@ -208,7 +213,7 @@ mod tests {
             "bizStatus": "PAY_SUCCESS"
         }
         "#;
-        let request: BinancePayWebHookRequest =
+        let request: BinancePayWebHookRequest<Notification> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_request biz_id :: {:?}", request.biz_id);
         // println!("test_serde_request biz_id :: {:?}", request.biz_id.as_f64());
@@ -232,7 +237,7 @@ mod tests {
             "bizStatus": "PAY_SUCCESS"
         }
         "#;
-        let request: BinancePayWebHookRequest =
+        let request: BinancePayWebHookRequest<Notification> =
             serde_json::from_str(example).expect("Failed from_str");
         println!("test_serde_request_real biz_id :: {:?}", request.biz_id);
         println!("test_serde_request_real biz_id :: {}", request.biz_id);

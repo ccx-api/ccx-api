@@ -7,31 +7,46 @@ use crate::client::RestClient;
 use crate::client::CCX_BINANCE_PAY_API_PREFIX;
 use crate::MerchantId;
 
-mod certificates;
-mod close_order;
-mod create_order;
-mod query_order;
-mod transfer_fund;
+mod certificates_v1;
+mod certificates_v2;
+mod close_order_v1;
+mod close_order_v2;
+mod create_order_v1;
+mod create_order_v2;
+mod query_order_v1;
+mod query_order_v2;
+mod transfer_fund_v1;
+mod transfer_fund_v2;
 mod webhook;
 
 pub mod prelude {
-    pub use super::certificates::Certificate;
-    pub use super::certificates::CertificateRequest;
-    pub use super::certificates::CertificateResponse;
-    pub use super::close_order::CloseOrderRequest;
-    pub use super::close_order::CloseOrderResponse;
-    pub use super::create_order::CreateOrderRequest;
-    pub use super::create_order::CreateOrderResponse;
-    pub use super::create_order::OrderResult;
-    pub use super::query_order::PayerInfo;
-    pub use super::query_order::QueryOrderRequest;
-    pub use super::query_order::QueryOrderResponse;
-    pub use super::query_order::QueryOrderResult;
-    pub use super::transfer_fund::TransferFundRequest;
-    pub use super::transfer_fund::TransferFundResponse;
-    pub use super::transfer_fund::TransferResult;
-    pub use super::transfer_fund::TransferStatus;
-    pub use super::transfer_fund::TransferType;
+    pub use super::certificates_v1::V1CertificateRequest;
+    pub use super::certificates_v1::V1CertificateResponse;
+    pub use super::certificates_v2::V2CertificateRequest;
+    pub use super::certificates_v2::V2CertificateResponse;
+    pub use super::close_order_v1::V1CloseOrderRequest;
+    pub use super::close_order_v1::V1CloseOrderResponse;
+    pub use super::close_order_v2::V2CloseOrderRequest;
+    pub use super::close_order_v2::V2CloseOrderResponse;
+    pub use super::create_order_v1::V1CreateOrderRequest;
+    pub use super::create_order_v1::V1CreateOrderResponse;
+    pub use super::create_order_v1::V1OrderResult;
+    pub use super::create_order_v2::V2CreateOrderRequest;
+    pub use super::create_order_v2::V2CreateOrderResponse;
+    pub use super::create_order_v2::V2OrderResult;
+    pub use super::query_order_v1::PayerInfo;
+    pub use super::query_order_v1::V1QueryOrderRequest;
+    pub use super::query_order_v1::V1QueryOrderResponse;
+    pub use super::query_order_v1::V1QueryOrderResult;
+    pub use super::query_order_v2::V2QueryOrderRequest;
+    pub use super::query_order_v2::V2QueryOrderResponse;
+    pub use super::query_order_v2::V2QueryOrderResult;
+    pub use super::transfer_fund_v1::V1TransferFundRequest;
+    pub use super::transfer_fund_v1::V1TransferFundResponse;
+    pub use super::transfer_fund_v1::V1TransferResult;
+    pub use super::transfer_fund_v2::V2TransferFundRequest;
+    pub use super::transfer_fund_v2::V2TransferFundResponse;
+    pub use super::transfer_fund_v2::V2TransferResult;
     pub use super::webhook::BinancePayWebHookRequest;
     pub use super::webhook::BinancePayWebHookResponse;
     pub use super::webhook::BizStatus;
@@ -59,8 +74,18 @@ impl<S: BinancePaySigner> Api<S> {
     pub fn from_env_with_prefix(prefix: &str) -> Api<ApiCred> {
         let testnet = Config::<S>::env_var("TESTNET").as_deref() == Some("1");
         let merchant_id = MerchantId::from_env_with_prefix(prefix);
+        log::debug!("from_env_with_prefix merchant_id :: {:?}", merchant_id);
         let proxy = Proxy::from_env_with_prefix(prefix);
-        Api::new(ApiCred::from_env_with_prefix(prefix), testnet, merchant_id, proxy)
+        log::debug!(
+            "from_env_with_prefix proxy :: {:?}",
+            proxy.as_ref().map(|p| (&p.host, p.port))
+        );
+        Api::new(
+            ApiCred::from_env_with_prefix(prefix),
+            testnet,
+            merchant_id,
+            proxy,
+        )
     }
 
     pub fn with_config(config: Config<S>) -> Api<S> {

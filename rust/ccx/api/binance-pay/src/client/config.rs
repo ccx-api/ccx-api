@@ -10,7 +10,7 @@ use super::API_BASE;
 use super::API_BASE_TESTNET;
 
 pub static CCX_BINANCE_PAY_API_PREFIX: &str = "CCX_BINANCE_PAY_API";
-pub static CCX_BINANCE_API_MERCHANT_ID: &str = "CCX_BINANCE_PAY_API_MERCHANT_ID";
+pub static CCX_BINANCE_PAY_API_MERCHANT_ID: &str = "CCX_BINANCE_PAY_API_MERCHANT_ID";
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct MerchantId(u64);
@@ -21,7 +21,7 @@ impl MerchantId {
     }
 
     pub fn from_env() -> Self {
-        let merchant_id = var(CCX_BINANCE_API_MERCHANT_ID).unwrap_or_default();
+        let merchant_id = var(CCX_BINANCE_PAY_API_MERCHANT_ID).unwrap_or_default();
         let merchant_id = merchant_id.parse::<u64>().unwrap_or_default();
         Self::new(merchant_id)
     }
