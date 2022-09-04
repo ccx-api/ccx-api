@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::VecDeque;
 use std::fmt::Debug;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -57,7 +58,7 @@ impl RateLimiterBuilder {
         let rate_limiter = RateLimiter {
             buckets: Arc::new(buckets),
             tasks_tx,
-            queue: Arc::new(Mutex::new(Vec::new())),
+            queue: Arc::new(Mutex::new(VecDeque::new())),
         };
         rate_limiter.recv(tasks_rx);
         rate_limiter
@@ -68,7 +69,7 @@ impl RateLimiterBuilder {
 pub(crate) struct RateLimiter {
     buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
     tasks_tx: mpsc::UnboundedSender<TaskMessage>,
-    queue: Arc<Mutex<Vec<TaskMessage>>>,
+    queue: Arc<Mutex<VecDeque<TaskMessage>>>,
 }
 
 impl RateLimiter {
@@ -91,9 +92,12 @@ impl RateLimiter {
             while let Some(task_message) = rx.next().await {
                 let is_first_task = {
                     let mut guard = queue.lock().await;
-                    guard.push(task_message);
-                    // higher priority at the end
-                    guard.sort_by(|a, b| a.priority.cmp(&b.priority));
+
+                    // high priority at the beginning
+                    guard.push_back(task_message);
+                    guard
+                        .make_contiguous()
+                        .sort_by(|a, b| b.priority.cmp(&a.priority));
                     guard.len() == 1
                 };
 
@@ -106,7 +110,7 @@ impl RateLimiter {
 
     async fn handler<'a>(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        queue: Arc<Mutex<Vec<TaskMessage>>>,
+        queue: Arc<Mutex<VecDeque<TaskMessage>>>,
     ) {
         let buckets = buckets.clone();
         let queue = queue.clone();
@@ -116,7 +120,7 @@ impl RateLimiter {
                     priority,
                     costs,
                     tx,
-                } = match queue.lock().await.pop() {
+                } = match queue.lock().await.pop_front() {
                     Some(task) => task,
                     None => {
                         log::debug!("RateLimiter: stop queue handler (queue is empty)");
