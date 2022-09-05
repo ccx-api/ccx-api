@@ -58,7 +58,7 @@ impl RateLimiterBuilder {
         let rate_limiter = RateLimiter {
             buckets: Arc::new(buckets),
             tasks_tx,
-            queue: Arc::new(Mutex::new(VecDeque::new())),
+            queue: Arc::new(Mutex::new(Queue::new())),
         };
         rate_limiter.recv(tasks_rx);
         rate_limiter
@@ -69,7 +69,7 @@ impl RateLimiterBuilder {
 pub(crate) struct RateLimiter {
     buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
     tasks_tx: mpsc::UnboundedSender<TaskMessage>,
-    queue: Arc<Mutex<VecDeque<TaskMessage>>>,
+    queue: Arc<Mutex<Queue>>,
 }
 
 impl RateLimiter {
@@ -90,17 +90,7 @@ impl RateLimiter {
         let queue = self.queue.clone();
         actix_rt::spawn(async move {
             while let Some(task_message) = rx.next().await {
-                let is_first_task = {
-                    let mut guard = queue.lock().await;
-
-                    // high priority at the beginning
-                    guard.push_back(task_message);
-                    guard
-                        .make_contiguous()
-                        .sort_by(|a, b| b.priority.cmp(&a.priority));
-                    guard.len() == 1
-                };
-
+                let is_first_task = queue.lock().await.add(task_message).is_first();
                 if is_first_task {
                     Self::handler(buckets.clone(), queue.clone()).await;
                 }
@@ -110,7 +100,7 @@ impl RateLimiter {
 
     async fn handler<'a>(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        queue: Arc<Mutex<VecDeque<TaskMessage>>>,
+        queue: Arc<Mutex<Queue>>,
     ) {
         let buckets = buckets.clone();
         let queue = queue.clone();
@@ -120,7 +110,7 @@ impl RateLimiter {
                     priority,
                     costs,
                     tx,
-                } = match queue.lock().await.pop_front() {
+                } = match queue.lock().await.next() {
                     Some(task) => task,
                     None => {
                         log::debug!("RateLimiter: stop queue handler (queue is empty)");
@@ -224,6 +214,17 @@ impl RateLimiter {
     }
 }
 
+pub(crate) enum RateLimiterBucketMode {
+    Interval,
+    KrakenDecrease,
+}
+
+impl Default for RateLimiterBucketMode {
+    fn default() -> Self {
+        RateLimiterBucketMode::Interval
+    }
+}
+
 pub(crate) struct RateLimiterBucket {
     mode: RateLimiterBucketMode,
     time_instant: Instant,
@@ -303,14 +304,40 @@ impl RateLimiterBucket {
     }
 }
 
-pub(crate) enum RateLimiterBucketMode {
-    Interval,
-    KrakenDecrease,
+struct Queue {
+    inner: VecDeque<TaskMessage>,
 }
 
-impl Default for RateLimiterBucketMode {
-    fn default() -> Self {
-        RateLimiterBucketMode::Interval
+impl Queue {
+    fn new() -> Self {
+        Self {
+            inner: VecDeque::new(),
+        }
+    }
+
+    fn add(&mut self, msg: TaskMessage) -> &Self {
+        let priority = msg.priority;
+        self.inner.push_back(msg);
+
+        if priority > 0 {
+            self.inner
+                .make_contiguous()
+                .sort_by(|a, b| b.priority.cmp(&a.priority));
+        }
+
+        self
+    }
+
+    fn is_first(&self) -> bool {
+        self.inner.len() == 1
+    }
+}
+
+impl Iterator for Queue {
+    type Item = TaskMessage;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.pop_front()
     }
 }
 
