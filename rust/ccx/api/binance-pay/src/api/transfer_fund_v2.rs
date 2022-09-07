@@ -33,7 +33,8 @@ pub struct V2TransferResult {
     pub currency: String, //	string	Y	Not limited, as long as it is within the range.	transfer currency, e.g. "BUSD"
     pub amount: Decimal,  //	string	Y	-	the transfer amount
     #[serde(rename = "transferType")]
-    pub transfer_type: TransferType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transfer_type: Option<TransferType>,
 }
 
 impl<S: crate::client::BinancePaySigner> Api<S> {
