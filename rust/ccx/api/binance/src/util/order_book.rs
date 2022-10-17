@@ -172,14 +172,6 @@ impl OrderBookState {
                to the previous event's final_update_id + 1.
         */
         let next_id = self.last_update_id + 1;
-        log::trace!(
-            "  next_id:  {},  last_update_id:  {},  first_update_id:  {},  final_update_id:  {}",
-            next_id,
-            self.last_update_id,
-            diff.first_update_id,
-            diff.final_update_id
-        );
-
         if self.dirty {
             if diff.final_update_id < next_id {
                 // Ignore an old update.

@@ -78,14 +78,14 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
                 log::warn!("unexpected binary message (ignored)");
             }
             ws::Frame::Text(msg) => {
-                use log::Level::*;
-
                 let res = serde_json::from_slice(&msg);
-                log::log!(
-                    if res.is_err() { Error } else { Trace },
-                    "json message from server: {}",
-                    String::from_utf8_lossy(&msg)
-                );
+                if res.is_err() {
+                    log::error!(
+                        "json message from server: {}",
+                        String::from_utf8_lossy(&msg)
+                    );
+                }
+
                 match res {
                     Err(e) => {
                         log::error!("Failed to deserialize server message: {:?}", e);
