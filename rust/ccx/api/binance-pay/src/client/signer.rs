@@ -43,11 +43,10 @@ impl BinancePaySigner for ApiCred {
 fn sign(query: &str, secret: &[u8]) -> String {
     use hmac::Hmac;
     use hmac::Mac;
-    use hmac::NewMac;
     use sha2::Sha512;
 
     log::debug!("sign query  :: {}", query);
-    let mut mac = Hmac::<Sha512>::new_varkey(secret).expect("HMAC can take key of any size");
+    let mut mac = Hmac::<Sha512>::new_from_slice(secret).expect("HMAC can take key of any size");
     mac.update(query.as_bytes());
 
     let res = mac.finalize().into_bytes();

@@ -2,14 +2,15 @@
 name = "ccx"
 version = "0.4.0"
 authors = ["CCX-API Library developers <irbis.labs@gmail.com>"]
-edition = "2018"
-resolver = "2"
+edition = "2021"
 
 [workspace]
 members = [
     "api/binance",
     "api/binance/examples/util",
     "api/binance-pay",
+    "api/finery-markets",
+    "api/finery-markets/examples/util",
     "api/kraken",
     "api/kraken/examples/util",
     "util/lib",
@@ -19,3 +20,4 @@ members = [
 ccx-binance = { path = "api/binance" }
 ccx-kraken = { path = "api/kraken" }
 ccx-binance-pay = { path = "api/binance-pay" }
+ccx-finery-markets = { path = "api/finery-markets" }

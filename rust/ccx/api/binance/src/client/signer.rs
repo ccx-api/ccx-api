@@ -15,9 +15,7 @@ pub trait BinanceSigner: Sync + Send {
 
 impl BinanceSigner for ApiCred {
     fn sign_data<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a> {
-        Box::pin(async move {
-            Ok(sign(query, self.secret.as_bytes()))
-        })
+        Box::pin(async move { Ok(sign(query, self.secret.as_bytes())) })
     }
 
     fn api_key(&self) -> &str {
@@ -28,13 +26,11 @@ impl BinanceSigner for ApiCred {
 fn sign(query: &str, secret: &[u8]) -> String {
     use hmac::Hmac;
     use hmac::Mac;
-    use hmac::NewMac;
     use sha2::Sha256;
 
-    let mut mac = Hmac::<Sha256>::new_varkey(secret).expect("HMAC can take key of any size");
+    let mut mac = Hmac::<Sha256>::new_from_slice(secret).expect("HMAC can take key of any size");
     mac.update(query.as_bytes());
 
     let res = mac.finalize().into_bytes();
     format!("{:x}", res)
 }
-
