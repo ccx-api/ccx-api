@@ -2,7 +2,7 @@
 name = "ccx-kraken"
 version = "0.4.0"
 authors = ["CCX-API Library developers <irbis.labs@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [features]
 default = ["with_network"]
@@ -28,18 +28,18 @@ actix-tls = { version = "3", optional = true }
 actix-web = { version = "4", features = ["rustls"], optional = true }
 actix-web-actors = { version = "4", optional = true }
 awc = { version = "3", optional = true, features = ["rustls"] }
-base64 = "0.13"
+base64 = "0.21"
 chrono = { version = "0.4", default_features = false, features = ["clock"] }
 log = "0.4"
 futures = "0.3"
-hmac = "0.10"
+hmac = "0.12"
 rust_decimal = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_repr = "0.1"
 erased-serde = "0.3"
 serde_urlencoded = "0.7"
-sha2 = "0.9"
+sha2 = "0.10"
 string_cache = "0.8"
 thiserror = "1"
 url = { version = "2", features = ["serde"] }
@@ -47,6 +47,6 @@ url = { version = "2", features = ["serde"] }
 ccx-api-lib = { path = "../../util/lib" }
 
 [dev-dependencies]
-env_logger = "0.8"
+env_logger = "0.10"
 dotenv = "0.15"
 ccx-kraken-examples-util = { path = "examples/util" }

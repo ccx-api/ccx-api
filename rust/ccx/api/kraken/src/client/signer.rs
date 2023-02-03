@@ -26,10 +26,12 @@ impl KrakenSigner for ApiCred {
         method: &'b str,
         query: &'b str,
     ) -> SignResult<'a> {
+        use base64::{engine::general_purpose, Engine as _};
+
         Box::pin(async move {
-            let decoded_secret = base64::decode(&self.secret).map_err(|e| {
-                KrakenError::other(format!("Failed to deserialize key: {:?}", e))
-            })?;
+            let decoded_secret = general_purpose::STANDARD
+                .decode(&self.secret)
+                .map_err(|e| KrakenError::other(format!("Failed to deserialize key: {:?}", e)))?;
             Ok(sign(method, nonce, query, &decoded_secret))
         })
     }
@@ -40,9 +42,9 @@ impl KrakenSigner for ApiCred {
 }
 
 fn sign(path: &str, nonce: Nonce, body: &str, decoded_secret: &[u8]) -> String {
+    use base64::{engine::general_purpose, Engine as _};
     use hmac::Hmac;
     use hmac::Mac;
-    use hmac::NewMac;
     use sha2::Digest;
     use sha2::Sha256;
     use sha2::Sha512;
@@ -54,10 +56,10 @@ fn sign(path: &str, nonce: Nonce, body: &str, decoded_secret: &[u8]) -> String {
     let payload = m256.finalize();
 
     let mut m512 =
-        Hmac::<Sha512>::new_varkey(decoded_secret).expect("HMAC can take key of any size");
+        Hmac::<Sha512>::new_from_slice(decoded_secret).expect("HMAC can take key of any size");
     m512.update(path.as_bytes());
     m512.update(&payload);
 
     let res = m512.finalize().into_bytes();
-    base64::encode(&res)
+    general_purpose::STANDARD.encode(res)
 }
