@@ -34,6 +34,8 @@ pub enum ApiFineryError {
     MfaNotEnabled = 12,
     #[error("User agreement not signed")]
     UserAgreementNotSigned = 13,
+    #[error("The signature of your request is invalid")]
+    InvalidSignature = 14,
     #[error("Link expired")]
     LinkExpired = 15,
     #[error("Invalid currency flags")]
@@ -130,6 +132,10 @@ pub enum ApiFineryError {
     OrdersVolumeNotSupportedForMakers = 82,
     #[error("Invalid order volume")]
     InvalidOrderVolume = 83,
+    #[error("Trading not allowed")]
+    TradingNotAllowed = 84,
+    #[error("No open positions in order currencies")]
+    NoOpenPositionsInOrderCurrencies = 85,
     #[error("Mod failed - no size after decrement")]
     ModFailedNoSizeAfterDecrement = 90,
     #[error("Mod failed - side mismatch")]
