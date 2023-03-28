@@ -18,11 +18,13 @@ mod with_network {
 }
 
 #[derive(Clone, Debug, Error)]
-pub enum ServiceError {
+pub enum ApiServiceError {
     #[error("Server Error")]
     ServerError,
     #[error("Service Unavailable")]
     ServiceUnavailable,
+    #[error("Rate Limit Exceeded")]
+    RateLimitExceeded,
 }
 
 #[derive(Debug, Error)]
@@ -52,7 +54,7 @@ where
     #[error("Client Error: {0}")]
     ApiError(#[from] AE),
     #[error("Service Error: {0}")]
-    ServiceError(#[from] ServiceError),
+    ServiceError(#[from] ApiServiceError),
     #[cfg(feature = "with_network")]
     #[error("Unknown Status: {0}")]
     UnknownStatus(awc::http::StatusCode),

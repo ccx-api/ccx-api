@@ -270,8 +270,8 @@ fn check_response(res: AwcClientResponse) -> BinanceResult<AwcClientResponse> {
 
     match res.status() {
         StatusCode::OK => Ok(res),
-        StatusCode::INTERNAL_SERVER_ERROR => Err(ServiceError::ServerError)?,
-        StatusCode::SERVICE_UNAVAILABLE => Err(ServiceError::ServiceUnavailable)?,
+        StatusCode::INTERNAL_SERVER_ERROR => Err(ApiServiceError::ServerError)?,
+        StatusCode::SERVICE_UNAVAILABLE => Err(ApiServiceError::ServiceUnavailable)?,
         StatusCode::UNAUTHORIZED => Err(ApiError::Unauthorized)?,
         // StatusCode::BAD_REQUEST => {
         //     let error_json: BinanceContentError = response.json()?;

@@ -9,6 +9,8 @@ members = [
     "api/binance",
     "api/binance/examples/util",
     "api/binance-pay",
+    "api/coinbase",
+    "api/coinbase/examples/util",
     "api/finery-markets",
     "api/finery-markets/examples/util",
     "api/kraken",
@@ -18,6 +20,7 @@ members = [
 
 [dependencies]
 ccx-binance = { path = "api/binance" }
+ccx-coinbase = { path = "api/coinbase" }
 ccx-kraken = { path = "api/kraken" }
 ccx-binance-pay = { path = "api/binance-pay" }
 ccx-finery-markets = { path = "api/finery-markets" }

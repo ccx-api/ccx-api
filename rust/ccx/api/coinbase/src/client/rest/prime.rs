@@ -6,30 +6,32 @@ use actix_http::Uri;
 use actix_http::{BoxedPayloadStream, Payload};
 use awc::http::Method;
 use awc::http::StatusCode;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use ccx_api_lib::make_client;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;
 use ccx_api_lib::ClientResponse;
 
-use super::*;
+use crate::client::*;
 // use crate::client::limits::UsedRateLimits;
-use crate::client::WebsocketStream;
+// use crate::client::WebsocketStream;
 use crate::error::*;
 // use crate::proto::TimeWindow;
 
 /// API client.
-pub struct RestClient<S>
-where
-    S: KrakenSigner,
+pub struct RestPrimeClient<S>
+    where
+        S: CoinbasePrimeSigner,
 {
     inner: Arc<ClientInner<S>>,
 }
 
-impl<S> Clone for RestClient<S>
-where
-    S: KrakenSigner,
+impl<S> Clone for RestPrimeClient<S>
+    where
+        S: CoinbasePrimeSigner,
 {
     fn clone(&self) -> Self {
         Self {
@@ -39,60 +41,47 @@ where
 }
 
 struct ClientInner<S>
-where
-    S: KrakenSigner,
+    where
+        S: CoinbasePrimeSigner,
 {
-    config: Config<S>,
+    config: PrimeConfig<S>,
 }
 
-pub struct RequestBuilder<S>
-where
-    S: KrakenSigner,
+pub struct PrimeRequestBuilder<S>
+    where
+        S: CoinbasePrimeSigner,
 {
-    api_client: RestClient<S>,
+    api_client: RestPrimeClient<S>,
     request: ClientRequest,
-    sign: Option<(Nonce,)>,
+    sign: Option<(u32,)>,
     body: String,
 }
 
 #[derive(Serialize, Deserialize)]
-struct KrakenApiAnswer<T> {
-    result: Option<T>,
-    error: Vec<String>,
+struct CoinbaseApiAnswer<T> {
+    result: T,
+    message: String,
 }
 
-impl<T> KrakenApiAnswer<T>
-where
-    T: Deserialize<'static>,
+impl<S> RestPrimeClient<S>
+    where
+        S: CoinbasePrimeSigner,
 {
-    fn into_api_result(self) -> KrakenApiResult<T> {
-        let error = KrakenApiError(self.error.into_iter().map(ApiError::from_string).collect());
-        match self.result {
-            Some(result) => Ok((result, error)),
-            None => Err(error)?,
-        }
-    }
-}
-
-impl<S> RestClient<S>
-where
-    S: KrakenSigner,
-{
-    pub fn new(config: Config<S>) -> Self {
+    pub fn new(config: PrimeConfig<S>) -> Self {
         let inner = Arc::new(ClientInner { config });
-        RestClient { inner }
+        RestPrimeClient { inner }
     }
 
     pub(super) fn client(&self) -> Client {
         make_client(false, self.inner.config.proxy.as_ref())
     }
 
-    pub fn request(&self, method: Method, endpoint: &str) -> KrakenResult<RequestBuilder<S>> {
+    pub fn request(&self, method: Method, endpoint: &str) -> CoinbaseResult<PrimeRequestBuilder<S>> {
         let url = self.inner.config.api_base.join(endpoint)?;
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
         let request = self.client().request(method, url.as_str());
-        Ok(RequestBuilder {
+        Ok(PrimeRequestBuilder {
             api_client,
             request,
             sign: None,
@@ -100,31 +89,31 @@ where
         })
     }
 
-    pub fn get(&self, endpoint: &str) -> KrakenResult<RequestBuilder<S>> {
+    pub fn get(&self, endpoint: &str) -> CoinbaseResult<PrimeRequestBuilder<S>> {
         self.request(Method::GET, endpoint)
     }
 
-    pub fn post(&self, endpoint: &str) -> KrakenResult<RequestBuilder<S>> {
+    pub fn post(&self, endpoint: &str) -> CoinbaseResult<PrimeRequestBuilder<S>> {
         self.request(Method::POST, endpoint)
     }
 
-    pub fn put(&self, endpoint: &str) -> KrakenResult<RequestBuilder<S>> {
+    pub fn put(&self, endpoint: &str) -> CoinbaseResult<PrimeRequestBuilder<S>> {
         self.request(Method::PUT, endpoint)
     }
 
-    pub fn delete(&self, endpoint: &str) -> KrakenResult<RequestBuilder<S>> {
+    pub fn delete(&self, endpoint: &str) -> CoinbaseResult<PrimeRequestBuilder<S>> {
         self.request(Method::DELETE, endpoint)
     }
-
-    pub async fn web_socket(&self) -> KrakenResult<WebsocketStream> {
-        let url = self.inner.config.stream_base.clone();
-        Ok(WebsocketStream::connect(self.clone(), url).await?)
-    }
+    //
+    // pub async fn web_socket(&self) -> CoinbaseResult<WebsocketStream> {
+    //     let url = self.inner.config.stream_base.clone();
+    //     Ok(WebsocketStream::connect(self.clone(), url).await?)
+    // }
 }
 
-impl<S> RequestBuilder<S>
-where
-    S: KrakenSigner,
+impl<S> PrimeRequestBuilder<S>
+    where
+        S: CoinbasePrimeSigner,
 {
     pub fn uri(&self) -> String {
         self.request.get_uri().to_string()
@@ -134,7 +123,7 @@ where
         mut self,
         name: Name,
         query: &T,
-    ) -> KrakenResult<Self> {
+    ) -> CoinbaseResult<Self> {
         let mut parts = self.request.get_uri().clone().into_parts();
 
         if let Some(path_and_query) = parts.path_and_query {
@@ -149,7 +138,8 @@ where
             }
             buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
-            let uri = Uri::from_parts(parts).map_err(|e| KrakenError::other(format!("{:?}", e)))?;
+            let uri =
+                Uri::from_parts(parts).map_err(|e| CoinbaseError::other(format!("{:?}", e)))?;
             self.request = self.request.uri(uri);
         }
 
@@ -160,73 +150,67 @@ where
         self,
         name: Name,
         query: &Option<T>,
-    ) -> KrakenResult<Self> {
+    ) -> CoinbaseResult<Self> {
         match query {
             Some(val) => self.query_arg(name, val),
             None => Ok(self),
         }
     }
 
-    pub fn auth_header(mut self) -> KrakenResult<Self> {
+    pub fn auth_header(mut self) -> CoinbaseResult<Self> {
         self.request = self
             .request
             .append_header(("API-Key", self.api_client.inner.config.api_key()));
         Ok(self)
     }
 
-    pub fn request_body(mut self, payload: impl Serialize) -> KrakenResult<Self> {
-        self.body = match &self.sign {
-            Some((nonce,)) => serde_urlencoded::to_string(nonce.wrap(payload)),
-            None => serde_urlencoded::to_string(payload),
-        }?;
+    pub fn request_body(mut self, payload: impl Serialize) -> CoinbaseResult<Self> {
+        self.body = serde_json::to_string(&payload)?;
         Ok(self)
     }
 
-    pub fn signed(mut self, nonce: Nonce) -> KrakenResult<Self> {
-        self.sign = Some((nonce,));
+    pub fn signed(mut self, timestamp: u32) -> CoinbaseResult<Self> {
+        self.sign = Some((timestamp,));
         self.auth_header()
     }
 
-    pub async fn send<V>(mut self) -> KrakenApiResult<V>
-    where
-        V: serde::de::DeserializeOwned,
+    pub async fn send<V>(mut self) -> CoinbaseApiResult<V>
+        where
+            V: DeserializeOwned,
     {
+        let request_id = Uuid::new_v4();
         self = self.sign().await?;
-        self.request = self
-            .request
-            .content_type("application/x-www-form-urlencoded");
-        log::debug!("{}  {}", self.request.get_method(), self.request.get_uri());
-        log::debug!("{}", self.body);
+        self.request = self.request.content_type("application/json");
+        log::debug!(
+            "[{request_id}]  Request: {} {}",
+            self.request.get_method(),
+            self.request.get_uri()
+        );
+        log::debug!("[{request_id}]  Request body: {:?}", self.body);
         let tm = Instant::now();
         let mut res = self.request.send_body(self.body).await?;
         let d1 = tm.elapsed();
         let resp = res.body().limit(16 * 1024 * 1024).await?;
         let d2 = tm.elapsed() - d1;
         log::debug!(
-            "Request time elapsed:  {:0.1}ms + {:0.1}ms",
+            "[{request_id}]  Time elapsed:  {:0.1}ms + {:0.1}ms",
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
+        let code = res.status();
         log::debug!(
-            "Response: {} «{}»",
-            res.status(),
+            "[{request_id}]  Response: {} «{}»",
+            code,
             String::from_utf8_lossy(&resp)
         );
         if let Err(err) = check_response(res) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
         };
-        let answer: KrakenApiAnswer<V> = match serde_json::from_slice(&resp) {
-            Ok(json) => json,
-            Err(err) => {
-                // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
-                Err(err)?
-            }
-        };
-        answer.into_api_result()
+        Ok(from_response(code, &resp)?)
     }
 
-    // pub async fn send_no_response(mut self) -> KrakenResult<()> {
+    // pub async fn send_no_response(mut self) -> CoinbaseResult<()> {
     //     self = self.sign()?;
     //     log::debug!("{}  {}", self.request.get_method(), self.request.get_uri(),);
     //     let tm = Instant::now();
@@ -251,18 +235,34 @@ where
     //     Ok(())
     // }
 
-    async fn sign(mut self) -> KrakenResult<Self> {
-        if let Some((nonce,)) = self.sign {
-            let path = self.request.get_uri().path();
+    async fn sign(mut self) -> CoinbaseResult<Self> {
+        if let Some((timestamp,)) = self.sign {
+            let url_path = self.request.get_uri().path();
+            let method = self.request.get_method();
+            match *method {
+                Method::GET => {
+                    self.body = String::new();
+                }
+                _ => (),
+            }
             let signature = self
                 .api_client
                 .inner
                 .config
                 .signer()
-                .sign_data(nonce, path, &self.body)
+                .sign_data(timestamp, method.as_str(), url_path, &self.body)
                 .await?;
-            self.request = self.request.append_header(("API-Sign", signature));
+            self.request = self
+                .request
+                .append_header(("X-CB-ACCESS-SIGNATURE", signature))
+                .append_header(("X-CB-ACCESS-timestamp", timestamp))
+                .append_header(("X-CB-ACCESS-KEY", self.api_client.inner.config.api_key()))
+                .append_header((
+                    "X-CB-ACCESS-PASSPHRASE",
+                    self.api_client.inner.config.api_passphrase(),
+                ));
         };
+        self.request = self.request.append_header(("Accept", "application/json"));
         Ok(self)
     }
 }
@@ -271,22 +271,47 @@ where
 
 type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
-fn check_response(res: AwcClientResponse) -> KrakenApiResult<AwcClientResponse> {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct ApiErrorMessage {
+    message: String,
+}
+
+fn check_response(res: AwcClientResponse) -> CoinbaseApiResult<AwcClientResponse> {
     // let used_rate_limits = UsedRateLimits::from_headers(res.headers());
     //
     // log::debug!("  used_rate_limits:  {:?}", used_rate_limits);
 
     match res.status() {
-        StatusCode::OK => KrakenApiError::ok(res),
+        StatusCode::OK => Ok(res),
+        // TODO check for rate limit error
+        StatusCode::TOO_MANY_REQUESTS => Err(ApiServiceError::RateLimitExceeded)?,
         StatusCode::INTERNAL_SERVER_ERROR => Err(ApiServiceError::ServerError)?,
+        StatusCode::BAD_GATEWAY => Err(ApiServiceError::ServiceUnavailable)?,
         StatusCode::SERVICE_UNAVAILABLE => Err(ApiServiceError::ServiceUnavailable)?,
-        // StatusCode::UNAUTHORIZED => Err(RequestError::Unauthorized)?,
-        // StatusCode::BAD_REQUEST => {
-        //     let error_json: BinanceContentError = response.json()?;
-        //
-        //     Err(ErrorKind::BinanceError(error_json.code, error_json.msg, response).into())
-        // }
-        s => Err(KrakenError::UnknownStatus(s))?,
+        StatusCode::GATEWAY_TIMEOUT => Err(ApiServiceError::ServiceUnavailable)?,
+        _ => Ok(res),
+    }
+}
+
+fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> CoinbaseApiResult<V> {
+    match code {
+        _ if code.is_success() => match serde_json::from_slice(body) {
+            Ok(result) => return Ok(result),
+            Err(err) => Err(err)?,
+        },
+        _ => {
+            let message = match serde_json::from_slice(body) {
+                Ok(ApiErrorMessage { message }) => message,
+                Err(_err) => String::from_utf8_lossy(body).to_string(),
+            };
+            let kind = match code {
+                StatusCode::UNAUTHORIZED => ApiErrorKind::Unauthorized,
+                _ => ApiErrorKind::Unrecognized
+            };
+            Err(LibError::ApiError(
+                (kind, code, message).into(),
+            ))?
+        }
     }
 }
 
