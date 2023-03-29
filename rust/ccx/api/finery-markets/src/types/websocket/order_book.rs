@@ -76,7 +76,7 @@ impl OrderBook {
     }
 
     pub fn instruments(&self) -> Vec<Pair> {
-        self.feeds.keys().map(|item| item.clone()).collect()
+        self.feeds.keys().cloned().collect()
     }
 
     // pub fn order_meta(&self) -> HashMap<Pair, OrderMetaRate> {
@@ -102,7 +102,7 @@ impl OrderBook {
         match feed_id.into() {
             FeedId::Currency(_) => None,
             FeedId::Instrument(id) => Some(id),
-            FeedId::Pair(pair) => self.feeds.get(&pair).map(|id| *id),
+            FeedId::Pair(pair) => self.feeds.get(&pair).copied(),
         }
     }
 
@@ -122,7 +122,7 @@ impl OrderBook {
             })
             .map(|instrument| (instrument.name, instrument.id))
             .collect();
-        for (_, id) in &self.feeds {
+        for id in self.feeds.values() {
             self.map.insert(*id, PairOrderBook::new());
             subscribe_order_book(ws.clone(), *id).await?;
         }
@@ -135,9 +135,8 @@ impl OrderBook {
             Some(id) => id,
             None => return,
         };
-        match self.map.get_mut(&instrument_id) {
-            Some(book) => book.on_snapshot(bids, asks),
-            None => {}
+        if let Some(book) = self.map.get_mut(&instrument_id) {
+            book.on_snapshot(bids, asks)
         }
     }
 
@@ -146,9 +145,8 @@ impl OrderBook {
             Some(id) => id,
             None => return,
         };
-        match self.map.get_mut(&instrument_id) {
-            Some(book) => book.on_update(bids, asks),
-            None => {}
+        if let Some(book) = self.map.get_mut(&instrument_id) {
+            book.on_update(bids, asks)
         }
     }
 
@@ -224,7 +222,7 @@ impl OrderBook {
     }
 
     pub async fn unsubscribe_book(&mut self, ws: WebSocket) -> LibResult<()> {
-        for (_pair, instrument_id) in &self.feeds {
+        for instrument_id in self.feeds.values() {
             unsubscribe_order_book(ws.clone(), *instrument_id).await?;
         }
         Ok(())
@@ -401,26 +399,26 @@ impl Levels {
 
 async fn subscribe_instruments(ws: WebSocket) -> LibResult<()> {
     let feed_request = FeedRequest::Instruments;
-    let _result = ws.subscribe(feed_request).await?;
+    ws.subscribe(feed_request).await?;
     Ok(())
 }
 
 async fn unsubscribe_instruments(ws: WebSocket) -> LibResult<()> {
     let feed_request = FeedRequest::Instruments;
-    let _result = ws.unsubscribe(feed_request).await?;
+    ws.unsubscribe(feed_request).await?;
     Ok(())
 }
 
 async fn subscribe_order_book(ws: WebSocket, instrument_id: u64) -> LibResult<()> {
     let feed_request = FeedRequest::TradableOrderBooks;
     let feed_id = FeedId::from(instrument_id);
-    let _result = ws.subscribe_feed(feed_request, feed_id).await?;
+    ws.subscribe_feed(feed_request, feed_id).await?;
     Ok(())
 }
 
 async fn unsubscribe_order_book(ws: WebSocket, instrument_id: u64) -> LibResult<()> {
     let feed_request = FeedRequest::TradableOrderBooks;
     let feed_id = FeedId::from(instrument_id);
-    let _result = ws.unsubscribe_feed(feed_request, feed_id).await?;
+    ws.unsubscribe_feed(feed_request, feed_id).await?;
     Ok(())
 }

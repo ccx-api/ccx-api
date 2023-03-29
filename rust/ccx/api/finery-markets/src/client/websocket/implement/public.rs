@@ -12,8 +12,7 @@ impl WebSocket {
     }
 
     pub(crate) async fn send_message(&self, msg: String) -> LibResult<()> {
-        let res = self.addr.send(WsCommand(msg)).await?;
-        res
+        self.addr.send(WsCommand(msg)).await?
     }
 
     pub async fn subscribe(&self, feed: FeedRequest) -> LibResult<()> {

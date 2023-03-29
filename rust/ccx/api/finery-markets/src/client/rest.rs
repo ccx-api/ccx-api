@@ -225,9 +225,7 @@ where
         );
 
         log::debug!("Response: {} «{:#?}»", res.status(), resp);
-        if let Err(err) = check_response(res, &resp) {
-            return Err(err);
-        };
+        check_response(res, &resp)?;
         match serde_json::from_slice(&resp) {
             Ok(json) => Ok(json),
             Err(err) => Err(LibError::Json(err)),
