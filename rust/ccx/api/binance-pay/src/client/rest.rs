@@ -191,8 +191,8 @@ where
     }
 
     pub fn random_nonce(self) -> LibResult<Self> {
-        let lchars = 'a'..'z';
-        let uchars = 'A'..'Z';
+        let lchars = 'a'..='z';
+        let uchars = 'A'..='Z';
         let chars = lchars
             .into_iter()
             .chain(uchars.into_iter())
@@ -228,12 +228,10 @@ where
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
+
         // log::debug!("Response: {} «{}»", res.status(), String::from_utf8_lossy(&resp));
         log::debug!("Response: {} «{:#?}»", res.status(), resp);
-        if let Err(err) = check_response(res, &resp) {
-            // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
-            return Err(err);
-        };
+        check_response(res, &resp)?;
         match serde_json::from_slice(&resp) {
             Ok(json) => Ok(json),
             Err(err) => {

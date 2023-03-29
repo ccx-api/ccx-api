@@ -33,7 +33,7 @@ impl Default for OrderGoods {
             type_: GoodsType::default(),
             category: GoodsCategory::default(),
             reference_id: id.to_string(),
-            name: format!("Goods name for {}", id.to_string()),
+            name: format!("Goods name for {}", id),
             detail: None::<String>,
             unit_amount: None::<GoodsUnitAmount>,
             quantity: None::<String>,
