@@ -33,9 +33,9 @@ use crate::client::KrakenSigner;
 pub const API_BASE: &str = "https://api.kraken.com/";
 pub const STREAM_BASE: &str = "wss://ws.kraken.com/";
 
-pub const RL_PUBLIC_PER_SECOND: &'static str = "public";
-pub const RL_PRIVATE_PER_MINUTE: &'static str = "private";
-pub const RL_MATCHING_ENGINE_PER_MINUTE: &'static str = "matching_engine";
+pub const RL_PUBLIC_PER_SECOND: &str = "public";
+pub const RL_PRIVATE_PER_MINUTE: &str = "private";
+pub const RL_MATCHING_ENGINE_PER_MINUTE: &str = "matching_engine";
 
 pub enum RlPriorityLevel {
     Normal = 1,

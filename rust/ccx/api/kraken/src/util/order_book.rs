@@ -99,19 +99,17 @@ impl OrderBookUpdater {
     }
 }
 
+impl Default for OrderBookUpdater {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OrderBookState {
     pub fn new(snapshot: OrderBook) -> Self {
         OrderBookState {
-            asks: snapshot
-                .asks
-                .into_iter()
-                .map(|v| (v.price, v.qty))
-                .collect(),
-            bids: snapshot
-                .bids
-                .into_iter()
-                .map(|v| (v.price, v.qty))
-                .collect(),
+            asks: snapshot.asks.iter().map(|v| (v.price, v.qty)).collect(),
+            bids: snapshot.bids.iter().map(|v| (v.price, v.qty)).collect(),
         }
     }
 

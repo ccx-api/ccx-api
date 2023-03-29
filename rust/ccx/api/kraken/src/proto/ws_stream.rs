@@ -46,11 +46,11 @@ pub struct SnapOrderBookEvent {
     pub pair: Atom,
 }
 
-impl Into<OrderBook> for SnapOrderBookEvent {
-    fn into(self) -> OrderBook {
+impl From<SnapOrderBookEvent> for OrderBook {
+    fn from(val: SnapOrderBookEvent) -> Self {
         OrderBook {
-            bids: self.data.bids.into(),
-            asks: self.data.asks.into(),
+            bids: val.data.bids.into(),
+            asks: val.data.asks.into(),
         }
     }
 }
@@ -199,6 +199,7 @@ impl WsStream {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         Some(match s {
             Self::BOOK => Self::Book(WsStreamBookParams { depth: 10 }),

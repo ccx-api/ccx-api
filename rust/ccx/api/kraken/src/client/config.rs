@@ -91,7 +91,7 @@ where
         tier: RateLimiterTier,
     ) -> Self {
         Config {
-            signer: signer.into(),
+            signer,
             api_base,
             stream_base,
             proxy,
@@ -104,7 +104,7 @@ where
     }
 
     pub(crate) fn api_key(&self) -> &str {
-        &self.signer.api_key()
+        self.signer.api_key()
     }
 
     pub(crate) fn signer(&self) -> &S {

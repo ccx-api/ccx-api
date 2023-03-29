@@ -118,7 +118,7 @@ where
 
     pub async fn web_socket(&self) -> KrakenResult<WebsocketStream> {
         let url = self.inner.config.stream_base.clone();
-        Ok(WebsocketStream::connect(self.clone(), url).await?)
+        WebsocketStream::connect(self.clone(), url).await
     }
 }
 
@@ -147,7 +147,7 @@ where
                     buf.push('&');
                 }
             }
-            buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
+            buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
             let uri = Uri::from_parts(parts).map_err(|e| KrakenError::other(format!("{:?}", e)))?;
             self.request = self.request.uri(uri);

@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
 
 use crate::env_var_with_prefix;
@@ -23,7 +24,7 @@ impl ExchangeApiCred {
 
     pub fn decode_secret(secret: Option<&str>) -> Vec<u8> {
         secret
-            .and_then(|s| base64::decode(s).ok())
+            .and_then(|s| general_purpose::STANDARD.decode(s).ok())
             .unwrap_or_default()
     }
 

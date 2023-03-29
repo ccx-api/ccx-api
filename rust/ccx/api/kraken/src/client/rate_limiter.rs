@@ -52,7 +52,7 @@ impl RateLimiterBuilder {
         let buckets = self
             .buckets
             .into_iter()
-            .map(|(k, v)| (k, Mutex::new(v.into())))
+            .map(|(k, v)| (k, Mutex::new(v)))
             .collect();
 
         let rate_limiter = RateLimiter {
@@ -98,12 +98,10 @@ impl RateLimiter {
         });
     }
 
-    async fn handler<'a>(
+    async fn handler(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         queue: Arc<Mutex<Queue>>,
     ) {
-        let buckets = buckets.clone();
-        let queue = queue.clone();
         actix_rt::spawn(async move {
             loop {
                 let TaskMessage {
@@ -136,9 +134,9 @@ impl RateLimiter {
         });
     }
 
-    async fn timeout<'a>(
+    async fn timeout(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        costs: &'a TaskCosts,
+        costs: &TaskCosts,
     ) -> KrakenResult<Option<Duration>> {
         let mut timeout = Duration::default();
 
@@ -183,12 +181,12 @@ impl RateLimiter {
             }
         }
 
-        Ok((!timeout.is_zero()).then(|| timeout))
+        Ok((!timeout.is_zero()).then_some(timeout))
     }
 
-    async fn set_costs<'a>(
+    async fn set_costs(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        costs: &'a TaskCosts,
+        costs: &TaskCosts,
     ) -> KrakenResult<()> {
         for (name, cost) in costs {
             let mut bucket = match buckets.get(name) {
@@ -214,15 +212,11 @@ impl RateLimiter {
     }
 }
 
+#[derive(Default)]
 pub(crate) enum RateLimiterBucketMode {
+    #[default]
     Interval,
     KrakenDecrease,
-}
-
-impl Default for RateLimiterBucketMode {
-    fn default() -> Self {
-        RateLimiterBucketMode::Interval
-    }
 }
 
 pub(crate) struct RateLimiterBucket {

@@ -83,3 +83,9 @@ impl NonceSeq {
         Nonce(now)
     }
 }
+
+impl Default for NonceSeq {
+    fn default() -> Self {
+        Self::new()
+    }
+}

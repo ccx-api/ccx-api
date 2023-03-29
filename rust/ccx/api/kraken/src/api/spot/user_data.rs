@@ -144,6 +144,7 @@ mod with_network {
         /// Retrieve information about orders that have been closed (filled or cancelled). 50 results are returned at a time, the most recent by default.
         ///
         /// Note: If an order's tx ID is given for start or end time, the order's opening time (opentm) is used.
+        #[allow(clippy::too_many_arguments)]
         pub fn get_closed_orders(
             &self,
             nonce: Nonce,

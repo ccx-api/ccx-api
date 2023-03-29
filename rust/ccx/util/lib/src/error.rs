@@ -1,19 +1,17 @@
 use std::{fmt, io, time};
 
-use serde_json;
 use thiserror::Error;
-use url;
 
 #[cfg(feature = "with_network")]
 use self::with_network::*;
 
 #[cfg(feature = "with_network")]
 mod with_network {
+    pub use actix_http::ws::ProtocolError;
     pub use awc::error::JsonPayloadError;
     pub use awc::error::PayloadError;
     pub use awc::error::SendRequestError;
     pub use awc::error::WsClientError;
-    pub use actix_http::ws::ProtocolError;
     pub use awc::http::header::InvalidHeaderValue;
 }
 

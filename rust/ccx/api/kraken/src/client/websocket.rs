@@ -207,10 +207,9 @@ impl std::ops::Deref for WebsocketStream {
 impl WebsocketStreamTx {
     pub async fn subscribe(&self, subscription: impl Into<WsSubscription>) -> KrakenResult<()> {
         let cmd = WsCommand::Subscribe(subscription.into());
-        Ok(self
-            .addr
+        self.addr
             .send(M(cmd))
             .await
-            .map_err(|_e| KrakenError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
+            .map_err(|_e| KrakenError::IoError(io::ErrorKind::ConnectionAborted.into()))
     }
 }

@@ -68,6 +68,7 @@ mod with_network {
         ///
         /// Note: See the AssetPairs endpoint for details on the available trading pairs,
         /// their price and quantity precisions, order minimums, available leverage, etc.
+        #[allow(clippy::too_many_arguments)]
         pub fn validate_order(
             &self,
             nonce: Nonce,
@@ -123,6 +124,7 @@ mod with_network {
         ///
         /// Note: See the AssetPairs endpoint for details on the available trading pairs,
         /// their price and quantity precisions, order minimums, available leverage, etc.
+        #[allow(clippy::too_many_arguments)]
         pub fn add_order(
             &self,
             nonce: Nonce,

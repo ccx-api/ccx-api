@@ -55,7 +55,7 @@ pub fn client_without_proxy(cfg: Arc<ClientConfig>) -> Client {
 pub fn client_with_proxy(cfg: Arc<ClientConfig>, proxy: &Proxy) -> Client {
     let connector = Connector::new()
         .rustls(cfg)
-        .connector(SocksConnector::new(proxy.addr().to_string()))
+        .connector(SocksConnector::new(proxy.addr()))
         .timeout(CONNECT_TIMEOUT);
     Client::builder()
         .connector(connector)

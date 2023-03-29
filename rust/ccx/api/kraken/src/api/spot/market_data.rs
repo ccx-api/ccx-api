@@ -243,12 +243,12 @@ impl OrderBookLimit {
     }
 }
 
-impl Into<OrderBook> for AssetDepthInfo {
-    fn into(self) -> OrderBook {
+impl From<AssetDepthInfo> for OrderBook {
+    fn from(value: AssetDepthInfo) -> Self {
         OrderBook {
-            bids: self
+            bids: value
                 .bids
-                .iter()
+                .into_iter()
                 .map(|i| Bid {
                     price: i.price,
                     qty: i.volume,
@@ -256,9 +256,9 @@ impl Into<OrderBook> for AssetDepthInfo {
                     update_type: None,
                 })
                 .collect(),
-            asks: self
+            asks: value
                 .asks
-                .iter()
+                .into_iter()
                 .map(|i| Ask {
                     price: i.price,
                     qty: i.volume,

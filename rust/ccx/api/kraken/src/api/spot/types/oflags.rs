@@ -63,7 +63,7 @@ impl<'de> Deserialize<'de> for OrderFlags {
             where
                 E: de::Error,
             {
-                const FLAGS: &'static [&'static str] = &["post", "fcib", "fciq", "nompp"];
+                const FLAGS: &[&str] = &["post", "fcib", "fciq", "nompp"];
 
                 let mut v = OrderFlags::default();
                 for s in value.split(',') {
