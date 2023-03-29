@@ -500,12 +500,12 @@ impl OrderBookLimit {
     }
 }
 
-impl Into<OrderBook> for SpotOrderBook {
-    fn into(self) -> OrderBook {
+impl From<SpotOrderBook> for OrderBook {
+    fn from(book: SpotOrderBook) -> Self {
         OrderBook {
-            last_update_id: self.last_update_id,
-            bids: self.bids.into(),
-            asks: self.asks.into(),
+            last_update_id: book.last_update_id,
+            bids: book.bids.into(),
+            asks: book.asks.into(),
         }
     }
 }

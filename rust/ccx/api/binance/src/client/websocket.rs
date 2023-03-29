@@ -202,19 +202,17 @@ impl WebsocketStreamTx {
         subscription: impl Into<WsSubscription>,
     ) -> BinanceResult<()> {
         let cmd = WsCommand::Subscribe1([subscription.into()]);
-        Ok(self
-            .addr
+        self.addr
             .send(M(cmd))
             .await
-            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
+            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))
     }
 
     pub async fn subscribe_list(&self, subscriptions: Box<[WsSubscription]>) -> BinanceResult<()> {
         let cmd = WsCommand::Subscribe(subscriptions);
-        Ok(self
-            .addr
+        self.addr
             .send(M(cmd))
             .await
-            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))?)
+            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))
     }
 }

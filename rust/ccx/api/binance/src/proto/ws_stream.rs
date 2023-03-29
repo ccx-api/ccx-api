@@ -408,6 +408,7 @@ impl WsStream {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         Some(match s {
             Self::DEPTH => Self::Depth,

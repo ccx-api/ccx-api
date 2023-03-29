@@ -81,21 +81,19 @@ impl OrderBookUpdater {
     }
 }
 
+impl Default for OrderBookUpdater {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OrderBookState {
     pub fn new(snapshot: OrderBook) -> Self {
         OrderBookState {
             last_update_id: snapshot.last_update_id,
             dirty: true,
-            asks: snapshot
-                .asks
-                .into_iter()
-                .map(|v| (v.price, v.qty))
-                .collect(),
-            bids: snapshot
-                .bids
-                .into_iter()
-                .map(|v| (v.price, v.qty))
-                .collect(),
+            asks: snapshot.asks.iter().map(|v| (v.price, v.qty)).collect(),
+            bids: snapshot.bids.iter().map(|v| (v.price, v.qty)).collect(),
         }
     }
 
@@ -185,13 +183,11 @@ impl OrderBookState {
             }
             // ^^ ensures diff.first_update_id <= next_id && diff.final_update_id > next_id
             self.dirty = false;
-        } else {
-            if diff.first_update_id != next_id {
-                Err(BinanceError::other(format!(
-                    "first_update_id != next_id:   {};   {}",
-                    diff.first_update_id, next_id
-                )))?
-            }
+        } else if diff.first_update_id != next_id {
+            Err(BinanceError::other(format!(
+                "first_update_id != next_id:   {};   {}",
+                diff.first_update_id, next_id
+            )))?
         }
 
         self.last_update_id = diff.final_update_id;

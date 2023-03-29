@@ -530,6 +530,7 @@ mod with_network {
         /// If network is not send, return with default network of the coin.
         /// You can get network and isDefault in networkList in the response of
         ///    Get /sapi/v1/capital/config/getall (HMAC SHA256).
+        #[allow(clippy::too_many_arguments)]
         pub fn withdraw(
             &self,
             coin: impl Serialize,
@@ -573,6 +574,7 @@ mod with_network {
         /// * network may not be in the response for old deposit.
         /// * Please notice the default startTime and endTime to make sure that time interval is within 0-90 days.
         /// * If both startTime and endTime are sent, time between startTime and endTime must be less than 90 days.
+        #[allow(clippy::too_many_arguments)]
         pub fn deposit_history(
             &self,
             coin: Option<impl Serialize>,
@@ -612,6 +614,7 @@ mod with_network {
         /// * network may not be in the response for old withdraw.
         /// * Please notice the default startTime and endTime to make sure that time interval is within 0-90 days.
         /// * If both startTime and endTime are sent, time between startTime and endTime must be less than 90 days.
+        #[allow(clippy::too_many_arguments)]
         pub fn withdraw_history(
             &self,
             coin: Option<impl Serialize>,

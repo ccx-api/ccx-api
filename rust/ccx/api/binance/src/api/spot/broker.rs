@@ -349,6 +349,7 @@ mod with_network {
         /// * If showAllStatus is false, the status in response will show three types:
         ///     INIT,PROCESS,SUCCESS.
         /// * Either fromId or toId must be sent. Return fromId equal master account by default.
+        #[allow(clippy::too_many_arguments)]
         pub fn broker_transfer_history(
             &self,
             from_id: Option<impl Serialize>,
@@ -403,6 +404,7 @@ mod with_network {
         ///     is within 0-7 days.
         /// * If both startTime and endTime are sent, time between startTime and endTime must be
         ///     less than 7 days.
+        #[allow(clippy::too_many_arguments)]
         pub fn broker_subaccount_deposit_history(
             &self,
             sub_account_id: Option<impl Serialize>,

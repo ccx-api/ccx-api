@@ -102,7 +102,7 @@ where
 
     pub async fn web_socket(&self) -> BinanceResult<WebsocketStream> {
         let url = self.inner.config.stream_base.clone();
-        Ok(WebsocketStream::connect(self.clone(), url).await?)
+        WebsocketStream::connect(self.clone(), url).await
     }
 }
 
@@ -136,7 +136,7 @@ where
                     buf.push('&');
                 }
             }
-            buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
+            buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
             let uri =
                 Uri::from_parts(parts).map_err(|e| BinanceError::other(format!("{:?}", e)))?;
@@ -173,7 +173,7 @@ where
     where
         V: serde::de::DeserializeOwned,
     {
-        self = if let Some(sign) = self.sign.clone() {
+        self = if let Some(sign) = self.sign {
             self = self.query_arg("timestamp", &sign.timestamp())?;
             let recv_window = sign.recv_window();
             if !recv_window.is_default() {
@@ -184,6 +184,7 @@ where
             self
         };
         log::debug!("{}  {}", self.request.get_method(), self.request.get_uri(),);
+
         let tm = Instant::now();
         let mut res = self.request.send().await?;
         let d1 = tm.elapsed();

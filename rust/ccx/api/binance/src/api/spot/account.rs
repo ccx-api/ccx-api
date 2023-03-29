@@ -320,6 +320,7 @@ mod with_network {
         /// Weight: 1
         ///
         /// Same as Api::order
+        #[allow(clippy::too_many_arguments)]
         pub fn create_order_test(
             &self,
             symbol: impl Serialize,
@@ -365,6 +366,7 @@ mod with_network {
         /// Weight: 2
         ///
         ///
+        #[allow(clippy::too_many_arguments)]
         pub fn create_order(
             &self,
             symbol: impl Serialize,
@@ -396,7 +398,7 @@ mod with_network {
                 time_window,
             )?;
 
-            let new_order_resp_type = new_order_resp_type.unwrap_or_else(|| match r#type {
+            let new_order_resp_type = new_order_resp_type.unwrap_or(match r#type {
                 OrderType::Limit | OrderType::Market => OrderResponseType::Full,
                 _ => OrderResponseType::Ack,
             });
@@ -415,6 +417,7 @@ mod with_network {
             })
         }
 
+        #[allow(clippy::too_many_arguments)]
         fn prepare_order_request(
             &self,
             symbol: impl Serialize,
@@ -617,7 +620,7 @@ mod with_network {
             symbol: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
         ) -> BinanceResult<Task<Vec<Order>>> {
-            let weight: u32 = symbol.is_some().then_some(3).unwrap_or(40);
+            let weight: u32 = if symbol.is_some() { 3 } else { 40 };
             Ok(self
                 .rate_limiter
                 .task(

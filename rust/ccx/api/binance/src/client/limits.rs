@@ -25,6 +25,7 @@ impl IntervalLetter {
     pub const DAY: &'static str = "D";
     pub const DAY_L: &'static str = "d";
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         Some(match s {
             Self::SECOND | Self::SECOND_L => Self::Second,
@@ -65,6 +66,7 @@ impl TimeSpan {
         TimeSpan { interval }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(ts_code: &str) -> Option<Self> {
         if ts_code.len() < 2 {
             None?;
@@ -96,24 +98,26 @@ impl UsedRateLimits {
             if let Some(value) = headers.get(header_name) {
                 if let Ok(header_value) = value.to_str() {
                     let header_name = header_name.as_str();
+
                     if header_name.starts_with(UW_Z) {
                         log::debug!("  {}: {}", header_name, header_value);
                     }
-                    if header_name.starts_with(UW_PREFIX) {
-                        if let Some(time_span) = TimeSpan::from_str(&header_name[UW_PREFIX.len()..])
-                        {
-                            if let Some(weight) = header_value.parse().ok() {
+
+                    if let Some(stripped) = header_name.strip_prefix(UW_PREFIX) {
+                        if let Some(time_span) = TimeSpan::from_str(stripped) {
+                            if let Ok(weight) = header_value.parse() {
                                 u.weight_per_ip.push((time_span, weight))
                             }
                         };
                     }
+
                     if header_name.starts_with(OC_Z) {
                         log::debug!("  {}: {}", header_name, header_value);
                     }
-                    if header_name.starts_with(OC_PREFIX) {
-                        if let Some(time_span) = TimeSpan::from_str(&header_name[OC_PREFIX.len()..])
-                        {
-                            if let Some(count) = header_value.parse().ok() {
+
+                    if let Some(stripped) = header_name.strip_prefix(OC_PREFIX) {
+                        if let Some(time_span) = TimeSpan::from_str(stripped) {
+                            if let Ok(count) = header_value.parse() {
                                 u.order_count_per_account.push((time_span, count))
                             }
                         };
