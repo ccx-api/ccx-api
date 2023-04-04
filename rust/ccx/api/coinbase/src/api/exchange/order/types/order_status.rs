@@ -5,7 +5,7 @@ use diesel_derives::FromSqlRow;
 
 use crate::api::exchange::prelude::*;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
 #[serde(rename_all = "snake_case")]

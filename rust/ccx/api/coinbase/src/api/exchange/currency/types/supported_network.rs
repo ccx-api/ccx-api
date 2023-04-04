@@ -1,7 +1,7 @@
 use crate::api::exchange::currency::SupportedNetworkStatus;
 use crate::api::exchange::prelude::*;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct SupportedNetwork {
     pub id: Atom,
     pub name: Atom,

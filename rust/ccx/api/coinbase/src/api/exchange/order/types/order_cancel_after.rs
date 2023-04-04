@@ -12,7 +12,7 @@ use crate::api::exchange::prelude::*;
 /// GTT "Good till time" orders remain open on the book until canceled or the allotted cancel_after
 /// is depleted on the matching engine. GTT orders are guaranteed to cancel before any other order
 /// is processed after the cancel_after timestamp which is returned by the API.
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
 #[serde(rename_all = "snake_case")]

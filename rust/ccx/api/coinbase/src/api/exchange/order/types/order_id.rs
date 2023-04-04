@@ -2,6 +2,7 @@ use core::fmt;
 
 use uuid::Uuid;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EitherOrderId {
     Coinbase(Uuid),
     Client(Uuid),

@@ -12,7 +12,7 @@ use crate::api::exchange::prelude::*;
 ///
 /// See the self-trade prevention documentation for details about these fields.
 /// [https://docs.cloud.coinbase.com/exchange/docs/matching-engine#self-trade-prevention]
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
 pub enum OrderStp {
