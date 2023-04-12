@@ -45,6 +45,9 @@ mod order;
 mod product;
 pub mod types;
 
+pub use self::address_book::*;
+pub use self::currency::*;
+pub use self::fees::*;
 pub use self::order::*;
 pub use self::product::*;
 
