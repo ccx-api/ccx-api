@@ -121,6 +121,8 @@ pub enum Filter {
     LotSize(LotSizeFilter),
     #[serde(rename = "MIN_NOTIONAL")]
     MinNotional(MinNotionalFilter),
+    #[serde(rename = "NOTIONAL")]
+    Notional(NotionalFilter),
     #[serde(rename = "ICEBERG_PARTS")]
     IcebergParts(IcebergPartsFilter),
     #[serde(rename = "MARKET_LOT_SIZE")]
@@ -233,6 +235,26 @@ pub struct LotSizeFilter {
 pub struct MinNotionalFilter {
     pub min_notional: Decimal,
     pub apply_to_market: bool,
+    pub avg_price_mins: u64,
+}
+
+/// The NOTIONAL filter defines the acceptable notional range allowed for an order on a symbol.
+/// applyMaxToMarket determines whether the maxNotional will be applied to MARKET orders.
+///
+/// In order to pass this filter, the notional (price * quantity) has to pass the following conditions:
+/// price * quantity <= maxNotional
+/// price * quantity >= minNotional
+///
+/// For MARKET orders, the average price used over the last avgPriceMins minutes will be used for calculation.
+/// If the avgPriceMins is 0, then the last price will be used.
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct NotionalFilter {
+    pub min_notional: Decimal,
+    pub max_notional: Decimal,
+    #[serde(default)]
+    pub apply_to_market: bool,
+    #[serde(default)]
     pub avg_price_mins: u64,
 }
 

@@ -17,6 +17,8 @@ pub enum Filter {
     MaxNumAlgoOrders(MaxNumAlgoOrdersFilter),
     #[serde(rename = "MIN_NOTIONAL")]
     MinNotional(MinNotionalFilter),
+    #[serde(rename = "NOTIONAL")]
+    Notional(NotionalFilter),
     #[serde(rename = "PERCENT_PRICE")]
     PercentPrice(PercentPriceFilter),
 }
@@ -60,6 +62,12 @@ pub struct MaxNumAlgoOrdersFilter {
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
 pub struct MinNotionalFilter {
+    pub notional: Decimal,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct NotionalFilter {
     pub notional: Decimal,
 }
 
