@@ -6,4 +6,7 @@ use serde::Serialize;
 pub enum SupportedNetworkStatus {
     Online,
     Offline,
+    /// The network has been delisted.
+    /// Isn't available for deposits/withdrawals.
+    Delisted,
 }

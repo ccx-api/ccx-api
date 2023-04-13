@@ -7,11 +7,18 @@ pub struct SupportedNetwork {
     pub name: Atom,
     pub status: SupportedNetworkStatus,
     // pub status: Atom,
-    pub contract_address: Atom,
-    pub crypto_address_link: Atom,
-    pub crypto_transaction_link: Atom,
-    pub min_withdrawal_amount: f64,
-    pub max_withdrawal_amount: f64,
-    pub network_confirmations: u32,
+    #[serde(default)]
+    pub contract_address: Option<Atom>,
+    #[serde(default)]
+    pub crypto_address_link: Option<Atom>,
+    #[serde(default)]
+    pub crypto_transaction_link: Option<Atom>,
+    #[serde(default)]
+    pub min_withdrawal_amount: Option<f64>,
+    #[serde(default)]
+    pub max_withdrawal_amount: Option<f64>,
+    #[serde(default)]
+    pub network_confirmations: Option<u32>,
+    #[serde(default)]
     pub processing_time_seconds: Option<u32>,
 }

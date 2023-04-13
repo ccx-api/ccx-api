@@ -30,7 +30,8 @@ impl ProductStatus {
             ProductStatus::Online => "online",
             ProductStatus::Offline => "offline",
             ProductStatus::Internal => "internal",
-            ProductStatus::Delisted => "delisted",        }
+            ProductStatus::Delisted => "delisted",
+        }
     }
 }
 
