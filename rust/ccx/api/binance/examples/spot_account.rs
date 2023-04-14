@@ -1,6 +1,4 @@
-use std::fmt;
-
-use ccx_binance::api::spot::NewOrder;
+// use ccx_binance::api::spot::NewOrder;
 use ccx_binance::api::spot::NewOrderResult;
 use ccx_binance::api::spot::OrderResponseType;
 use ccx_binance::api::spot::OrderSide;
@@ -11,6 +9,7 @@ use ccx_binance::BinanceResult;
 use ccx_binance::Decimal;
 use ccx_binance::SpotApi;
 use ccx_binance::TimeWindow;
+use ccx_binance_examples_util::d;
 
 const BTCBUSD: &str = "BTCBUSD";
 // const EURBUSD: &str = "EURBUSD";
@@ -100,18 +99,6 @@ async fn main_() -> BinanceResult<()> {
     //         .await,
     // );
     Ok(())
-}
-
-fn print_res<T: fmt::Debug>(res: BinanceResult<T>) -> BinanceResult<T> {
-    match &res {
-        Ok(answer) => println!("Answer: {:#?}", answer),
-        Err(e) => println!("Error: {:?}", e),
-    }
-    res
-}
-
-fn d(v: &'static str) -> Decimal {
-    v.parse().unwrap()
 }
 
 fn limit_order(
