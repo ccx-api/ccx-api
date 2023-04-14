@@ -1,5 +1,6 @@
 use crate::api::exchange::prelude::*;
 use crate::api::exchange::product::ProductStatus;
+use crate::util::maybe_str;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct Product {
@@ -26,6 +27,7 @@ pub struct Product {
     /// The status of the product.
     pub status: ProductStatus,
     /// Additional information about the status of the product, if available.
+    #[serde(with = "maybe_str")]
     pub status_message: Option<String>,
     /// Whether the product is post-only.
     pub post_only: bool,
@@ -44,5 +46,6 @@ pub struct Product {
     /// Whether the product is currently in auction mode.
     pub auction_mode: bool,
     /// Percentage to calculate highest price for limit buy order (Stable coin trading pair only).
+    #[serde(with = "maybe_str")]
     pub high_bid_limit_percentage: Option<String>,
 }

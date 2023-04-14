@@ -2,6 +2,7 @@ use crate::api::exchange::currency::CurrencyDetails;
 use crate::api::exchange::currency::CurrencyStatus;
 use crate::api::exchange::currency::SupportedNetwork;
 use crate::api::exchange::prelude::*;
+use crate::util::maybe_str;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CurrencyInfo {
@@ -9,11 +10,13 @@ pub struct CurrencyInfo {
     pub name: Atom,
     pub min_size: Decimal,
     pub status: CurrencyStatus,
-    pub message: Atom,
+    #[serde(with = "maybe_str")]
+    pub message: Option<Atom>,
     pub max_precision: Decimal,
     pub convertible_to: Vec<Atom>,
     pub details: CurrencyDetails,
-    pub default_network: Atom,
+    #[serde(with = "maybe_str")]
+    pub default_network: Option<Atom>,
     pub supported_networks: Vec<SupportedNetwork>,
 }
 

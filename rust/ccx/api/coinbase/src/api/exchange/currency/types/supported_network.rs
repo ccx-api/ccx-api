@@ -1,5 +1,6 @@
 use crate::api::exchange::currency::SupportedNetworkStatus;
 use crate::api::exchange::prelude::*;
+use crate::util::maybe_str;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct SupportedNetwork {
@@ -8,10 +9,13 @@ pub struct SupportedNetwork {
     pub status: SupportedNetworkStatus,
     // pub status: Atom,
     #[serde(default)]
+    #[serde(with = "maybe_str")]
     pub contract_address: Option<Atom>,
     #[serde(default)]
+    #[serde(with = "maybe_str")]
     pub crypto_address_link: Option<Atom>,
     #[serde(default)]
+    #[serde(with = "maybe_str")]
     pub crypto_transaction_link: Option<Atom>,
     #[serde(default)]
     pub min_withdrawal_amount: Option<f64>,
