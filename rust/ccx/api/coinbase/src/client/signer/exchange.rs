@@ -7,7 +7,7 @@ use ccx_api_lib::ExchangeApiCred;
 
 use crate::CoinbaseResult;
 
-pub type SignResult<'a> = Pin<Box<dyn Future<Output = CoinbaseResult<String>> + Send + 'a>>;
+pub type ExchangeSignResult<'a> = Pin<Box<dyn Future<Output = CoinbaseResult<String>> + Send + 'a>>;
 
 pub trait CoinbaseExchangeSigner: Sync + Send {
     fn sign_data<'a, 'b: 'a, 'c: 'b>(
@@ -16,7 +16,7 @@ pub trait CoinbaseExchangeSigner: Sync + Send {
         method: &'b str,
         url_path: &'b str,
         json_payload: &'b str,
-    ) -> SignResult<'a>;
+    ) -> ExchangeSignResult<'a>;
 
     fn api_key(&self) -> &str;
 
@@ -30,7 +30,7 @@ impl CoinbaseExchangeSigner for ExchangeApiCred {
         method: &'b str,
         url_path: &'b str,
         json_payload: &'b str,
-    ) -> SignResult<'a> {
+    ) -> ExchangeSignResult<'a> {
         Box::pin(async move {
             Ok(sign(
                 &self.secret,
