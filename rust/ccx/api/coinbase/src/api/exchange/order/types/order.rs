@@ -4,6 +4,7 @@ use crate::api::exchange::OrderStatus;
 use crate::api::exchange::OrderStop;
 use crate::api::exchange::OrderTimeInForce;
 use crate::api::exchange::OrderType;
+use crate::dt_coinbase::DtCoinbase;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct Order {
@@ -28,16 +29,13 @@ pub struct Order {
     /// .
     pub time_in_force: OrderTimeInForce,
     /// Timestamp at which order expires.
-    // TODO time type
-    pub expire_time: Option<String>,
+    pub expire_time: Option<DtCoinbase>,
     /// If true, forces order to be `maker` only.
     pub post_only: bool,
     /// Timestamp at which order was placed.
-    // TODO time type
-    pub created_at: String,
+    pub created_at: DtCoinbase,
     /// Timestamp at which order was done.
-    // TODO time type
-    pub done_at: Option<String>,
+    pub done_at: Option<DtCoinbase>,
     /// Reason order was done (filled, rejected, or otherwise).
     pub done_reason: Option<Atom>,
     /// Reason order was rejected by engine.

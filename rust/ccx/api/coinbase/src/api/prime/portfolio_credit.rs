@@ -4,6 +4,7 @@ use uuid::Uuid;
 use super::prelude::*;
 use crate::api::prime::RL_PORTFOLIO_KEY;
 use crate::client::Task;
+use crate::dt_coinbase::DtCoinbase;
 
 /// List all portfolios for which the current API key has read access. (Currently, an API key
 /// is scoped to only one portfolio).
@@ -41,8 +42,7 @@ pub struct AmountDue {
     /// The amount due.
     pub amount: Decimal,
     /// The date this settlement is due, expressed in UTC.
-    // TODO decode date (example: "2021-05-31T09:59:59Z").
-    pub due_date: String,
+    pub due_date: DtCoinbase,
 }
 
 #[cfg(feature = "with_network")]

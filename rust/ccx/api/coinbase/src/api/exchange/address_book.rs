@@ -3,6 +3,7 @@ use chrono::Utc;
 use super::prelude::*;
 use crate::api::exchange::RL_PRIVATE_KEY;
 use crate::client::Task;
+use crate::dt_coinbase::DtCoinbase;
 
 pub type GetAddressBookResponse = Vec<Address>;
 
@@ -14,7 +15,7 @@ pub struct Address {
     pub currency: Atom,
     pub label: String,
     pub address_book_added_at: String,
-    pub last_used: Option<String>,
+    pub last_used: Option<DtCoinbase>,
 }
 
 #[cfg(feature = "with_network")]

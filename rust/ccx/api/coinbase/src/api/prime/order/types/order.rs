@@ -2,6 +2,7 @@ use crate::api::prime::prelude::*;
 use crate::api::prime::{PortfolioOrderSide, PortfolioOrderTimeInForce};
 use crate::api::prime::PortfolioOrderStatus;
 use crate::api::prime::PortfolioOrderType;
+use crate::dt_coinbase::DtCoinbase;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AccountPortfolioOrder {
@@ -27,17 +28,14 @@ pub struct AccountPortfolioOrder {
     /// The limit price (required for limit orders).
     pub limit_price: Decimal,
     /// The start time of the order in UTC (only applies to TWAP orders).
-    // TODO time type
-    pub start_time: String,
+    pub start_time: DtCoinbase,
     /// The expiry time of the order in UTC (applies to TWAP orders and limit orders
     /// with `time_in_force` set to `GTD`).
-    // TODO time type
-    pub expiry_time: String,
+    pub expiry_time: DtCoinbase,
     pub status: PortfolioOrderStatus,
     pub time_in_force: PortfolioOrderTimeInForce,
     /// The order creation time as a UTC timestamp.
-    // TODO time type
-    pub created_at: String,
+    pub created_at: DtCoinbase,
     /// Size filled (in base asset units).
     pub filled_quantity: Decimal,
     /// Market value filled (in quote asset units).

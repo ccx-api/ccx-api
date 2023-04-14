@@ -53,3 +53,4 @@ ccx-api-lib = { path = "../../util/lib" }
 env_logger = "0.8"
 dotenv = "0.15"
 ccx-coinbase-examples-util = { path = "examples/util" }
+serde_plain = "1"
