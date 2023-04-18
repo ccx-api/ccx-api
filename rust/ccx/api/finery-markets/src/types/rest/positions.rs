@@ -188,8 +188,6 @@ pub(crate) mod tests {
 
     #[test]
     pub(crate) fn test_serde_positions() {
-        lunu_lib::logger::init_test();
-
         let json = r#"
         {}
         "#;

@@ -524,6 +524,7 @@ mod tests {
         let request = SendOutgoingSettlementTransactionRequest {
             transaction_id,
             tx_id: format!("This is tx id: {}", transaction_id),
+            fee: None,
         };
         log::debug!(
             "test_without_params_send_outgoing_settlement_transaction :: {:?} :: {:?}",

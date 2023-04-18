@@ -19,6 +19,7 @@ pub struct Currency {
     pub id: u32,
     pub size: Size,
     pub price: Price,
+    pub r#type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -48,26 +49,13 @@ pub(crate) mod tests {
         let json = r#"
         [
             [
-                [
-                    "USD",
-                    234525425,
-                    1000000,
-                    100000000
-                ],
-                [
-                    "BTC",
-                    345465767,
-                    1,
-                    1000000000000
-                ]
+                ["USD",4725,1000000,100000000,"fiat"],
+                ["EUR",19109,1000000,109000000,"fiat"],
+                ["USDT",660085,100,100085000,"stablecoin"],
+                ["BTC",3714,1,3016218000000,"crypto"]
             ],
             [
-                [
-                    "BTC-USD",
-                    35462742745,
-                    "BTC",
-                    "USD"
-                ]
+                ["BTC-USD",4955410050,"BTC","USD"]
             ]
         ]
         "#;

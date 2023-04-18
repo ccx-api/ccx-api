@@ -22,8 +22,6 @@ pub(crate) mod tests {
 
     #[test]
     pub(crate) fn test_serde_get_user_name() {
-        lunu_lib::logger::init_test();
-
         let json = r#"
         {
             "id": 87

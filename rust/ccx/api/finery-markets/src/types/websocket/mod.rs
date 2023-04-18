@@ -731,8 +731,6 @@ pub(crate) mod tests {
 
     #[test]
     pub fn test_serde_ws_request() {
-        lunu_lib::logger::init_test();
-
         let json = r#"{"event": "bind", "feed": "I"}"#;
         test_serde_value_type::<WsRequest>(json);
         let json = r#"{"event": "unbind", "feed": "I"}"#;
