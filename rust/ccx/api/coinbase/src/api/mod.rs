@@ -15,5 +15,7 @@ mod prelude {
     // pub use crate::client::Nonce;
     pub use crate::error::*;
     pub use crate::proto::*;
+    pub use crate::util::maybe_str;
     pub use crate::Atom;
+    pub use crate::DtCoinbase;
 }

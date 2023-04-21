@@ -43,6 +43,7 @@ mod currency;
 mod fees;
 mod order;
 mod product;
+mod transfer;
 pub mod types;
 
 pub use self::address_book::*;
@@ -50,10 +51,10 @@ pub use self::currency::*;
 pub use self::fees::*;
 pub use self::order::*;
 pub use self::product::*;
+pub use self::transfer::*;
 
 mod prelude {
     pub use chrono::Utc;
-    pub use uuid::Uuid;
 
     pub use super::types::*;
     #[cfg(feature = "with_network")]
