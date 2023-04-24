@@ -19,7 +19,8 @@ pub struct Currency {
     pub id: u32,
     pub size: Size,
     pub price: Price,
-    pub r#type: String,
+    #[serde(default)]
+    pub r#type: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
