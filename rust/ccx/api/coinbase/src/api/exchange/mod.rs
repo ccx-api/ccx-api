@@ -43,6 +43,7 @@ mod currency;
 mod fees;
 mod order;
 mod product;
+mod profile;
 mod transfer;
 pub mod types;
 
@@ -51,6 +52,7 @@ pub use self::currency::*;
 pub use self::fees::*;
 pub use self::order::*;
 pub use self::product::*;
+pub use self::profile::*;
 pub use self::transfer::*;
 
 mod prelude {
