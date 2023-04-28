@@ -1,8 +1,8 @@
 use crate::api::exchange::prelude::*;
-use crate::api::exchange::profile::ProfileInfo;
+use crate::api::exchange::profile::Profile;
 use crate::api::exchange::RL_PUBLIC_KEY;
 
-pub type ListProfileResponse = Vec<ProfileInfo>;
+pub type ListProfileResponse = Vec<Profile>;
 
 #[cfg(feature = "with_network")]
 impl<S> ExchangeApi<S>
