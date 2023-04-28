@@ -6,7 +6,7 @@ pub type WithdrawToCoinbaseAccountResponse = RequestedWithdrawal;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WithdrawToCoinbaseAccountRequest {
-    profile_id: Option<Uuid>,
+    profile_id: Uuid,
     coinbase_account_id: Uuid,
     amount: Decimal,
     currency: Atom,
@@ -38,7 +38,7 @@ where
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount]
     pub fn withdraw_to_coinbase_account(
         &self,
-        profile_id: Option<Uuid>,
+        profile_id: Uuid,
         coinbase_account_id: Uuid,
         amount: Decimal,
         currency: Atom,
