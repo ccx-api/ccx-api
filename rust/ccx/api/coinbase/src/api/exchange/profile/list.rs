@@ -19,16 +19,10 @@ where
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getprofiles]
     pub fn list_profiles(&self) -> CoinbaseResult<Task<ListProfileResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
         let endpoint = "profiles";
         Ok(self
             .rate_limiter
-            .task(
-                self.client
-                    .get(endpoint)?
-                    .signed(timestamp)?
-                    .request_body(())?,
-            )
+            .task(self.client.get(endpoint)?.signed_now()?.request_body(())?)
             .cost(RL_PUBLIC_KEY, 1)
             .send())
     }

@@ -18,14 +18,10 @@ where
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct]
     pub fn get_product(&self, product_id: Atom) -> CoinbaseResult<Task<GetProductResponse>> {
-        // let timestamp = Utc::now().timestamp() as u32;
         let endpoint = format!("products/{product_id}");
         Ok(self
             .rate_limiter
-            .task(self.client
-                    .get(&endpoint)?
-                    // .signed(timestamp)?
-                    .request_body(())?)
+            .task(self.client.get(&endpoint)?.request_body(())?)
             .cost(RL_PUBLIC_KEY, 1)
             .send())
     }

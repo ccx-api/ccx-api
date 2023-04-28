@@ -99,14 +99,13 @@ where
         post_only: Option<bool>,
         client_order_id: Option<Uuid>,
     ) -> CoinbaseResult<Task<CreateOrderResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/orders");
+        let endpoint = "/orders";
         Ok(self
             .rate_limiter
             .task(
                 self.client
                     .post(&endpoint)?
-                    .signed(timestamp)?
+                    .signed_now()?
                     .request_body(CreateOrderRequest {
                         profile_id,
                         r#type,

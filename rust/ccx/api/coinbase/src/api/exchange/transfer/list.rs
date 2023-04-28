@@ -36,8 +36,7 @@ where
         before: Option<DtCoinbase>,
         limit: Option<u64>,
     ) -> CoinbaseResult<Task<ListTransfersResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/transfers");
+        let endpoint = "/transfers";
         Ok(self
             .rate_limiter
             .task(
@@ -48,7 +47,7 @@ where
                     .try_query_arg("after", &after)?
                     .try_query_arg("before", &before)?
                     .try_query_arg("limit", &limit)?
-                    .signed(timestamp)?
+                    .signed_now()?
                     .request_body(())?,
             )
             .cost(RL_PRIVATE_KEY, 1)

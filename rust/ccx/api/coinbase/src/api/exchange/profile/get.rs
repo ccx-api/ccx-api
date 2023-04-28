@@ -24,21 +24,17 @@ where
     /// * `currency_id` - .
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrency]
-    pub fn get_profile(
-        &self,
-        profile_id: Uuid,
-    ) -> CoinbaseResult<Task<GetProfileResponse>> {
+    pub fn get_profile(&self, profile_id: Uuid) -> CoinbaseResult<Task<GetProfileResponse>> {
         fn endpoint(profile_id: Uuid) -> String {
             format!("profiles/{profile_id}")
         }
-        let timestamp = Utc::now().timestamp() as u32;
 
         Ok(self
             .rate_limiter
             .task(
                 self.client
                     .get(&endpoint(profile_id))?
-                    .signed(timestamp)?
+                    .signed_now()?
                     .request_body(())?,
             )
             .cost(RL_PUBLIC_KEY, 1)

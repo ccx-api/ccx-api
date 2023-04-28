@@ -70,8 +70,7 @@ where
         status: &[OrderStatus],
         market_type: Option<&str>,
     ) -> CoinbaseResult<Task<ListOrderResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/orders");
+        let endpoint = "/orders";
         Ok(self
             .rate_limiter
             .task({
@@ -87,7 +86,7 @@ where
                 for s in status {
                     builder = builder.query_arg("status", s)?;
                 }
-                builder.signed(timestamp)?.request_body(())?
+                builder.signed_now()?.request_body(())?
             })
             .cost(RL_PRIVATE_KEY, 1)
             .send())

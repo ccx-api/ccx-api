@@ -35,21 +35,17 @@ where
         amount: Decimal,
         currency: Atom,
     ) -> CoinbaseResult<Task<WithdrawToPaymentMethodResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/withdrawals/payment-method");
+        let endpoint = "/withdrawals/payment-method";
         Ok(self
             .rate_limiter
-            .task(
-                self.client
-                    .post(&endpoint)?
-                    .signed(timestamp)?
-                    .request_body(WithdrawToPaymentMethodRequest {
-                        profile_id,
-                        payment_method_id,
-                        amount,
-                        currency,
-                    })?,
-            )
+            .task(self.client.post(&endpoint)?.signed_now()?.request_body(
+                WithdrawToPaymentMethodRequest {
+                    profile_id,
+                    payment_method_id,
+                    amount,
+                    currency,
+                },
+            )?)
             .cost(RL_PRIVATE_KEY, 1)
             .send())
     }

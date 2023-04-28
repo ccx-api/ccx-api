@@ -30,16 +30,10 @@ where
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaddressbook]
     pub fn get_address_book(&self) -> CoinbaseResult<Task<GetAddressBookResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
         let endpoint = "/address-book";
         Ok(self
             .rate_limiter
-            .task(
-                self.client
-                    .get(endpoint)?
-                    .signed(timestamp)?
-                    .request_body(())?,
-            )
+            .task(self.client.get(endpoint)?.signed_now()?.request_body(())?)
             .cost(RL_PRIVATE_KEY, 1)
             .send())
     }

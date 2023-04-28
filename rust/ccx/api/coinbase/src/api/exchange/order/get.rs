@@ -38,7 +38,6 @@ where
         order_id: EitherOrderId,
         market_type: Option<&str>,
     ) -> CoinbaseResult<Task<GetOrderResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
         let endpoint = format!("/orders/{order_id}");
         Ok(self
             .rate_limiter
@@ -46,7 +45,7 @@ where
                 self.client
                     .get(&endpoint)?
                     .try_query_arg("market_type", &market_type)?
-                    .signed(timestamp)?
+                    .signed_now()?
                     .request_body(())?,
             )
             .cost(RL_PRIVATE_KEY, 1)

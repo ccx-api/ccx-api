@@ -49,27 +49,23 @@ where
         network: Option<Atom>,
         add_network_fee_to_total: Option<bool>,
     ) -> CoinbaseResult<Task<WithdrawToAddressResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/withdrawals/crypto");
+        let endpoint = "/withdrawals/crypto";
         Ok(self
             .rate_limiter
-            .task(
-                self.client
-                    .post(&endpoint)?
-                    .signed(timestamp)?
-                    .request_body(WithdrawToAddressRequest {
-                        profile_id,
-                        amount,
-                        currency,
-                        crypto_address,
-                        destination_tag,
-                        no_destination_tag,
-                        two_factor_code,
-                        nonce,
-                        network,
-                        add_network_fee_to_total,
-                    })?,
-            )
+            .task(self.client.post(&endpoint)?.signed_now()?.request_body(
+                WithdrawToAddressRequest {
+                    profile_id,
+                    amount,
+                    currency,
+                    crypto_address,
+                    destination_tag,
+                    no_destination_tag,
+                    two_factor_code,
+                    nonce,
+                    network,
+                    add_network_fee_to_total,
+                },
+            )?)
             .cost(RL_PRIVATE_KEY, 1)
             .send())
     }

@@ -7,6 +7,7 @@ use actix_http::Payload;
 use actix_http::Uri;
 use awc::http::Method;
 use awc::http::StatusCode;
+use chrono::Utc;
 use ccx_api_lib::make_client;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;
@@ -177,6 +178,11 @@ where
     pub fn signed(mut self, timestamp: u32) -> CoinbaseResult<Self> {
         self.sign = Some((timestamp,));
         self.auth_header()
+    }
+
+    pub fn signed_now(mut self) -> CoinbaseResult<Self> {
+        let timestamp = Utc::now().timestamp() as u32;
+        self.signed(timestamp)
     }
 
     pub async fn send<V>(mut self) -> CoinbaseApiResult<V>

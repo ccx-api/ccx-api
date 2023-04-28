@@ -27,14 +27,10 @@ where
         &self,
         product_id: Atom,
     ) -> CoinbaseResult<Task<GetProductTickerResponse>> {
-        // let timestamp = Utc::now().timestamp() as u32;
         let endpoint = format!("products/{product_id}/ticker");
         Ok(self
             .rate_limiter
-            .task(self.client
-                    .get(&endpoint)?
-                    // .signed(timestamp)?
-                    .request_body(())?)
+            .task(self.client.get(&endpoint)?.request_body(())?)
             .cost(RL_PUBLIC_KEY, 1)
             .send())
     }

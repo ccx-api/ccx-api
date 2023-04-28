@@ -22,14 +22,10 @@ where
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfer]
     pub fn get_transfer(&self, transfer_id: Uuid) -> CoinbaseResult<Task<GetTransferResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
         let endpoint = format!("transfers/{transfer_id}");
         Ok(self
             .rate_limiter
-            .task(self.client
-                    .get(&endpoint)?
-                    .signed(timestamp)?
-                    .request_body(())?)
+            .task(self.client.get(&endpoint)?.signed_now()?.request_body(())?)
             .cost(RL_PRIVATE_KEY, 1)
             .send())
     }

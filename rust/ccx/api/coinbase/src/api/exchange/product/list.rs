@@ -21,15 +21,13 @@ where
         &self,
         r#type: Option<Atom>,
     ) -> CoinbaseResult<Task<ListProductsResponse>> {
-        // let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/products");
+        let endpoint = "/products";
         Ok(self
             .rate_limiter
             .task(
                 self.client
                     .get(&endpoint)?
                     .try_query_arg("type", &r#type)?
-                    // .signed(timestamp)?
                     .request_body(())?,
             )
             .cost(RL_PUBLIC_KEY, 1)

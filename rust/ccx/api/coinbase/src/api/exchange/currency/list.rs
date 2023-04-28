@@ -18,7 +18,7 @@ where
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies]
     pub fn list_currencies(&self) -> CoinbaseResult<Task<ListCurrencyResponse>> {
-        let endpoint = format!("currencies");
+        let endpoint = "currencies";
         Ok(self
             .rate_limiter
             .task(self.client.get(&endpoint)?.request_body(())?)
