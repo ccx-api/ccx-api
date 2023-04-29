@@ -26,7 +26,7 @@ where
             .rate_limiter
             .task(
                 self.client
-                    .get(&endpoint)?
+                    .get(endpoint)?
                     .try_query_arg("type", &r#type)?
                     .request_body(())?,
             )

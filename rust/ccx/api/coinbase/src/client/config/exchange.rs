@@ -79,8 +79,8 @@ pub struct ExchangeConfig<S: CoinbaseExchangeSigner> {
 }
 
 impl<S> ExchangeConfig<S>
-    where
-        S: CoinbaseExchangeSigner,
+where
+    S: CoinbaseExchangeSigner,
 {
     pub fn new(
         signer: S,
@@ -90,7 +90,7 @@ impl<S> ExchangeConfig<S>
         // tier: RateLimiterTier,
     ) -> Self {
         ExchangeConfig {
-            signer: signer.into(),
+            signer,
             api_base,
             // stream_base,
             proxy,
@@ -103,11 +103,11 @@ impl<S> ExchangeConfig<S>
     }
 
     pub(crate) fn api_key(&self) -> &str {
-        &self.signer.api_key()
+        self.signer.api_key()
     }
 
     pub(crate) fn api_passphrase(&self) -> &str {
-        &self.signer.api_passphrase()
+        self.signer.api_passphrase()
     }
 
     pub(crate) fn signer(&self) -> &S {

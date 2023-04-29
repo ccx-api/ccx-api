@@ -23,15 +23,15 @@ use crate::error::*;
 
 /// API client.
 pub struct RestPrimeClient<S>
-    where
-        S: CoinbasePrimeSigner,
+where
+    S: CoinbasePrimeSigner,
 {
     inner: Arc<ClientInner<S>>,
 }
 
 impl<S> Clone for RestPrimeClient<S>
-    where
-        S: CoinbasePrimeSigner,
+where
+    S: CoinbasePrimeSigner,
 {
     fn clone(&self) -> Self {
         Self {
@@ -41,15 +41,15 @@ impl<S> Clone for RestPrimeClient<S>
 }
 
 struct ClientInner<S>
-    where
-        S: CoinbasePrimeSigner,
+where
+    S: CoinbasePrimeSigner,
 {
     config: PrimeConfig<S>,
 }
 
 pub struct PrimeRequestBuilder<S>
-    where
-        S: CoinbasePrimeSigner,
+where
+    S: CoinbasePrimeSigner,
 {
     api_client: RestPrimeClient<S>,
     request: ClientRequest,
@@ -64,8 +64,8 @@ struct CoinbaseApiAnswer<T> {
 }
 
 impl<S> RestPrimeClient<S>
-    where
-        S: CoinbasePrimeSigner,
+where
+    S: CoinbasePrimeSigner,
 {
     pub fn new(config: PrimeConfig<S>) -> Self {
         let inner = Arc::new(ClientInner { config });
@@ -76,7 +76,11 @@ impl<S> RestPrimeClient<S>
         make_client(false, self.inner.config.proxy.as_ref())
     }
 
-    pub fn request(&self, method: Method, endpoint: &str) -> CoinbaseResult<PrimeRequestBuilder<S>> {
+    pub fn request(
+        &self,
+        method: Method,
+        endpoint: &str,
+    ) -> CoinbaseResult<PrimeRequestBuilder<S>> {
         let url = self.inner.config.api_base.join(endpoint)?;
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
@@ -112,8 +116,8 @@ impl<S> RestPrimeClient<S>
 }
 
 impl<S> PrimeRequestBuilder<S>
-    where
-        S: CoinbasePrimeSigner,
+where
+    S: CoinbasePrimeSigner,
 {
     pub fn uri(&self) -> String {
         self.request.get_uri().to_string()
@@ -136,7 +140,7 @@ impl<S> PrimeRequestBuilder<S>
                     buf.push('&');
                 }
             }
-            buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
+            buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
             let uri =
                 Uri::from_parts(parts).map_err(|e| CoinbaseError::other(format!("{:?}", e)))?;
@@ -175,11 +179,12 @@ impl<S> PrimeRequestBuilder<S>
     }
 
     pub async fn send<V>(mut self) -> CoinbaseApiResult<V>
-        where
-            V: DeserializeOwned,
+    where
+        V: DeserializeOwned,
     {
         let request_id = Uuid::new_v4();
         self = self.sign().await?;
+
         self.request = self.request.content_type("application/json");
         log::debug!(
             "[{request_id}]  Request: {} {}",
@@ -187,6 +192,7 @@ impl<S> PrimeRequestBuilder<S>
             self.request.get_uri()
         );
         log::debug!("[{request_id}]  Request body: {:?}", self.body);
+
         let tm = Instant::now();
         let mut res = self.request.send_body(self.body).await?;
         let d1 = tm.elapsed();
@@ -197,17 +203,20 @@ impl<S> PrimeRequestBuilder<S>
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
+
         let code = res.status();
         log::debug!(
             "[{request_id}]  Response: {} «{}»",
             code,
             String::from_utf8_lossy(&resp)
         );
+
         if let Err(err) = check_response(res) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
         };
-        Ok(from_response(code, &resp)?)
+
+        from_response(code, &resp)
     }
 
     // pub async fn send_no_response(mut self) -> CoinbaseResult<()> {
@@ -239,12 +248,11 @@ impl<S> PrimeRequestBuilder<S>
         if let Some((timestamp,)) = self.sign {
             let url_path = self.request.get_uri().path();
             let method = self.request.get_method();
-            match *method {
-                Method::GET => {
-                    self.body = String::new();
-                }
-                _ => (),
+
+            if *method == Method::GET {
+                self.body = String::new();
             }
+
             let signature = self
                 .api_client
                 .inner
@@ -252,6 +260,7 @@ impl<S> PrimeRequestBuilder<S>
                 .signer()
                 .sign_data(timestamp, method.as_str(), url_path, &self.body)
                 .await?;
+
             self.request = self
                 .request
                 .append_header(("X-CB-ACCESS-SIGNATURE", signature))
@@ -262,7 +271,9 @@ impl<S> PrimeRequestBuilder<S>
                     self.api_client.inner.config.api_passphrase(),
                 ));
         };
+
         self.request = self.request.append_header(("Accept", "application/json"));
+
         Ok(self)
     }
 }
@@ -296,7 +307,7 @@ fn check_response(res: AwcClientResponse) -> CoinbaseApiResult<AwcClientResponse
 fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> CoinbaseApiResult<V> {
     match code {
         _ if code.is_success() => match serde_json::from_slice(body) {
-            Ok(result) => return Ok(result),
+            Ok(result) => Ok(result),
             Err(err) => Err(err)?,
         },
         _ => {
@@ -306,11 +317,9 @@ fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> Coinbase
             };
             let kind = match code {
                 StatusCode::UNAUTHORIZED => ApiErrorKind::Unauthorized,
-                _ => ApiErrorKind::Unrecognized
+                _ => ApiErrorKind::Unrecognized,
             };
-            Err(LibError::ApiError(
-                (kind, code, message).into(),
-            ))?
+            Err(LibError::ApiError((kind, code, message).into()))?
         }
     }
 }

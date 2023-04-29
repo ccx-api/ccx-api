@@ -37,6 +37,7 @@ where
     /// * `end_date` - An end date for the orders to be queried from.
     ///
     /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getorders]
+    #[allow(clippy::too_many_arguments)]
     pub fn list_orders(
         &self,
         portfolio_id: Uuid,

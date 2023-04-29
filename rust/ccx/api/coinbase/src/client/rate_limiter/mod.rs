@@ -8,15 +8,21 @@ mod task_builder;
 mod task_message;
 mod task_metadata;
 
-pub use self::bucket::*;
-pub use self::bucket_mode::*;
-pub use self::limiter::*;
-pub use self::limiter_builder::*;
-use self::queue::*;
-pub use self::task::*;
-use self::task_builder::*;
-use self::task_message::*;
-pub use self::task_metadata::*;
+#[allow(unused_imports)]
+pub use bucket::*;
+#[allow(unused_imports)]
+pub use bucket_mode::*;
+#[allow(unused_imports)]
+pub use limiter::*;
+#[allow(unused_imports)]
+pub use limiter_builder::*;
+use queue::*;
+#[allow(unused_imports)]
+pub use task::*;
+use task_builder::*;
+use task_message::*;
+#[allow(unused_imports)]
+pub use task_metadata::*;
 
 use std::borrow::Cow;
 

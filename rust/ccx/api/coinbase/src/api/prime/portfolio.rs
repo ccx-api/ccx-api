@@ -36,7 +36,10 @@ where
     /// Retrieve all cash balances, net of pending withdrawals.
     ///
     /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfolio]
-    pub fn get_portfolio(&self, portfolio_id: Uuid) -> CoinbaseResult<Task<AccountPortfolioResponse>> {
+    pub fn get_portfolio(
+        &self,
+        portfolio_id: Uuid,
+    ) -> CoinbaseResult<Task<AccountPortfolioResponse>> {
         let timestamp = Utc::now().timestamp() as u32;
         // In the doc `/v1/portfolios/{portfolio_id}/`, but the ending slash leads to 404.
         let endpoint = format!("/v1/portfolios/{portfolio_id}");

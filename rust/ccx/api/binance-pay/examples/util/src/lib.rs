@@ -1,7 +1,7 @@
 use std::fmt;
 
-use ccx_binance_pay::LibError;
 use ccx_binance_pay::Decimal;
+use ccx_binance_pay::LibError;
 use ccx_binance_pay::Uuid;
 
 pub fn print_res<T: fmt::Debug>(res: Result<T, LibError>) -> Result<T, LibError> {

@@ -18,7 +18,7 @@ pub const STREAM_BASE: &str = "wss://api.prime.coinbase.com/";
 pub const API_BASE_TESTNET: &str = "https://api-public.sandbox.prime.coinbase.com/";
 pub const STREAM_BASE_TESTNET: &str = "wss://api-public.sandbox.prime.coinbase.com/";
 
-pub const RL_PORTFOLIO_KEY: &'static str = "portfolio";
+pub const RL_PORTFOLIO_KEY: &str = "portfolio";
 pub const RL_PORTFOLIO_INTERVAL: Duration = Duration::from_secs(1);
 pub const RL_PORTFOLIO_LIMIT: u32 = 25;
 // pub const RL_PORTFOLIO_BURST: u32 = 50;
@@ -52,10 +52,10 @@ pub use with_network::*;
 
 #[cfg(feature = "with_network")]
 mod with_network {
-    use ccx_api_lib::env_var_with_prefix;
     use super::*;
     use crate::client::CoinbasePrimeSigner;
     use crate::client::PrimeRateLimiterBuilder;
+    use ccx_api_lib::env_var_with_prefix;
 
     #[derive(Clone)]
     pub struct PrimeApi<S: CoinbasePrimeSigner = PrimeApiCred> {

@@ -21,7 +21,7 @@ where
         let endpoint = "currencies";
         Ok(self
             .rate_limiter
-            .task(self.client.get(&endpoint)?.request_body(())?)
+            .task(self.client.get(endpoint)?.request_body(())?)
             .cost(RL_PUBLIC_KEY, 1)
             .send())
     }

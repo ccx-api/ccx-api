@@ -1,22 +1,22 @@
 use std::fmt;
 
+use ccx_api_lib::LibError;
 use futures::channel::mpsc;
 use futures::channel::oneshot;
 use futures::FutureExt;
 use futures::SinkExt;
-use ccx_api_lib::LibError;
 
-use crate::client::CoinbaseExchangeSigner;
-use crate::client::ExchangeRequestBuilder;
-use crate::client::Task;
-use crate::client::rate_limiter::BucketName;
 use crate::client::rate_limiter::task_message::TaskMessage;
 use crate::client::rate_limiter::task_message::TaskMessageResult;
 use crate::client::rate_limiter::task_metadata::TaskCosts;
+use crate::client::rate_limiter::BucketName;
+use crate::client::CoinbaseExchangeSigner;
+use crate::client::ExchangeRequestBuilder;
+use crate::client::Task;
 
 pub(crate) struct ExchangeTaskBuilder<S>
-    where
-        S: CoinbaseExchangeSigner + Unpin + 'static,
+where
+    S: CoinbaseExchangeSigner + Unpin + 'static,
 {
     priority: u8,
     costs: TaskCosts,
@@ -25,15 +25,14 @@ pub(crate) struct ExchangeTaskBuilder<S>
 }
 
 impl<S> ExchangeTaskBuilder<S>
-    where
-        S: CoinbaseExchangeSigner + Unpin + 'static,
+where
+    S: CoinbaseExchangeSigner + Unpin + 'static,
 {
     pub(in super::super) fn new(
         priority: u8,
         costs: TaskCosts,
         req_builder: ExchangeRequestBuilder<S>,
         tasks_tx: mpsc::UnboundedSender<TaskMessage>,
-
     ) -> Self {
         ExchangeTaskBuilder {
             priority,
@@ -57,8 +56,8 @@ impl<S> ExchangeTaskBuilder<S>
     }
 
     pub fn send<V>(self) -> Task<V>
-        where
-            V: serde::de::DeserializeOwned + fmt::Debug,
+    where
+        V: serde::de::DeserializeOwned + fmt::Debug,
     {
         let priority = self.priority;
         let costs = self.costs.clone();

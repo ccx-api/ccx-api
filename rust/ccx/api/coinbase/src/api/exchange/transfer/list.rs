@@ -41,7 +41,7 @@ where
             .rate_limiter
             .task(
                 self.client
-                    .get(&endpoint)?
+                    .get(endpoint)?
                     .try_query_arg("profile_id", &profile_id)?
                     .try_query_arg("type", &r#type)?
                     .try_query_arg("after", &after)?

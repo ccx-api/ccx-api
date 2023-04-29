@@ -37,7 +37,13 @@ where
         let symbols: Option<String> = if symbols.is_empty() {
             None
         } else {
-            Some(symbols.iter().map(|a| a.as_ref()).collect::<Vec<&str>>().join(","))
+            Some(
+                symbols
+                    .iter()
+                    .map(|a| a.as_ref())
+                    .collect::<Vec<&str>>()
+                    .join(","),
+            )
         };
         Ok(self
             .rate_limiter

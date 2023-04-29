@@ -15,7 +15,7 @@ use crate::client::CCX_COINBASE_TRADE_API_PREFIX;
 pub const API_BASE: &str = "https://coinbase.com/";
 pub const STREAM_BASE: &str = "wss://coinbase.com/";
 
-pub const RL_IP_KEY: &'static str = "portfolio";
+pub const RL_IP_KEY: &str = "portfolio";
 pub const RL_IP_INTERVAL: Duration = Duration::from_secs(1);
 pub const RL_IP_LIMIT: u32 = 10;
 
@@ -54,7 +54,9 @@ mod with_network {
 
     #[derive(Clone)]
     pub struct TradeApi<S: CoinbaseTradeSigner = ApiCred> {
+        #[allow(dead_code)]
         pub(crate) client: RestTradeClient<S>,
+        #[allow(dead_code)]
         pub(crate) rate_limiter: TradeRateLimiter,
     }
 

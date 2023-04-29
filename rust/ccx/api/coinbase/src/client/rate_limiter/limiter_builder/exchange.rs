@@ -5,9 +5,9 @@ use std::sync::Arc;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 
-use super::super::BucketName;
 use super::super::queue::Queue;
 use super::super::task_message::TaskMessage;
+use super::super::BucketName;
 use crate::client::ExchangeRateLimiter;
 use crate::client::RateLimiterBucket;
 
@@ -32,10 +32,14 @@ impl ExchangeRateLimiterBuilder {
         let buckets = self
             .buckets
             .into_iter()
-            .map(|(k, v)| (k, Mutex::new(v.into())))
+            .map(|(k, v)| (k, Mutex::new(v)))
             .collect();
 
-        let rate_limiter = ExchangeRateLimiter::new(Arc::new(buckets), tasks_tx, Arc::new(Mutex::new(Queue::new())));
+        let rate_limiter = ExchangeRateLimiter::new(
+            Arc::new(buckets),
+            tasks_tx,
+            Arc::new(Mutex::new(Queue::new())),
+        );
         rate_limiter.recv(tasks_rx);
         rate_limiter
     }

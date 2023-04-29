@@ -64,7 +64,7 @@ fn sign(secret: &str, timestamp: u32, method: &str, url_path: &str, json_payload
     m256.update(url_path.as_bytes());
     m256.update(json_payload.as_bytes());
     let payload = m256.finalize().into_bytes();
-    base64::encode(&payload)
+    base64::encode(payload)
 }
 
 #[derive(Clone, Copy)]
@@ -81,7 +81,7 @@ impl<const N: usize> ArrStr<N> {
         let len = {
             let mut cursor = std::io::Cursor::new(buf.as_mut());
             // Expected to be successful always.
-            let _ = write!(&mut cursor, "{v}").ok()?;
+            write!(&mut cursor, "{v}").ok()?;
             cursor.position() as usize
         };
         Some(ArrStr { len, buf })

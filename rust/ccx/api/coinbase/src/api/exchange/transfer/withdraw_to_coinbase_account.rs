@@ -46,7 +46,7 @@ where
         let endpoint = "/withdrawals/coinbase-account";
         Ok(self
             .rate_limiter
-            .task(self.client.post(&endpoint)?.signed_now()?.request_body(
+            .task(self.client.post(endpoint)?.signed_now()?.request_body(
                 WithdrawToCoinbaseAccountRequest {
                     profile_id,
                     coinbase_account_id,

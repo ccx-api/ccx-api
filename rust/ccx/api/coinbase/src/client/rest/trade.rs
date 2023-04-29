@@ -141,7 +141,7 @@ where
                     buf.push('&');
                 }
             }
-            buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
+            buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
             let uri =
                 Uri::from_parts(parts).map_err(|e| CoinbaseError::other(format!("{:?}", e)))?;
@@ -192,6 +192,7 @@ where
             self.request.get_uri()
         );
         log::debug!("[{request_id}]  Request body: {:?}", self.body);
+
         let tm = Instant::now();
         let mut res = self.request.send_body(self.body).await?;
         let d1 = tm.elapsed();
@@ -202,17 +203,20 @@ where
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
+
         let code = res.status();
         log::debug!(
             "[{request_id}]  Response: {} «{}»",
             code,
             String::from_utf8_lossy(&resp)
         );
+
         if let Err(err) = check_response(res) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
         };
-        Ok(from_response(code, &resp)?)
+
+        from_response(code, &resp)
     }
 
     // pub async fn send_no_response(mut self) -> CoinbaseResult<()> {
@@ -244,12 +248,11 @@ where
         if let Some((timestamp,)) = self.sign {
             let url_path = self.request.get_uri().path();
             let method = self.request.get_method();
-            match *method {
-                Method::GET => {
-                    self.body = String::new();
-                }
-                _ => (),
+
+            if *method == Method::GET {
+                self.body = String::new();
             }
+
             let signature = self
                 .api_client
                 .inner
@@ -257,13 +260,16 @@ where
                 .signer()
                 .sign_data(timestamp, method.as_str(), url_path, &self.body)
                 .await?;
+
             self.request = self
                 .request
                 .append_header(("CB-ACCESS-KEY", self.api_client.inner.config.api_key()))
                 .append_header(("CB-ACCESS-SIGN", signature))
                 .append_header(("CB-ACCESS-TIMESTAMP", timestamp));
         };
+
         self.request = self.request.append_header(("Accept", "application/json"));
+
         Ok(self)
     }
 }
@@ -297,7 +303,7 @@ fn check_response(res: AwcClientResponse) -> CoinbaseApiResult<AwcClientResponse
 fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> CoinbaseApiResult<V> {
     match code {
         _ if code.is_success() => match serde_json::from_slice(body) {
-            Ok(result) => return Ok(result),
+            Ok(result) => Ok(result),
             Err(err) => Err(err)?,
         },
         _ => {

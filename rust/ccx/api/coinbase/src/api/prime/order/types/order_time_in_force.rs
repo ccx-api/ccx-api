@@ -23,13 +23,13 @@ forward_display_to_serde!(PortfolioOrderTimeInForce);
 forward_from_str_to_serde!(PortfolioOrderTimeInForce);
 
 impl PortfolioOrderTimeInForce {
-//     pub fn from_name(name: &str) -> Option<Self> {
-//         Self::from_str(name).ok()
-//     }
-//
-//     pub fn name(&self) -> String {
-//         self.to_string()
-//     }
+    //     pub fn from_name(name: &str) -> Option<Self> {
+    //         Self::from_str(name).ok()
+    //     }
+    //
+    //     pub fn name(&self) -> String {
+    //         self.to_string()
+    //     }
 
     pub fn as_str(&self) -> &'static str {
         match self {

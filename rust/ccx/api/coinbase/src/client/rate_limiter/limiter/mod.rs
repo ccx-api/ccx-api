@@ -2,6 +2,9 @@ mod exchange;
 mod prime;
 mod trade;
 
-pub use self::exchange::*;
-pub use self::prime::*;
-pub use self::trade::*;
+#[allow(unused_imports)]
+pub use exchange::*;
+#[allow(unused_imports)]
+pub use prime::*;
+#[allow(unused_imports)]
+pub use trade::*;

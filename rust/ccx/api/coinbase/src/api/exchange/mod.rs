@@ -22,17 +22,17 @@ pub const API_BASE_TESTNET: &str = "https://api-public.sandbox.exchange.coinbase
 pub const STREAM_MARKET_BASE_TESTNET: &str = "wss://ws-feed-public.sandbox.exchange.coinbase.com/";
 pub const STREAM_DIRECT_BASE_TESTNET: &str = "wss://ws-direct.sandbox.exchange.coinbase.com/";
 
-pub const RL_PUBLIC_KEY: &'static str = "PUBLIC";
+pub const RL_PUBLIC_KEY: &str = "PUBLIC";
 pub const RL_PUBLIC_INTERVAL: Duration = Duration::from_secs(1);
 pub const RL_PUBLIC_LIMIT: u32 = 10;
 pub const RL_PUBLIC_BURST_LIMIT: u32 = 15;
 
-pub const RL_PRIVATE_KEY: &'static str = "PRIVATE";
+pub const RL_PRIVATE_KEY: &str = "PRIVATE";
 pub const RL_PRIVATE_INTERVAL: Duration = Duration::from_secs(1);
 pub const RL_PRIVATE_LIMIT: u32 = 15;
 pub const RL_PRIVATE_BURST_LIMIT: u32 = 30;
 
-pub const RL_PRIVATE_FILLS_KEY: &'static str = "PRIVATE_FILLS";
+pub const RL_PRIVATE_FILLS_KEY: &str = "PRIVATE_FILLS";
 pub const RL_PRIVATE_FILLS_INTERVAL: Duration = Duration::from_secs(1);
 pub const RL_PRIVATE_FILLS_LIMIT: u32 = 10;
 pub const RL_PRIVATE_FILLS_BURST_LIMIT: u32 = 20;

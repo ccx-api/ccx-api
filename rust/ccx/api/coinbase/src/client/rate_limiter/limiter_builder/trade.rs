@@ -5,11 +5,11 @@ use std::sync::Arc;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 
-use super::super::BucketName;
 use super::super::queue::Queue;
 use super::super::task_message::TaskMessage;
-use crate::client::TradeRateLimiter;
+use super::super::BucketName;
 use crate::client::RateLimiterBucket;
+use crate::client::TradeRateLimiter;
 
 #[derive(Default)]
 pub(crate) struct TradeRateLimiterBuilder {
@@ -32,10 +32,14 @@ impl TradeRateLimiterBuilder {
         let buckets = self
             .buckets
             .into_iter()
-            .map(|(k, v)| (k, Mutex::new(v.into())))
+            .map(|(k, v)| (k, Mutex::new(v)))
             .collect();
 
-        let rate_limiter = TradeRateLimiter::new(Arc::new(buckets), tasks_tx, Arc::new(Mutex::new(Queue::new())));
+        let rate_limiter = TradeRateLimiter::new(
+            Arc::new(buckets),
+            tasks_tx,
+            Arc::new(Mutex::new(Queue::new())),
+        );
         rate_limiter.recv(tasks_rx);
         rate_limiter
     }

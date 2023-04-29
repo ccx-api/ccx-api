@@ -53,20 +53,19 @@ impl RateLimiterBucket {
                     self.time_instant = Instant::now();
                     self.amount = 0;
                 }
-            }
-            // RateLimiterBucketMode::CoinbaseDecrease => {
-            //     let elapsed = Instant::now().duration_since(self.time_instant);
-            //     let available =
-            //         (elapsed.as_secs_f32() / self.interval.as_secs_f32()).floor() as u32;
-            //     if available > 0 {
-            //         self.time_instant = Instant::now();
-            //         self.amount = if self.amount > available {
-            //             self.amount - available
-            //         } else {
-            //             0
-            //         };
-            //     }
-            // }
+            } // RateLimiterBucketMode::CoinbaseDecrease => {
+              //     let elapsed = Instant::now().duration_since(self.time_instant);
+              //     let available =
+              //         (elapsed.as_secs_f32() / self.interval.as_secs_f32()).floor() as u32;
+              //     if available > 0 {
+              //         self.time_instant = Instant::now();
+              //         self.amount = if self.amount > available {
+              //             self.amount - available
+              //         } else {
+              //             0
+              //         };
+              //     }
+              // }
         }
     }
 
@@ -75,8 +74,7 @@ impl RateLimiterBucket {
             RateLimiterBucketMode::Interval => {
                 let elapsed = Instant::now().duration_since(self.time_instant);
                 self.interval - elapsed
-            }
-            // RateLimiterBucketMode::CoinbaseDecrease => self.interval,
+            } // RateLimiterBucketMode::CoinbaseDecrease => self.interval,
         }
     }
 }

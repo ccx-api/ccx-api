@@ -7,14 +7,14 @@ use futures::channel::mpsc;
 use futures::lock::Mutex;
 use futures::prelude::*;
 
+use super::super::BucketName;
+use super::super::ExchangeTaskBuilder;
+use super::super::Queue;
+use super::super::RateLimiterBucket;
+use super::super::TaskCosts;
+use super::super::TaskMessage;
 use crate::client::CoinbaseExchangeSigner;
 use crate::client::ExchangeRequestBuilder;
-use super::super::BucketName;
-use super::super::RateLimiterBucket;
-use super::super::TaskMessage;
-use super::super::Queue;
-use super::super::ExchangeTaskBuilder;
-use super::super::TaskCosts;
 use crate::CoinbaseResult;
 use crate::LibError;
 
@@ -39,15 +39,10 @@ impl ExchangeRateLimiter {
     }
 
     pub fn task<S>(&self, builder: ExchangeRequestBuilder<S>) -> ExchangeTaskBuilder<S>
-        where
-            S: CoinbaseExchangeSigner + Unpin,
+    where
+        S: CoinbaseExchangeSigner + Unpin,
     {
-        ExchangeTaskBuilder::new (
-            0,
-            TaskCosts::new(),
-            builder,
-            self.tasks_tx.clone(),
-        )
+        ExchangeTaskBuilder::new(0, TaskCosts::new(), builder, self.tasks_tx.clone())
     }
 
     pub(in super::super) fn recv(&self, mut rx: mpsc::UnboundedReceiver<TaskMessage>) {
@@ -63,12 +58,10 @@ impl ExchangeRateLimiter {
         });
     }
 
-    pub(super) async fn handler<'a>(
+    pub(super) async fn handler(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         queue: Arc<Mutex<Queue>>,
     ) {
-        let buckets = buckets.clone();
-        let queue = queue.clone();
         actix_rt::spawn(async move {
             loop {
                 let TaskMessage {
@@ -93,7 +86,7 @@ impl ExchangeRateLimiter {
                     Self::set_costs(buckets, &costs).await?;
                     Ok(())
                 }
-                    .await;
+                .await;
 
                 log::debug!("RateLimiter: completed task with priority {}", priority);
                 let _ = tx.send(res);
@@ -101,9 +94,9 @@ impl ExchangeRateLimiter {
         });
     }
 
-    pub(super) async fn timeout<'a>(
+    pub(super) async fn timeout(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        costs: &'a TaskCosts,
+        costs: &TaskCosts,
     ) -> CoinbaseResult<Option<Duration>> {
         let mut timeout = Duration::default();
 
@@ -148,12 +141,12 @@ impl ExchangeRateLimiter {
             }
         }
 
-        Ok((!timeout.is_zero()).then(|| timeout))
+        Ok((!timeout.is_zero()).then_some(timeout))
     }
 
-    pub(super) async fn set_costs<'a>(
+    pub(super) async fn set_costs(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        costs: &'a TaskCosts,
+        costs: &TaskCosts,
     ) -> CoinbaseResult<()> {
         for (name, cost) in costs {
             let mut bucket = match buckets.get(name) {

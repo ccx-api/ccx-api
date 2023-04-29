@@ -47,6 +47,7 @@ where
     /// * `is_raise_exact` -
     ///
     /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_orderpreview]
+    #[allow(clippy::too_many_arguments)]
     pub fn get_order_preview(
         &self,
         portfolio_id: Uuid,

@@ -14,6 +14,7 @@ use crate::client::CoinbaseTradeSigner;
 use crate::client::Task;
 use crate::client::TradeRequestBuilder;
 
+#[allow(dead_code)]
 pub(crate) struct TradeTaskBuilder<S>
 where
     S: CoinbaseTradeSigner + Unpin + 'static,
@@ -28,6 +29,7 @@ impl<S> TradeTaskBuilder<S>
 where
     S: CoinbaseTradeSigner + Unpin + 'static,
 {
+    #[allow(dead_code)]
     pub(in super::super) fn new(
         priority: u8,
         costs: TaskCosts,
@@ -47,6 +49,7 @@ where
         self
     }
 
+    #[allow(dead_code)]
     pub fn cost(mut self, key: impl Into<BucketName>, weight: u32) -> Self {
         self.costs
             .entry(key.into())
@@ -55,6 +58,7 @@ where
         self
     }
 
+    #[allow(dead_code)]
     pub fn send<V>(self) -> Task<V>
     where
         V: serde::de::DeserializeOwned + fmt::Debug,

@@ -1,10 +1,6 @@
+#[derive(Default)]
 pub(crate) enum RateLimiterBucketMode {
+    #[default]
     Interval,
     // CoinbaseDecrease,
-}
-
-impl Default for RateLimiterBucketMode {
-    fn default() -> Self {
-        RateLimiterBucketMode::Interval
-    }
 }

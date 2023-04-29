@@ -1,5 +1,3 @@
-use chrono::Utc;
-
 use super::prelude::*;
 use crate::api::exchange::RL_PRIVATE_KEY;
 use crate::client::Task;

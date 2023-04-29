@@ -1,7 +1,7 @@
 use crate::api::prime::prelude::*;
-use crate::api::prime::{PortfolioOrderSide, PortfolioOrderTimeInForce};
 use crate::api::prime::PortfolioOrderStatus;
 use crate::api::prime::PortfolioOrderType;
+use crate::api::prime::{PortfolioOrderSide, PortfolioOrderTimeInForce};
 use crate::dt_coinbase::DtCoinbase;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]

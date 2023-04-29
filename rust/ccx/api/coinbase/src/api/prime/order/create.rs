@@ -57,6 +57,7 @@ where
     /// * `is_raise_exact` -
     ///
     /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_createorder]
+    #[allow(clippy::too_many_arguments)]
     pub fn create_order(
         &self,
         portfolio_id: Uuid,

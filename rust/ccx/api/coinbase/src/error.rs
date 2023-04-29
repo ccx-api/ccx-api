@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 use std::fmt;
 
-use thiserror::Error;
 use awc::http::StatusCode;
+use thiserror::Error;
 
 pub use ccx_api_lib::*;
 
@@ -39,13 +39,14 @@ impl ApiErrorKind {
     }
 
     pub fn from_string(s: String) -> Self {
-        match () {
-            // () if s.starts_with("EGeneral:Invalid arguments") => Self::InvalidArguments,
-            // () if s.starts_with("EGeneral:Internal error") => Self::InternalError,
-            // () if s.starts_with("EGeneral:Permission denied") => Self::PermissionDenied,
-            // () if s.starts_with("EAPI:Invalid key") => Self::InvalidKey,
-            () => Self::unknown(s),
-        }
+        // match () {
+        //     () if s.starts_with("EGeneral:Invalid arguments") => Self::InvalidArguments,
+        //     () if s.starts_with("EGeneral:Internal error") => Self::InternalError,
+        //     () if s.starts_with("EGeneral:Permission denied") => Self::PermissionDenied,
+        //     () if s.starts_with("EAPI:Invalid key") => Self::InvalidKey,
+        //     _ => Self::unknown(s),
+        // }
+        Self::unknown(s)
     }
 }
 
@@ -55,7 +56,11 @@ impl CoinbaseApiError {
     }
 
     pub fn lib_error(msg: &dyn fmt::Display) -> Self {
-        CoinbaseApiError(ApiErrorKind::InternalError, StatusCode::BAD_REQUEST, format!("LibError:{msg}"))
+        CoinbaseApiError(
+            ApiErrorKind::InternalError,
+            StatusCode::BAD_REQUEST,
+            format!("LibError:{msg}"),
+        )
     }
 }
 

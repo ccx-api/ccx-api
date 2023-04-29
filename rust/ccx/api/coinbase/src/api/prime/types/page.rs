@@ -53,6 +53,7 @@ impl NextPage {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn fix_limit(&mut self, limit: Option<u32>) {
         self.limit = limit;
     }

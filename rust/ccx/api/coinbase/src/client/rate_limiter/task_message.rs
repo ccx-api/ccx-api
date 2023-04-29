@@ -1,7 +1,7 @@
 use futures::channel::oneshot;
 
-use crate::CoinbaseResult;
 use super::TaskCosts;
+use crate::CoinbaseResult;
 
 pub(super) type TaskMessageResult = CoinbaseResult<()>;
 

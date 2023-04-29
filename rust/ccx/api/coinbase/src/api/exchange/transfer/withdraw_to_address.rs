@@ -36,6 +36,7 @@ where
     /// This endpoint requires the "transfer" permission. API key must belong to default profile.
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcrypto]
+    #[allow(clippy::too_many_arguments)]
     pub fn withdraw_to_address(
         &self,
         profile_id: Option<Uuid>,
@@ -52,7 +53,7 @@ where
         let endpoint = "/withdrawals/crypto";
         Ok(self
             .rate_limiter
-            .task(self.client.post(&endpoint)?.signed_now()?.request_body(
+            .task(self.client.post(endpoint)?.signed_now()?.request_body(
                 WithdrawToAddressRequest {
                     profile_id,
                     amount,

@@ -56,6 +56,7 @@ where
     /// * `market_type` - Market type which the order was traded in.
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders]
+    #[allow(clippy::too_many_arguments)]
     pub fn list_orders(
         &self,
         profile_id: Option<&str>,
@@ -76,7 +77,7 @@ where
             .task({
                 let mut builder = self
                     .client
-                    .get(&endpoint)?
+                    .get(endpoint)?
                     .try_query_arg("profile_id", &profile_id)?
                     .try_query_arg("product_id", &product_id)?
                     .try_query_arg("sortedBy", &sorted_by)?

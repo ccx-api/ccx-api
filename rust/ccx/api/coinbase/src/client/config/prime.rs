@@ -79,8 +79,8 @@ pub struct PrimeConfig<S: CoinbasePrimeSigner> {
 }
 
 impl<S> PrimeConfig<S>
-    where
-        S: CoinbasePrimeSigner,
+where
+    S: CoinbasePrimeSigner,
 {
     pub fn new(
         signer: S,
@@ -90,7 +90,7 @@ impl<S> PrimeConfig<S>
         // tier: RateLimiterTier,
     ) -> Self {
         PrimeConfig {
-            signer: signer.into(),
+            signer,
             api_base,
             stream_base,
             proxy,
@@ -103,11 +103,11 @@ impl<S> PrimeConfig<S>
     }
 
     pub(crate) fn api_key(&self) -> &str {
-        &self.signer.api_key()
+        self.signer.api_key()
     }
 
     pub(crate) fn api_passphrase(&self) -> &str {
-        &self.signer.api_passphrase()
+        self.signer.api_passphrase()
     }
 
     pub(crate) fn signer(&self) -> &S {

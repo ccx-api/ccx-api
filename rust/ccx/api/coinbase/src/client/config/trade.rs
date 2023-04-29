@@ -79,8 +79,8 @@ pub struct TradeConfig<S: CoinbaseTradeSigner> {
 }
 
 impl<S> TradeConfig<S>
-    where
-        S: CoinbaseTradeSigner,
+where
+    S: CoinbaseTradeSigner,
 {
     pub fn new(
         signer: S,
@@ -90,7 +90,7 @@ impl<S> TradeConfig<S>
         // tier: RateLimiterTier,
     ) -> Self {
         TradeConfig {
-            signer: signer.into(),
+            signer,
             api_base,
             stream_base,
             proxy,
@@ -103,7 +103,7 @@ impl<S> TradeConfig<S>
     }
 
     pub(crate) fn api_key(&self) -> &str {
-        &self.signer.api_key()
+        self.signer.api_key()
     }
 
     pub(crate) fn signer(&self) -> &S {

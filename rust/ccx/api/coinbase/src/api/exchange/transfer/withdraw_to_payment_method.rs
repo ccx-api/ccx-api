@@ -38,7 +38,7 @@ where
         let endpoint = "/withdrawals/payment-method";
         Ok(self
             .rate_limiter
-            .task(self.client.post(&endpoint)?.signed_now()?.request_body(
+            .task(self.client.post(endpoint)?.signed_now()?.request_body(
                 WithdrawToPaymentMethodRequest {
                     profile_id,
                     payment_method_id,

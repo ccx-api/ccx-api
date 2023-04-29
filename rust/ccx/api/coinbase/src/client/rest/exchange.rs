@@ -7,11 +7,11 @@ use actix_http::Payload;
 use actix_http::Uri;
 use awc::http::Method;
 use awc::http::StatusCode;
-use chrono::Utc;
 use ccx_api_lib::make_client;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;
 use ccx_api_lib::ClientResponse;
+use chrono::Utc;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
@@ -142,7 +142,7 @@ where
                     buf.push('&');
                 }
             }
-            buf.push_str(&serde_urlencoded::to_string(&[(name.as_ref(), query)])?);
+            buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
             let uri =
                 Uri::from_parts(parts).map_err(|e| CoinbaseError::other(format!("{:?}", e)))?;
@@ -180,7 +180,7 @@ where
         self.auth_header()
     }
 
-    pub fn signed_now(mut self) -> CoinbaseResult<Self> {
+    pub fn signed_now(self) -> CoinbaseResult<Self> {
         let timestamp = Utc::now().timestamp() as u32;
         self.signed(timestamp)
     }
@@ -218,7 +218,7 @@ where
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
         };
-        Ok(from_response(code, &resp)?)
+        from_response(code, &resp)
     }
 
     // pub async fn send_no_response(mut self) -> CoinbaseResult<()> {
@@ -248,14 +248,17 @@ where
 
     async fn sign(mut self) -> CoinbaseResult<Self> {
         if let Some((timestamp,)) = self.sign {
-            let url_path = self.request.get_uri().path_and_query().ok_or(CoinbaseApiError::lib_error(&"Missing PathAndQuery"))?;
+            let url_path = self
+                .request
+                .get_uri()
+                .path_and_query()
+                .ok_or(CoinbaseApiError::lib_error(&"Missing PathAndQuery"))?;
             let method = self.request.get_method();
-            match *method {
-                Method::GET => {
-                    self.body = String::new();
-                }
-                _ => (),
+
+            if *method == Method::GET {
+                self.body = String::new();
             }
+
             let signature = self
                 .api_client
                 .inner
@@ -263,6 +266,7 @@ where
                 .signer()
                 .sign_data(timestamp, method.as_str(), url_path.as_str(), &self.body)
                 .await?;
+
             self.request = self
                 .request
                 .append_header(("CB-ACCESS-KEY", self.api_client.inner.config.api_key()))
@@ -273,10 +277,12 @@ where
                     self.api_client.inner.config.api_passphrase(),
                 ));
         };
-        self.request = self.request
+
+        self.request = self
+            .request
             .append_header(("Accept", "application/json"))
-            .append_header(("User-Agent", "ccx-api/0.4 (lib; Rust)"))
-        ;
+            .append_header(("User-Agent", "ccx-api/0.4 (lib; Rust)"));
+
         Ok(self)
     }
 }
@@ -310,7 +316,7 @@ fn check_response(res: AwcClientResponse) -> CoinbaseApiResult<AwcClientResponse
 fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> CoinbaseApiResult<V> {
     match code {
         _ if code.is_success() => match serde_json::from_slice(body) {
-            Ok(result) => return Ok(result),
+            Ok(result) => Ok(result),
             Err(err) => Err(err)?,
         },
         _ => {

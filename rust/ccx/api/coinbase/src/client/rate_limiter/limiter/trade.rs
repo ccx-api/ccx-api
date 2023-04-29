@@ -39,6 +39,7 @@ impl TradeRateLimiter {
         }
     }
 
+    #[allow(dead_code)]
     pub fn task<S>(&self, builder: TradeRequestBuilder<S>) -> TradeTaskBuilder<S>
     where
         S: CoinbaseTradeSigner + Unpin,
@@ -59,12 +60,10 @@ impl TradeRateLimiter {
         });
     }
 
-    pub(super) async fn handler<'a>(
+    pub(super) async fn handler(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         queue: Arc<Mutex<Queue>>,
     ) {
-        let buckets = buckets.clone();
-        let queue = queue.clone();
         actix_rt::spawn(async move {
             loop {
                 let TaskMessage {
@@ -97,9 +96,9 @@ impl TradeRateLimiter {
         });
     }
 
-    pub(super) async fn timeout<'a>(
+    pub(super) async fn timeout(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        costs: &'a TaskCosts,
+        costs: &TaskCosts,
     ) -> CoinbaseResult<Option<Duration>> {
         let mut timeout = Duration::default();
 
@@ -144,12 +143,12 @@ impl TradeRateLimiter {
             }
         }
 
-        Ok((!timeout.is_zero()).then(|| timeout))
+        Ok((!timeout.is_zero()).then_some(timeout))
     }
 
-    pub(super) async fn set_costs<'a>(
+    pub(super) async fn set_costs(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
-        costs: &'a TaskCosts,
+        costs: &TaskCosts,
     ) -> CoinbaseResult<()> {
         for (name, cost) in costs {
             let mut bucket = match buckets.get(name) {

@@ -56,7 +56,10 @@ where
     /// Retrieve all cash balances, net of pending withdrawals.
     ///
     /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getposttradecredit]
-    pub fn get_portfolio_credit(&self, portfolio_id: Uuid) -> CoinbaseResult<Task<AccountPortfolioCreditResponse>> {
+    pub fn get_portfolio_credit(
+        &self,
+        portfolio_id: Uuid,
+    ) -> CoinbaseResult<Task<AccountPortfolioCreditResponse>> {
         let timestamp = Utc::now().timestamp() as u32;
         let endpoint = format!("/v1/portfolios/{portfolio_id}/credit");
         Ok(self

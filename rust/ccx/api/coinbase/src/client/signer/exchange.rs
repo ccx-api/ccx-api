@@ -57,14 +57,13 @@ fn sign(secret: &[u8], timestamp: u32, method: &str, url_path: &str, json_payloa
     use hmac::NewMac;
     use sha2::Sha256;
 
-    let mut m256 =
-        Hmac::<Sha256>::new_varkey(secret).expect("HMAC can take key of any size");
+    let mut m256 = Hmac::<Sha256>::new_varkey(secret).expect("HMAC can take key of any size");
     m256.update(ArrStr::from_u32(timestamp).as_ref());
     m256.update(method.as_bytes());
     m256.update(url_path.as_bytes());
     m256.update(json_payload.as_bytes());
     let payload = m256.finalize().into_bytes();
-    base64::encode(&payload)
+    base64::encode(payload)
 }
 
 #[derive(Clone, Copy)]
@@ -81,7 +80,7 @@ impl<const N: usize> ArrStr<N> {
         let len = {
             let mut cursor = std::io::Cursor::new(buf.as_mut());
             // Expected to be successful always.
-            let _ = write!(&mut cursor, "{v}").ok()?;
+            write!(&mut cursor, "{v}").ok()?;
             cursor.position() as usize
         };
         Some(ArrStr { len, buf })

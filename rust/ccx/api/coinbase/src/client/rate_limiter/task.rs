@@ -13,7 +13,7 @@ pub struct Task<V>
 where
     V: serde::de::DeserializeOwned + fmt::Debug,
 {
-    fut: Pin<Box<dyn Future<Output=CoinbaseApiResult<V>>>>,
+    fut: Pin<Box<dyn Future<Output = CoinbaseApiResult<V>>>>,
     costs: TaskCosts,
 }
 
@@ -22,13 +22,10 @@ where
     V: serde::de::DeserializeOwned + fmt::Debug,
 {
     pub(super) fn new(
-        fut: Pin<Box<dyn Future<Output=CoinbaseApiResult<V>>>>,
+        fut: Pin<Box<dyn Future<Output = CoinbaseApiResult<V>>>>,
         costs: TaskCosts,
     ) -> Self {
-        Task {
-            fut,
-            costs,
-        }
+        Task { fut, costs }
     }
 
     pub fn metadata(&self) -> TaskMetadata {
@@ -39,8 +36,8 @@ where
 }
 
 impl<V> Future for Task<V>
-    where
-        V: serde::de::DeserializeOwned + fmt::Debug,
+where
+    V: serde::de::DeserializeOwned + fmt::Debug,
 {
     type Output = CoinbaseApiResult<V>;
 

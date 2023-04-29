@@ -82,6 +82,7 @@ where
     ///     CAUTION: RTFM!
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders]
+    #[allow(clippy::too_many_arguments)]
     pub fn create_order(
         &self,
         profile_id: Option<String>,
@@ -104,7 +105,7 @@ where
             .rate_limiter
             .task(
                 self.client
-                    .post(&endpoint)?
+                    .post(endpoint)?
                     .signed_now()?
                     .request_body(CreateOrderRequest {
                         profile_id,

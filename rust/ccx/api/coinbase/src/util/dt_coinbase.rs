@@ -1,19 +1,18 @@
-use std::ops;
-
 use chrono::DateTime;
+use chrono::NaiveDateTime;
 use chrono::TimeZone;
 use chrono::Utc;
+use derive_more::Deref;
+use derive_more::From;
 use serde::Deserialize;
 use serde::Serialize;
-use derive_more::From;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, From)]
-pub struct DtCoinbase(#[serde(with = "self")] pub DateTime<Utc>);
+#[derive(Serialize, Deserialize, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, From, Deref)]
+pub struct DtCoinbase(#[serde(with = "self")] DateTime<Utc>);
 
-impl DtCoinbase {
-    #[inline]
-    pub fn into_inner(self) -> DateTime<Utc> {
-        self.0
+impl From<NaiveDateTime> for DtCoinbase {
+    fn from(value: NaiveDateTime) -> Self {
+        Self(DateTime::from_utc(value, Utc))
     }
 }
 
@@ -46,7 +45,8 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let deserialized: DtCoinbase = serde_plain::from_str("2020-03-11T20:48:46.622052Z").unwrap();
+        let deserialized: DtCoinbase =
+            serde_plain::from_str("2020-03-11T20:48:46.622052Z").unwrap();
         let date_time = Utc.ymd(2020, 3, 11).and_hms_micro(20, 48, 46, 622052);
         assert_eq!(deserialized.0, date_time)
     }
