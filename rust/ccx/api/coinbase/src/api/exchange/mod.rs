@@ -38,6 +38,7 @@ pub const RL_PRIVATE_FILLS_LIMIT: u32 = 10;
 pub const RL_PRIVATE_FILLS_BURST_LIMIT: u32 = 20;
 
 // TODO mod error;
+mod account;
 mod address_book;
 mod currency;
 mod fees;
@@ -47,13 +48,14 @@ mod profile;
 mod transfer;
 pub mod types;
 
-pub use self::address_book::*;
-pub use self::currency::*;
-pub use self::fees::*;
-pub use self::order::*;
-pub use self::product::*;
-pub use self::profile::*;
-pub use self::transfer::*;
+pub use account::*;
+pub use address_book::*;
+pub use currency::*;
+pub use fees::*;
+pub use order::*;
+pub use product::*;
+pub use profile::*;
+pub use transfer::*;
 
 mod prelude {
     pub use chrono::Utc;
