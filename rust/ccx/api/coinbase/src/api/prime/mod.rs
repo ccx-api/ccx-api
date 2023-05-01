@@ -26,15 +26,12 @@ pub const RL_PORTFOLIO_LIMIT: u32 = 25;
 // TODO mod error;
 mod order;
 mod portfolio;
-mod portfolio_balances;
-mod portfolio_credit;
-mod portfolios;
 pub mod types;
 mod wallet;
 
-pub use self::order::*;
-pub use self::portfolio_balances::*;
-pub use self::wallet::*;
+pub use order::*;
+pub use portfolio::*;
+pub use wallet::*;
 
 mod prelude {
     pub use chrono::Utc;

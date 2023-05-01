@@ -1,21 +1,19 @@
-use chrono::Utc;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::prelude::*;
-use crate::api::prime::RL_PORTFOLIO_KEY;
-use crate::client::Task;
 use crate::dt_coinbase::DtCoinbase;
+use crate::Decimal;
 
 /// List all portfolios for which the current API key has read access. (Currently, an API key
 /// is scoped to only one portfolio).
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct AccountPortfolioCreditResponse {
+pub struct PortfolioCredit {
     /// A list of portfolios.
-    pub post_trade_credit: AccountPortfolioCredit,
+    pub post_trade_credit: CreditDetails,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct AccountPortfolioCredit {
+pub struct CreditDetails {
     /// The unique ID of the portfolio.
     pub portfolio_id: Uuid,
     /// The currency symbol credit is denoted in.
@@ -43,34 +41,4 @@ pub struct AmountDue {
     pub amount: Decimal,
     /// The date this settlement is due, expressed in UTC.
     pub due_date: DtCoinbase,
-}
-
-#[cfg(feature = "with_network")]
-impl<S> PrimeApi<S>
-where
-    S: crate::client::CoinbasePrimeSigner,
-    S: Unpin + 'static,
-{
-    /// Get Account Balance.
-    ///
-    /// Retrieve all cash balances, net of pending withdrawals.
-    ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getposttradecredit]
-    pub fn get_portfolio_credit(
-        &self,
-        portfolio_id: Uuid,
-    ) -> CoinbaseResult<Task<AccountPortfolioCreditResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/v1/portfolios/{portfolio_id}/credit");
-        Ok(self
-            .rate_limiter
-            .task(
-                self.client
-                    .get(&endpoint)?
-                    .signed(timestamp)?
-                    .request_body(())?,
-            )
-            .cost(RL_PORTFOLIO_KEY, 1)
-            .send())
-    }
 }

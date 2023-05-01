@@ -1,28 +1,26 @@
-use chrono::Utc;
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
+
+use crate::Atom;
+use crate::Decimal;
 
 #[cfg(feature = "db")]
 use diesel_derives::{AsExpression, FromSqlRow};
 
-use super::prelude::*;
-use crate::api::prime::RL_PORTFOLIO_KEY;
-use crate::client::Task;
-
 /// List all portfolios for which the current API key has read access. (Currently, an API key
 /// is scoped to only one portfolio).
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct AccountPortfolioBalancesResponse {
+pub struct PortfolioBalance {
     /// A list of balances.
-    pub balances: Vec<AccountPortfolioBalances>,
-    pub r#type: PortfolioBalanceType,
-    pub trading_balances: AccountPortfolioTradingBalances,
-    pub vault_balances: AccountPortfolioVaultBalances,
+    pub balances: Vec<CurrencyBalance>,
+    pub r#type: BalanceType,
+    pub trading_balances: TradingBalances,
+    pub vault_balances: VaultBalances,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
-pub enum PortfolioBalanceType {
+pub enum BalanceType {
     /// Trading balances.
     #[serde(rename = "TRADING_BALANCES")]
     TradingBalances,
@@ -34,11 +32,11 @@ pub enum PortfolioBalanceType {
     TotalBalances,
 }
 #[cfg(feature = "db")]
-forward_display_to_serde!(AccountPortfolioBalanceType);
+forward_display_to_serde!(BalanceType);
 #[cfg(feature = "db")]
-forward_from_str_to_serde!(AccountPortfolioBalanceType);
+forward_from_str_to_serde!(BalanceType);
 
-// impl PortfolioBalanceType {
+// impl BalanceType {
 //     pub fn from_name(name: &str) -> Option<Self> {
 //         Self::from_str(name).ok()
 //     }
@@ -49,7 +47,7 @@ forward_from_str_to_serde!(AccountPortfolioBalanceType);
 // }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct AccountPortfolioBalances {
+pub struct CurrencyBalance {
     /// The display symbol for the asset.
     pub symbol: Atom,
     /// The total amount in whole units with full precision.
@@ -68,7 +66,7 @@ pub struct AccountPortfolioBalances {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct AccountPortfolioTradingBalances {
+pub struct TradingBalances {
     /// The total amount in whole units with full precision.
     pub total: Decimal,
     /// Amount that is currently held in obligation to an open order's position
@@ -77,48 +75,10 @@ pub struct AccountPortfolioTradingBalances {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct AccountPortfolioVaultBalances {
+pub struct VaultBalances {
     /// The total amount in whole units with full precision.
     pub total: Decimal,
     /// Amount that is currently held in obligation to an open order's position
     /// or a pending withdrawal.
     pub holds: Decimal,
-}
-
-#[cfg(feature = "with_network")]
-impl<S> PrimeApi<S>
-where
-    S: crate::client::CoinbasePrimeSigner,
-    S: Unpin + 'static,
-{
-    /// Get Account Balance.
-    ///
-    /// Retrieve all cash balances, net of pending withdrawals.
-    ///
-    /// * `portfolio_id` - The portfolio ID.
-    /// * `symbols` - A list of symbols by which to filter the response.
-    /// * `balance_type` - A type by which to filter balances.
-    ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getposttradecredit]
-    pub fn get_portfolio_balances(
-        &self,
-        portfolio_id: Uuid,
-        symbols: Option<String>,
-        balance_type: Option<PortfolioBalanceType>,
-    ) -> CoinbaseResult<Task<AccountPortfolioBalancesResponse>> {
-        let timestamp = Utc::now().timestamp() as u32;
-        let endpoint = format!("/v1/portfolios/{portfolio_id}/balances");
-        Ok(self
-            .rate_limiter
-            .task(
-                self.client
-                    .get(&endpoint)?
-                    .try_query_arg("symbols", &symbols)?
-                    .try_query_arg("balance_type", &balance_type)?
-                    .signed(timestamp)?
-                    .request_body(())?,
-            )
-            .cost(RL_PORTFOLIO_KEY, 1)
-            .send())
-    }
 }
