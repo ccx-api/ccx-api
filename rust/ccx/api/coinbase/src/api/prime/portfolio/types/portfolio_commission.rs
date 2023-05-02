@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
+use derive_more::Deref;
 
 use crate::Atom;
 use crate::Decimal;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Deref)]
 pub struct PortfolioCommission {
     pub commission: PortfolioCommissionDetails,
 }
