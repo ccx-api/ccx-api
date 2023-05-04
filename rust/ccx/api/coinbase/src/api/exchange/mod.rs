@@ -39,6 +39,7 @@ pub const RL_PRIVATE_FILLS_BURST_LIMIT: u32 = 20;
 
 // TODO mod error;
 mod account;
+mod account_coinbase;
 mod address_book;
 mod currency;
 mod fees;
@@ -49,6 +50,7 @@ mod transfer;
 pub mod types;
 
 pub use account::*;
+pub use account_coinbase::*;
 pub use address_book::*;
 pub use currency::*;
 pub use fees::*;

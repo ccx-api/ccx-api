@@ -58,7 +58,7 @@ impl PrimeRateLimiter {
         });
     }
 
-    pub(super) async fn handler<'a>(
+    pub(super) async fn handler(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         queue: Arc<Mutex<Queue>>,
     ) {

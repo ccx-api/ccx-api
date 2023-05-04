@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use derive_more::Deref;
+use serde::{Deserialize, Serialize};
 
 use crate::Atom;
 use crate::Decimal;
