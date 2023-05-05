@@ -1,15 +1,14 @@
+use std::borrow::Cow;
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::Atom;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum CoinbaseAccountId {
     Uuid(Uuid),
-    Ticker(Atom),
+    Ticker(Cow<'static, str>),
 }
 
 impl Display for CoinbaseAccountId {
