@@ -52,19 +52,20 @@ impl CoinbasePrimeSigner for PrimeApiCred {
 }
 
 fn sign(secret: &str, timestamp: u32, method: &str, url_path: &str, json_payload: &str) -> String {
-    use hmac::Hmac;
-    use hmac::Mac;
-    use hmac::NewMac;
+    use base64::{engine::general_purpose, Engine as _};
+    use hmac::{Hmac, Mac};
     use sha2::Sha256;
 
-    let mut m256 =
-        Hmac::<Sha256>::new_varkey(secret.as_bytes()).expect("HMAC can take key of any size");
-    m256.update(ArrStr::from_u32(timestamp).as_ref());
-    m256.update(method.as_bytes());
-    m256.update(url_path.as_bytes());
-    m256.update(json_payload.as_bytes());
-    let payload = m256.finalize().into_bytes();
-    base64::encode(payload)
+    let mut mac =
+        Hmac::<Sha256>::new_from_slice(secret.as_bytes()).expect("HMAC can take key of any size");
+
+    mac.update(ArrStr::from_u32(timestamp).as_ref());
+    mac.update(method.as_bytes());
+    mac.update(url_path.as_bytes());
+    mac.update(json_payload.as_bytes());
+
+    let payload = mac.finalize().into_bytes();
+    general_purpose::STANDARD.encode(payload)
 }
 
 #[derive(Clone, Copy)]
