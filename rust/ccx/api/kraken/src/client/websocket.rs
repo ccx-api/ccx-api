@@ -16,7 +16,11 @@ use ccx_api_lib::Seq;
 
 use crate::client::{KrakenSigner, RestClient};
 use crate::error::{KrakenError, KrakenResult};
-use crate::{UpstreamApiRequest, UpstreamWebsocketMessage, WsCommand, WsEvent, WsSubscription};
+use crate::ws_stream::UpstreamApiRequest;
+use crate::ws_stream::UpstreamWebsocketMessage;
+use crate::ws_stream::WsCommand;
+use crate::ws_stream::WsEvent;
+use crate::ws_stream::WsSubscription;
 
 /// How often heartbeat pings are sent.
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -78,6 +82,10 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
                 log::warn!("unexpected binary message (ignored)");
             }
             ws::Frame::Text(msg) => {
+                // log::debug!("Received message: `{}`", unsafe {
+                //     std::str::from_utf8_unchecked(&msg)
+                // });
+
                 let res = serde_json::from_slice(&msg);
                 if res.is_err() {
                     log::error!(

@@ -1,3 +1,1 @@
-mod ws_stream;
-
-pub use self::ws_stream::*;
+pub mod ws_stream;

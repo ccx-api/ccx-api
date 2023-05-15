@@ -2,13 +2,14 @@ use std::collections::BTreeMap;
 
 use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-use crate::{DiffOrderBookEvent, KrakenResult};
+use crate::ws_stream::OrderBookDiff;
+use crate::KrakenResult;
 
 #[derive(Debug)]
 pub enum OrderBookUpdater {
-    Preparing { buffer: Vec<DiffOrderBookEvent> },
+    Preparing { buffer: Vec<OrderBookDiff> },
     Ready { state: OrderBookState },
 }
 
@@ -25,14 +26,14 @@ pub struct Fill {
     pub exhausted: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct OrderBook {
-    pub bids: Box<[Bid]>,
-    pub asks: Box<[Ask]>,
+    pub bids: Vec<OrderLevel>,
+    pub asks: Vec<OrderLevel>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash)]
-pub struct Bid {
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub struct OrderLevel {
     pub price: Decimal,
     pub qty: Decimal,
     pub timestamp: Decimal,
@@ -40,22 +41,7 @@ pub struct Bid {
     pub update_type: Option<String>,
 }
 
-impl Bid {
-    pub fn is_republished(&self) -> bool {
-        self.update_type.as_deref() == Some("r")
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash)]
-pub struct Ask {
-    pub price: Decimal,
-    pub qty: Decimal,
-    pub timestamp: Decimal,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub update_type: Option<String>,
-}
-
-impl Ask {
+impl OrderLevel {
     pub fn is_republished(&self) -> bool {
         self.update_type.as_deref() == Some("r")
     }
@@ -73,7 +59,7 @@ impl OrderBookUpdater {
         }
     }
 
-    pub fn push_diff(&mut self, update: DiffOrderBookEvent) -> KrakenResult<()> {
+    pub fn push_diff(&mut self, update: OrderBookDiff) -> KrakenResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => buffer.push(update),
             OrderBookUpdater::Ready { state } => state.update(update)?,
@@ -113,28 +99,68 @@ impl OrderBookState {
         }
     }
 
-    pub fn bids(&self) -> &BTreeMap<Decimal, Decimal> {
-        &self.bids
-    }
-
     pub fn asks(&self) -> &BTreeMap<Decimal, Decimal> {
         &self.asks
     }
 
-    pub fn next_bid(&self) -> Option<(&Decimal, &Decimal)> {
-        self.bids.iter().next_back()
+    pub fn bids(&self) -> &BTreeMap<Decimal, Decimal> {
+        &self.bids
     }
 
-    pub fn next_bid_price(&self) -> Option<Decimal> {
-        self.bids.iter().next_back().map(|(price, _qty)| *price)
-    }
-
-    pub fn next_ask(&self) -> Option<(&Decimal, &Decimal)> {
+    pub fn ask_low(&self) -> Option<(&Decimal, &Decimal)> {
         self.asks.iter().next()
     }
 
-    pub fn next_ask_price(&self) -> Option<Decimal> {
-        self.asks.iter().next().map(|(price, _qty)| *price)
+    pub fn bid_high(&self) -> Option<(&Decimal, &Decimal)> {
+        self.bids.iter().last()
+    }
+
+    pub fn ask_avg(&self) -> Option<(Decimal, Decimal)> {
+        // lowest 10 ask levels
+        let levels = self.asks.iter().take(10);
+
+        let mut total_price = Decimal::zero();
+        let mut total_volume = Decimal::zero();
+        let mut count = 0;
+
+        for (price, volume) in levels {
+            total_price += price * volume;
+            total_volume += volume;
+            count += 1;
+        }
+
+        if count == 0 || total_volume == Decimal::zero() {
+            return None;
+        }
+
+        Some((
+            total_price / total_volume,
+            total_volume / Decimal::from(count),
+        ))
+    }
+
+    pub fn bid_avg(&self) -> Option<(Decimal, Decimal)> {
+        // highest 10 bid levels
+        let levels = self.bids.iter().rev().take(10);
+
+        let mut total_price = Decimal::zero();
+        let mut total_volume = Decimal::zero();
+        let mut count = 0;
+
+        for (price, volume) in levels {
+            total_price += price * volume;
+            total_volume += volume;
+            count += 1;
+        }
+
+        if count == 0 || total_volume == Decimal::zero() {
+            return None;
+        }
+
+        Some((
+            total_price / total_volume,
+            total_volume / Decimal::from(count),
+        ))
     }
 
     pub fn bid_volume(&self, price_limit: &Decimal) -> Fill {
@@ -175,32 +201,44 @@ impl OrderBookState {
         }
     }
 
-    pub fn update(&mut self, diff: DiffOrderBookEvent) -> KrakenResult<()> {
-        if let Some(ask_data) = diff.ask_data {
-            for e in &ask_data.values {
-                if e.is_republished() {
-                    continue;
-                }
-                if e.qty.is_zero() {
-                    self.asks.remove(&e.price);
+    pub fn spread(&self) -> Decimal {
+        let ask = self.ask_low().map(|(p, _)| p).cloned().unwrap_or_default();
+        let bid = self.bid_high().map(|(p, _)| p).cloned().unwrap_or_default();
+        ask - bid
+    }
+
+    pub fn verify_checksum(&self) -> KrakenResult<()> {
+        // TODO: need to implement checksum verification
+        Ok(())
+    }
+
+    pub fn update(&mut self, diff: OrderBookDiff) -> KrakenResult<()> {
+        if let Some(asks) = diff.asks {
+            for ask_val in &asks.levels {
+                if ask_val.qty.is_zero() {
+                    log::trace!(" - removing ask: {:?}", ask_val.price);
+                    self.asks.remove(&ask_val.price);
                 } else {
-                    self.asks.insert(e.price, e.qty);
+                    log::trace!(" - inserting ask: {:?}", ask_val.price);
+                    self.asks.insert(ask_val.price, ask_val.qty);
                 }
             }
         }
 
-        if let Some(bid_data) = diff.bid_data {
-            for e in &bid_data.values {
-                if e.is_republished() {
-                    continue;
-                }
-                if e.qty.is_zero() {
-                    self.bids.remove(&e.price);
+        if let Some(bids) = diff.bids {
+            for bid_val in &bids.levels {
+                if bid_val.qty.is_zero() {
+                    log::trace!(" - removing bid: {:?}", bid_val.price);
+                    self.bids.remove(&bid_val.price);
                 } else {
-                    self.bids.insert(e.price, e.qty);
+                    log::trace!(" - inserting bid: {:?}", bid_val.price);
+                    self.bids.insert(bid_val.price, bid_val.qty);
                 }
             }
         }
+
+        self.verify_checksum()?;
+
         Ok(())
     }
 }

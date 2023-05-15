@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use super::prelude::*;
 use super::RlPriorityLevel;
 use crate::client::Task;
-use crate::util::{Ask, Bid, OrderBook};
+use crate::util::OrderBook;
+use crate::util::OrderLevel;
 
 use super::RL_PUBLIC_PER_SECOND;
 
@@ -249,7 +250,7 @@ impl From<AssetDepthInfo> for OrderBook {
             bids: value
                 .bids
                 .into_iter()
-                .map(|i| Bid {
+                .map(|i| OrderLevel {
                     price: i.price,
                     qty: i.volume,
                     timestamp: i.timestamp.into(),
@@ -259,7 +260,7 @@ impl From<AssetDepthInfo> for OrderBook {
             asks: value
                 .asks
                 .into_iter()
-                .map(|i| Ask {
+                .map(|i| OrderLevel {
                     price: i.price,
                     qty: i.volume,
                     timestamp: i.timestamp.into(),
