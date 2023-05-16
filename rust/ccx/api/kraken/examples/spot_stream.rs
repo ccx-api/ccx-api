@@ -141,15 +141,19 @@ async fn main_() -> KrakenApiResult<()> {
                         // }
 
                         let mut lines = vec![];
+
                         book.asks()
                             .iter()
-                            .for_each(|i| lines.push(format!("{}: {}", i.0, i.1)));
+                            .for_each(|(p, v)| lines.push(format!("{}: {}", p, v)));
+
                         let ask_avg = book.ask_avg().unwrap_or_default();
                         lines.push(format!("ask avg. {}: {}", ask_avg.0, ask_avg.1));
                         lines.push(format!("-----------------"));
+
                         book.bids()
                             .iter()
-                            .for_each(|i| lines.push(format!("{}: {}", i.0, i.1)));
+                            .for_each(|(p, v)| lines.push(format!("{}: {}", p, v)));
+
                         let bid_avg = book.bid_avg().unwrap_or_default();
                         lines.push(format!("bid avg. {}: {}", bid_avg.0, bid_avg.1));
                         lines.push(format!("spread: {}", book.spread()));

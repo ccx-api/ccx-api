@@ -107,12 +107,12 @@ impl OrderBookState {
         &self.bids
     }
 
-    pub fn ask_low(&self) -> Option<(&Decimal, &Decimal)> {
+    pub fn next_ask(&self) -> Option<(&Decimal, &Decimal)> {
         self.asks.iter().next()
     }
 
-    pub fn bid_high(&self) -> Option<(&Decimal, &Decimal)> {
-        self.bids.iter().last()
+    pub fn next_bid(&self) -> Option<(&Decimal, &Decimal)> {
+        self.bids.iter().next_back()
     }
 
     pub fn ask_avg(&self) -> Option<(Decimal, Decimal)> {
@@ -202,8 +202,8 @@ impl OrderBookState {
     }
 
     pub fn spread(&self) -> Decimal {
-        let ask = self.ask_low().map(|(p, _)| p).cloned().unwrap_or_default();
-        let bid = self.bid_high().map(|(p, _)| p).cloned().unwrap_or_default();
+        let ask = self.next_ask().map(|(p, _)| p).cloned().unwrap_or_default();
+        let bid = self.next_bid().map(|(p, _)| p).cloned().unwrap_or_default();
         ask - bid
     }
 

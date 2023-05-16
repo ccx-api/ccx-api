@@ -16,7 +16,11 @@ use ccx_api_lib::Seq;
 
 use crate::client::RestClient;
 use crate::error::{BinanceError, BinanceResult};
-use crate::{UpstreamApiRequest, UpstreamWebsocketMessage, WsCommand, WsEvent, WsSubscription};
+use crate::ws_stream::UpstreamApiRequest;
+use crate::ws_stream::UpstreamWebsocketMessage;
+use crate::ws_stream::WsCommand;
+use crate::ws_stream::WsEvent;
+use crate::ws_stream::WsSubscription;
 
 /// How often heartbeat pings are sent.
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);

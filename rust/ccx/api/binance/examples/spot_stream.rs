@@ -6,12 +6,12 @@ use string_cache::DefaultAtom as Atom;
 use ccx_binance::api::spot::OrderBookLimit;
 use ccx_binance::util::OrderBook;
 use ccx_binance::util::OrderBookUpdater;
+use ccx_binance::ws_stream::UpstreamWebsocketMessage;
+use ccx_binance::ws_stream::WsEvent;
+use ccx_binance::ws_stream::WsStream;
 use ccx_binance::ApiCred;
 use ccx_binance::BinanceError;
 use ccx_binance::SpotApi;
-use ccx_binance::UpstreamWebsocketMessage;
-use ccx_binance::WsEvent;
-use ccx_binance::WsStream;
 // use ccx_binance_examples_util::*;
 
 enum X {
@@ -33,9 +33,9 @@ async fn main() {
 
         let listen: Vec<Atom> = vec![
             "BTCUSDT".into(),
-            "ETHUSDT".into(),
-            "LTCUSDT".into(),
-            "ZECUSDT".into(),
+            // "ETHUSDT".into(),
+            // "LTCUSDT".into(),
+            // "ZECUSDT".into(),
         ];
 
         sink.subscribe_list(
@@ -58,7 +58,7 @@ async fn main() {
 
             let f = Box::pin(
                 binance_spot
-                    .depth(symbol.clone(), OrderBookLimit::N1000)?
+                    .depth(symbol.clone(), OrderBookLimit::N10)?
                     .into_stream()
                     .map(move |r| match r {
                         Ok(book) => X::Snapshot((symbol.clone(), book.into())),
@@ -83,7 +83,7 @@ async fn main() {
         while let Some(e) = stream.next().await {
             match e {
                 X::Event(e) => {
-                    if let WsEvent::DiffOrderBook(diff) = e {
+                    if let WsEvent::OrderBookDiff(diff) = e {
                         state
                             .get_mut(&diff.symbol)
                             .unwrap()
@@ -100,16 +100,41 @@ async fn main() {
                     break;
                 }
             }
-            for (symbol, updater) in &state {
-                let s = match updater.state() {
-                    None => format!("<uninitialized>"),
-                    Some(book) => format!(
-                        "{:?}  <=>  {:?}",
-                        book.bids().iter().next_back(),
-                        book.asks().iter().next(),
-                    ),
-                };
-                println!("{}\t{}", symbol, s);
+            for (_symbol, updater) in &state {
+                match updater.state() {
+                    None => {}
+                    Some(book) => {
+                        let mut lines = vec![];
+
+                        book.asks()
+                            .iter()
+                            .for_each(|(p, v)| lines.push(format!("{}: {}", p, v)));
+
+                        let ask_avg = book.ask_avg().unwrap_or_default();
+                        lines.push(format!("ask avg. {}: {}", ask_avg.0, ask_avg.1));
+                        lines.push(format!("-----------------"));
+
+                        book.bids()
+                            .iter()
+                            .for_each(|(p, v)| lines.push(format!("{}: {}", p, v)));
+
+                        let bid_avg = book.bid_avg().unwrap_or_default();
+                        lines.push(format!("bid avg. {}: {}", bid_avg.0, bid_avg.1));
+                        lines.push(format!("spread: {}", book.spread()));
+
+                        print!("{}\n\n.\n\n", lines.join("\n"));
+                    }
+                }
+
+                // let s = match updater.state() {
+                //     None => format!("<uninitialized>"),
+                //     Some(book) => format!(
+                //         "{:?}  <=>  {:?}",
+                //         book.bids().iter().next_back(),
+                //         book.asks().iter().next(),
+                //     ),
+                // };
+                // println!("{}\t{}", symbol, s);
             }
             println!();
         }

@@ -4,10 +4,11 @@ use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use crate::{BinanceError, BinanceResult, DiffOrderBookEvent};
+use crate::ws_stream::OrderBookDiffEvent;
+use crate::{BinanceError, BinanceResult};
 
 pub enum OrderBookUpdater {
-    Preparing { buffer: Vec<DiffOrderBookEvent> },
+    Preparing { buffer: Vec<OrderBookDiffEvent> },
     Ready { state: OrderBookState },
 }
 
@@ -55,7 +56,7 @@ impl OrderBookUpdater {
         }
     }
 
-    pub fn push_diff(&mut self, update: DiffOrderBookEvent) -> BinanceResult<()> {
+    pub fn push_diff(&mut self, update: OrderBookDiffEvent) -> BinanceResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => buffer.push(update),
             OrderBookUpdater::Ready { state } => state.update(update)?,
@@ -97,47 +98,68 @@ impl OrderBookState {
         }
     }
 
-    pub fn bids(&self) -> &BTreeMap<Decimal, Decimal> {
-        &self.bids
-    }
-
     pub fn asks(&self) -> &BTreeMap<Decimal, Decimal> {
         &self.asks
     }
 
-    pub fn next_bid(&self) -> Option<(&Decimal, &Decimal)> {
-        self.bids.iter().next_back()
-    }
-
-    pub fn next_bid_price(&self) -> Option<Decimal> {
-        self.bids.iter().next_back().map(|(price, _qty)| *price)
+    pub fn bids(&self) -> &BTreeMap<Decimal, Decimal> {
+        &self.bids
     }
 
     pub fn next_ask(&self) -> Option<(&Decimal, &Decimal)> {
         self.asks.iter().next()
     }
 
-    pub fn next_ask_price(&self) -> Option<Decimal> {
-        self.asks.iter().next().map(|(price, _qty)| *price)
+    pub fn next_bid(&self) -> Option<(&Decimal, &Decimal)> {
+        self.bids.iter().next_back()
     }
 
-    pub fn bid_volume(&self, price_limit: &Decimal) -> Fill {
-        let mut base_value = Decimal::zero();
-        let mut quote_value = Decimal::zero();
-        let mut exhausted = true;
-        for (price, volume) in self.bids.iter().rev() {
-            if price_limit < price {
-                exhausted = false;
-                break;
-            }
-            base_value += volume;
-            quote_value += volume * price;
+    pub fn ask_avg(&self) -> Option<(Decimal, Decimal)> {
+        // lowest 10 ask levels
+        let levels = self.asks.iter().take(10);
+
+        let mut total_price = Decimal::zero();
+        let mut total_volume = Decimal::zero();
+        let mut count = 0;
+
+        for (price, volume) in levels {
+            total_price += price * volume;
+            total_volume += volume;
+            count += 1;
         }
-        Fill {
-            base_value,
-            quote_value,
-            exhausted,
+
+        if count == 0 || total_volume == Decimal::zero() {
+            return None;
         }
+
+        Some((
+            total_price / total_volume,
+            total_volume / Decimal::from(count),
+        ))
+    }
+
+    pub fn bid_avg(&self) -> Option<(Decimal, Decimal)> {
+        // highest 10 bid levels
+        let levels = self.bids.iter().rev().take(10);
+
+        let mut total_price = Decimal::zero();
+        let mut total_volume = Decimal::zero();
+        let mut count = 0;
+
+        for (price, volume) in levels {
+            total_price += price * volume;
+            total_volume += volume;
+            count += 1;
+        }
+
+        if count == 0 || total_volume == Decimal::zero() {
+            return None;
+        }
+
+        Some((
+            total_price / total_volume,
+            total_volume / Decimal::from(count),
+        ))
     }
 
     pub fn ask_volume(&self, price_limit: &Decimal) -> Fill {
@@ -159,7 +181,32 @@ impl OrderBookState {
         }
     }
 
-    pub fn update(&mut self, diff: DiffOrderBookEvent) -> BinanceResult<()> {
+    pub fn bid_volume(&self, price_limit: &Decimal) -> Fill {
+        let mut base_value = Decimal::zero();
+        let mut quote_value = Decimal::zero();
+        let mut exhausted = true;
+        for (price, volume) in self.bids.iter().rev() {
+            if price_limit < price {
+                exhausted = false;
+                break;
+            }
+            base_value += volume;
+            quote_value += volume * price;
+        }
+        Fill {
+            base_value,
+            quote_value,
+            exhausted,
+        }
+    }
+
+    pub fn spread(&self) -> Decimal {
+        let ask = self.next_ask().map(|(p, _)| p).cloned().unwrap_or_default();
+        let bid = self.next_bid().map(|(p, _)| p).cloned().unwrap_or_default();
+        ask - bid
+    }
+
+    pub fn update(&mut self, diff: OrderBookDiffEvent) -> BinanceResult<()> {
         /*
            Drop any event where final_update_id is <= lastUpdateId in the snapshot.
 
