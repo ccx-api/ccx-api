@@ -9,6 +9,7 @@ members = [
     "api/binance",
     "api/binance/examples/util",
     "api/binance-pay",
+    "api/bitstamp",
     "api/coinbase",
     "api/coinbase/examples/util",
     "api/finery-markets",
