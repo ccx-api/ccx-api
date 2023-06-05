@@ -1,8 +1,8 @@
-use crate::api::account_balance::AccountBalance;
+use crate::api::fee::WithdrawalFee;
 use crate::api::prelude::*;
 use crate::api::RL_GENERAL_KEY;
 
-pub type ListAccountBalanceResponse = Vec<AccountBalance>;
+pub type ListWithdrawalFeeResponse = Vec<WithdrawalFee>;
 
 #[cfg(feature = "with_network")]
 impl<S> Api<S>
@@ -10,14 +10,14 @@ where
     S: crate::client::BitstampSigner,
     S: Unpin + 'static,
 {
-    /// Account balances
+    /// Withdrawal fees
     ///
     /// This call will be executed on the account (Sub or Main),
     /// to which the used API key is bound to.
     ///
-    /// [https://www.bitstamp.net/api/#account-balances]
-    pub fn list_account_balances(&self) -> BitstampResult<Task<ListAccountBalanceResponse>> {
-        let endpoint = "account_balances/";
+    /// [https://www.bitstamp.net/api/#withdrawal-fees]
+    pub fn list_withdrawal_fee(&self) -> BitstampResult<Task<ListWithdrawalFeeResponse>> {
+        let endpoint = "fees/withdrawal/";
 
         Ok(self
             .rate_limiter

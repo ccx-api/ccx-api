@@ -20,42 +20,21 @@ pub const STREAM_BASE: &str = "wss://ws.bitstamp.net";
 pub const API_BASE_TESTNET: &str = "https://www.bitstamp.net/api/v2/";
 pub const STREAM_BASE_TESTNET: &str = "wss://ws.bitstamp.net";
 
-pub const RL_PUBLIC_KEY: &str = "PUBLIC";
-pub const RL_PUBLIC_INTERVAL: Duration = Duration::from_secs(1);
-pub const RL_PUBLIC_LIMIT: u32 = 10;
-pub const RL_PUBLIC_BURST_LIMIT: u32 = 15;
+pub const RL_GENERAL_KEY: &str = "GENERAL";
+pub const RL_GENERAL_INTERVAL: Duration = Duration::from_secs(60);
+pub const RL_GENERAL_LIMIT: u32 = 800;
 
-pub const RL_PRIVATE_KEY: &str = "PRIVATE";
-pub const RL_PRIVATE_INTERVAL: Duration = Duration::from_secs(1);
-pub const RL_PRIVATE_LIMIT: u32 = 15;
-pub const RL_PRIVATE_BURST_LIMIT: u32 = 30;
-
-pub const RL_PRIVATE_FILLS_KEY: &str = "PRIVATE_FILLS";
-pub const RL_PRIVATE_FILLS_INTERVAL: Duration = Duration::from_secs(1);
-pub const RL_PRIVATE_FILLS_LIMIT: u32 = 10;
-pub const RL_PRIVATE_FILLS_BURST_LIMIT: u32 = 20;
-
-// TODO mod error;
-// mod account;
-// mod address_book;
-// mod currency;
-// mod fees;
-// mod order;
-// mod product;
-// mod profile;
-// mod transfer;
 mod account_balance;
+mod currency;
+mod fee;
 mod order_book;
+mod trading_pair;
 
 pub use account_balance::*;
+pub use currency::*;
+pub use fee::*;
 pub use order_book::*;
-// pub use account::*;
-// pub use currency::*;
-// pub use fees::*;
-// pub use order::*;
-// pub use product::*;
-// pub use profile::*;
-// pub use transfer::*;
+pub use trading_pair::*;
 
 mod prelude {
     pub use chrono::Utc;
@@ -141,32 +120,17 @@ mod with_network {
             // let limits = config.tier.limits();
             let client = RestClient::new(config);
 
-            // Advanced  API endpoints are throttled by IP at 10 requests per second.
-            // https://docs.cloud.bitstamp.com/advanced-trade-api/docs/rest-api-rate-limits
+            // Do not make more than 8000 requests per 10 minutes or we will ban your IP address.
+            // For real time data please refer to the websocket API.
+            // [https://www.bitstamp.net/api/#request-limits]
             let rate_limiter = RateLimiterBuilder::default()
                 .bucket(
-                    RL_PUBLIC_KEY,
+                    RL_GENERAL_KEY,
                     RateLimiterBucket::default()
                         .mode(RateLimiterBucketMode::Interval)
-                        .delay(RL_PUBLIC_INTERVAL)
-                        .interval(RL_PUBLIC_INTERVAL)
-                        .limit(RL_PUBLIC_LIMIT),
-                )
-                .bucket(
-                    RL_PRIVATE_KEY,
-                    RateLimiterBucket::default()
-                        .mode(RateLimiterBucketMode::Interval)
-                        .delay(RL_PRIVATE_INTERVAL)
-                        .interval(RL_PRIVATE_INTERVAL)
-                        .limit(RL_PRIVATE_LIMIT),
-                )
-                .bucket(
-                    RL_PRIVATE_FILLS_KEY,
-                    RateLimiterBucket::default()
-                        .mode(RateLimiterBucketMode::Interval)
-                        .delay(RL_PRIVATE_FILLS_INTERVAL)
-                        .interval(RL_PRIVATE_FILLS_INTERVAL)
-                        .limit(RL_PRIVATE_FILLS_LIMIT),
+                        .delay(Duration::ZERO)
+                        .interval(RL_GENERAL_INTERVAL)
+                        .limit(RL_GENERAL_LIMIT),
                 )
                 .start();
 

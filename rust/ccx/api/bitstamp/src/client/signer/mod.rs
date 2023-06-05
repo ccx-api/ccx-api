@@ -5,6 +5,7 @@ pub use nonce::*;
 pub use sign::*;
 
 pub trait BitstampSigner: Sync + Send {
+    #[allow(clippy::too_many_arguments)]
     fn sign_data<'a, 'b: 'a, 'c: 'b>(
         &'c self,
         nonce: Nonce,

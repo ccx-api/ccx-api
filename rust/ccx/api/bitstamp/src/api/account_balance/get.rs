@@ -1,6 +1,6 @@
 use crate::api::account_balance::AccountBalance;
 use crate::api::prelude::*;
-use crate::api::RL_PRIVATE_KEY;
+use crate::api::RL_GENERAL_KEY;
 
 pub type ListAccountBalanceResponse = AccountBalance;
 
@@ -32,7 +32,7 @@ where
                     .signed_now()?
                     .request_body(())?,
             )
-            .cost(RL_PRIVATE_KEY, 1)
+            .cost(RL_GENERAL_KEY, 1)
             .send())
     }
 }

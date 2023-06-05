@@ -44,6 +44,7 @@ impl BitstampSigner for ApiCred {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn sign(
     key: &str,
     secret: &str,
