@@ -1,3 +1,6 @@
+use serde::de::{self, Deserialize, Deserializer};
+use serde::ser::{Serialize, Serializer};
+
 use super::prelude::*;
 use super::OrderType;
 use super::RlPriorityLevel;
@@ -335,41 +338,50 @@ pub struct TrailingDeltaFilter {
     pub max_trailing_below_delta: Decimal,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub enum SymbolPermission {
-    #[serde(rename = "SPOT")]
     Spot,
-    #[serde(rename = "MARGIN")]
     Margin,
-    #[serde(rename = "LEVERAGED")]
     Leveraged,
-    #[serde(rename = "TRD_GRP_002")]
-    TrdGrp002,
-    #[serde(rename = "TRD_GRP_003")]
-    TrdGrp003,
-    #[serde(rename = "TRD_GRP_004")]
-    TrdGrp004,
-    // ???
-    #[serde(rename = "TRD_GRP_005")]
-    TrdGrp005,
-    #[serde(rename = "TRD_GRP_006")]
-    TrdGrp006,
-    #[serde(rename = "TRD_GRP_007")]
-    TrdGrp007,
-    #[serde(rename = "TRD_GRP_008")]
-    TrdGrp008,
-    #[serde(rename = "TRD_GRP_009")]
-    TrdGrp009,
-    #[serde(rename = "TRD_GRP_010")]
-    TrdGrp010,
-    #[serde(rename = "TRD_GRP_011")]
-    TrdGrp011,
-    #[serde(rename = "TRD_GRP_012")]
-    TrdGrp012,
-    #[serde(rename = "TRD_GRP_013")]
-    TrdGrp013,
-    #[serde(rename = "TRD_GRP_014")]
-    TrdGrp014
+    TradeGroup(u16),
+}
+
+impl Serialize for SymbolPermission {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            SymbolPermission::Spot => s.serialize_str("SPOT"),
+            SymbolPermission::Margin => s.serialize_str("MARGIN"),
+            SymbolPermission::Leveraged => s.serialize_str("LEVERAGED"),
+            SymbolPermission::TradeGroup(group_num) => {
+                let group_num = format!("TRD_GRP_{:0>4}", group_num);
+                s.serialize_str(&group_num)
+            }
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for SymbolPermission {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        match &*s {
+            "SPOT" => Ok(Self::Spot),
+            "MARGIN" => Ok(Self::Margin),
+            "LEVERAGED" => Ok(Self::Leveraged),
+            trade_group if trade_group.contains("TRD_GRP") => {
+                // Format: TRD_GRP_0001
+                let group_num = trade_group.trim_start_matches("TRD_GRP_");
+                let group_num = group_num.parse::<u16>().map_err(de::Error::custom)?;
+                Ok(Self::TradeGroup(group_num))
+            }
+            _ => Err(de::Error::custom(format!("invalid type: {}", s))),
+        }
+    }
 }
 
 // FIXME clarify: the documentation is ambiguous; only these values are listed as valid,
