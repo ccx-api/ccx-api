@@ -291,7 +291,7 @@ type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct ApiErrorMessage {
-    message: String,
+    reason: String,
 }
 
 fn check_response(res: AwcClientResponse) -> BitstampApiResult<AwcClientResponse> {
@@ -312,14 +312,21 @@ fn check_response(res: AwcClientResponse) -> BitstampApiResult<AwcClientResponse
 }
 
 fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> BitstampApiResult<V> {
-    match code {
-        _ if code.is_success() => match serde_json::from_slice(body) {
+    #[derive(Deserialize)]
+    struct StatusWrapper<'a> {
+        status: &'a str,
+    }
+    let wrapper: StatusWrapper =
+        serde_json::from_slice(body).unwrap_or(StatusWrapper { status: "ok" });
+
+    match () {
+        _ if code.is_success() && wrapper.status != "error" => match serde_json::from_slice(body) {
             Ok(result) => Ok(result),
             Err(err) => Err(err)?,
         },
         _ => {
             let message = match serde_json::from_slice(body) {
-                Ok(ApiErrorMessage { message }) => message,
+                Ok(ApiErrorMessage { reason }) => reason,
                 Err(_err) => String::from_utf8_lossy(body).to_string(),
             };
             let kind = match code {

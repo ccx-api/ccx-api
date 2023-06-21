@@ -27,12 +27,14 @@ pub const RL_GENERAL_LIMIT: u32 = 800;
 mod account_balance;
 mod currency;
 mod fee;
+mod order;
 mod order_book;
 mod trading_pair;
 
 pub use account_balance::*;
 pub use currency::*;
 pub use fee::*;
+pub use order::*;
 pub use order_book::*;
 pub use trading_pair::*;
 

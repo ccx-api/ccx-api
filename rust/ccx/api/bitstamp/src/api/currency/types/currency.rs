@@ -13,12 +13,12 @@ pub struct Currency {
     pub logo: Atom,
     pub name: Atom,
     pub symbol: Option<Atom>,
-    pub r#type: Type,
+    pub r#type: CurrencyType,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Type {
+pub enum CurrencyType {
     Crypto,
     Fiat,
 }
