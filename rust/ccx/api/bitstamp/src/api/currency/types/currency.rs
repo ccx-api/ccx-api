@@ -4,7 +4,7 @@ use crate::maybe_str;
 use crate::Atom;
 use crate::Decimal;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Currency {
     #[serde(with = "maybe_str")]
     pub available_supply: Option<Decimal>,
@@ -16,7 +16,7 @@ pub struct Currency {
     pub r#type: CurrencyType,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum CurrencyType {
     Crypto,

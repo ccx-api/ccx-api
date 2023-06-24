@@ -3,7 +3,7 @@ use serde::Deserialize;
 use crate::Atom;
 use crate::Decimal;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct TradingPairInfo {
     pub name: Atom,
     pub url_symbol: Atom,
@@ -17,13 +17,13 @@ pub struct TradingPairInfo {
     pub description: Atom,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct MinimumOrder {
     pub currency: Atom,
     pub amount: Decimal,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 pub enum Status {
     Disabled,
     Enabled,

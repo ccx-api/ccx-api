@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::Decimal;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct OrderBook {
     pub timestamp: String,
     pub microtimestamp: String,
@@ -10,7 +10,7 @@ pub struct OrderBook {
     pub asks: Vec<OrderBookLevel>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct OrderBookLevel {
     pub price: Decimal,
     pub volume: Decimal,

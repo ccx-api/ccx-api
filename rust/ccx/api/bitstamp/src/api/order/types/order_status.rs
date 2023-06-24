@@ -3,7 +3,7 @@ use serde::Deserialize;
 use crate::Atom;
 use crate::Decimal;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct OrderStatus {
     pub status: OrderStatusType,
     pub id: u64,
@@ -14,7 +14,7 @@ pub struct OrderStatus {
 }
 
 // tid, usd, price, fee, btc, datetime and type ()
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct OrderStatusTransaction {
     pub tid: u64,
     pub usd: Decimal,
@@ -26,7 +26,7 @@ pub struct OrderStatusTransaction {
     pub r#type: OrderStatusTransactionType,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 pub enum OrderStatusType {
     Open,
     Finished,
@@ -34,7 +34,7 @@ pub enum OrderStatusType {
     Canceled,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 pub enum OrderStatusTransactionType {
     Deposit,
     Withdrawal,

@@ -3,7 +3,7 @@ use serde::Deserialize;
 use crate::Atom;
 use crate::Decimal;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct MarketOrder {
     pub id: u64,
     pub market: Atom,
@@ -15,7 +15,7 @@ pub struct MarketOrder {
     pub client_order_id: Option<Atom>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 pub enum MarketOrderType {
     Buy,
     Sell,

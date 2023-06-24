@@ -3,7 +3,7 @@ use serde::Deserialize;
 use crate::Atom;
 use crate::Decimal;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct OpenOrder {
     pub id: u64,
     pub datetime: String,
@@ -16,7 +16,7 @@ pub struct OpenOrder {
     pub client_order_id: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 pub enum OpenOrderType {
     Buy,
     Sell,
