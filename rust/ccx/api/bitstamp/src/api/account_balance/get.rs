@@ -2,7 +2,7 @@ use crate::api::account_balance::AccountBalance;
 use crate::api::prelude::*;
 use crate::api::RL_GENERAL_KEY;
 
-pub type ListAccountBalanceResponse = AccountBalance;
+pub type AccountBalanceResponse = AccountBalance;
 
 #[cfg(feature = "with_network")]
 impl<S> Api<S>
@@ -19,7 +19,7 @@ where
     pub fn get_account_balance<C: AsRef<str>>(
         &self,
         currency: C,
-    ) -> BitstampResult<Task<ListAccountBalanceResponse>> {
+    ) -> BitstampResult<Task<AccountBalanceResponse>> {
         fn endpoint(currency: &str) -> String {
             format!("account_balances/{}/", currency)
         }
