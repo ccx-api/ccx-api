@@ -1,15 +1,16 @@
 use crate::api::order::OrderStatus;
+use crate::api::order::EitherOrderId;
 use crate::api::prelude::*;
 use crate::api::RL_GENERAL_KEY;
 
 pub type OrderStatusResponse = OrderStatus;
 
 #[derive(Debug, Serialize)]
-struct OrderStatusRequest<'a> {
+struct OrderStatusRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     id: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    client_order_id: Option<&'a str>,
+    client_order_id: Option<Uuid>,
     #[serde(skip_serializing_if = "Option::is_none")]
     omit_transactions: Option<bool>,
 }
@@ -31,20 +32,17 @@ where
     /// 'Order not found' error will be returned for orders outside this time range.
     ///
     /// [https://www.bitstamp.net/api/#open-orders]
-    pub fn order_status<C: AsRef<str>>(
+    pub fn order_status(
         &self,
-        id: Option<u64>,
-        client_order_id: Option<C>,
+        id: EitherOrderId,
         omit_transactions: Option<bool>,
     ) -> BitstampResult<Task<OrderStatusResponse>> {
-        if id.is_none() && client_order_id.is_none() {
-            Err(BitstampError::other(
-                "id or client_order_id must be specified",
-            ))?
-        }
-
         let endpoint = "order_status/";
-        let client_order_id = client_order_id.as_ref().map(|c| c.as_ref());
+        
+        let (id, client_order_id) = match id {
+            EitherOrderId::Bitstamp(id) => (Some(id), None),
+            EitherOrderId::Client(id) => (None, Some(id)),
+        };
 
         Ok(self
             .rate_limiter
