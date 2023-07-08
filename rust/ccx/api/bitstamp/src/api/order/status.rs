@@ -1,5 +1,5 @@
-use crate::api::order::OrderStatus;
 use crate::api::order::EitherOrderId;
+use crate::api::order::OrderStatus;
 use crate::api::prelude::*;
 use crate::api::RL_GENERAL_KEY;
 
@@ -8,7 +8,7 @@ pub type OrderStatusResponse = OrderStatus;
 #[derive(Debug, Serialize)]
 struct OrderStatusRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
-    id: Option<u64>,
+    id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     client_order_id: Option<Uuid>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -38,7 +38,7 @@ where
         omit_transactions: Option<bool>,
     ) -> BitstampResult<Task<OrderStatusResponse>> {
         let endpoint = "order_status/";
-        
+
         let (id, client_order_id) = match id {
             EitherOrderId::Bitstamp(id) => (Some(id), None),
             EitherOrderId::Client(id) => (None, Some(id)),
@@ -54,8 +54,7 @@ where
                         client_order_id,
                         omit_transactions,
                     })?
-                    .signed_now()?
-                    .request_body(())?,
+                    .signed_now()?,
             )
             .cost(RL_GENERAL_KEY, 1)
             .send())

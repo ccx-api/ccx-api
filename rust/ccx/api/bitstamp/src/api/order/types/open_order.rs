@@ -1,12 +1,14 @@
 use serde::Deserialize;
 
+use super::OrderId;
 use crate::Atom;
 use crate::Decimal;
+use crate::DtBitstamp;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct OpenOrder {
-    pub id: u64,
-    pub datetime: String,
+    pub id: OrderId,
+    pub datetime: DtBitstamp,
     #[serde(with = "open_order_type")]
     pub r#type: OpenOrderType,
     pub price: Decimal,
