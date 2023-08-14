@@ -1,7 +1,8 @@
 use std::borrow::Cow;
 use std::fmt::Display;
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

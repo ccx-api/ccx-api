@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 use crate::client::*;
 // use crate::client::limits::UsedRateLimits;
-// use crate::client::WebsocketStream;
+use crate::client::WebsocketStream;
 use crate::error::*;
 // use crate::proto::TimeWindow;
 
@@ -105,11 +105,11 @@ where
     pub fn delete(&self, endpoint: &str) -> BitstampResult<RequestBuilder<S>> {
         self.request(Method::DELETE, endpoint)
     }
-    //
-    // pub async fn web_socket(&self) -> BitstampResult<WebsocketStream> {
-    //     let url = self.inner.config.stream_base.clone();
-    //     Ok(WebsocketStream::connect(self.clone(), url).await?)
-    // }
+
+    pub async fn web_socket(&self) -> BitstampResult<WebsocketStream> {
+        let url = self.inner.config.stream_base.clone();
+        Ok(WebsocketStream::connect(self.clone(), url).await?)
+    }
 }
 
 impl<S> RequestBuilder<S>

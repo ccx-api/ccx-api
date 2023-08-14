@@ -1,7 +1,9 @@
-use crate::api::prime::prelude::*;
-
 #[cfg(feature = "db")]
-use diesel_derives::{AsExpression, FromSqlRow};
+use diesel_derives::AsExpression;
+#[cfg(feature = "db")]
+use diesel_derives::FromSqlRow;
+
+use crate::api::prime::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]

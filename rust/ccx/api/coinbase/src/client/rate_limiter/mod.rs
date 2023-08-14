@@ -8,6 +8,8 @@ mod task_builder;
 mod task_message;
 mod task_metadata;
 
+use std::borrow::Cow;
+
 #[allow(unused_imports)]
 pub use bucket::*;
 #[allow(unused_imports)]
@@ -23,8 +25,6 @@ use task_builder::*;
 use task_message::*;
 #[allow(unused_imports)]
 pub use task_metadata::*;
-
-use std::borrow::Cow;
 
 type BucketName = Cow<'static, str>;
 

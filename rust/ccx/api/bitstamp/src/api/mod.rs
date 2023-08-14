@@ -11,8 +11,9 @@ use crate::client::RateLimiter;
 use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBucketMode;
 use crate::client::RestClient;
-// use crate::client::WebsocketStream;
+use crate::client::WebsocketStream;
 use crate::client::CCX_BITSTAMP_API_PREFIX;
+use crate::BitstampResult;
 
 pub const API_BASE: &str = "https://www.bitstamp.net/api/v2/";
 pub const STREAM_BASE: &str = "wss://ws.bitstamp.net";
@@ -104,11 +105,8 @@ mod with_network {
                 (API_BASE, STREAM_BASE)
             };
             let api_base = Url::parse(api_base).unwrap();
-            let _stream_base = Url::parse(stream_base).unwrap();
-            Api::with_config(Config::new(
-                signer, api_base, /* , _stream_base */
-                proxy,
-            ))
+            let stream_base = Url::parse(stream_base).unwrap();
+            Api::with_config(Config::new(signer, api_base, stream_base, proxy))
         }
 
         pub fn with_config(config: Config<S>) -> Self {
@@ -134,10 +132,10 @@ mod with_network {
                 rate_limiter,
             }
         }
-        //
-        //     /// Creates multiplexed websocket stream.
-        //     pub async fn ws(&self) -> BitstampResult<WebsocketStream> {
-        //         self.client.web_socket().await
-        //     }
+
+        /// Creates multiplexed websocket stream.
+        pub async fn ws(&self) -> BitstampResult<WebsocketStream> {
+            self.client.web_socket().await
+        }
     }
 }

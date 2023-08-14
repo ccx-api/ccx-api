@@ -2,18 +2,19 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use actix_http::encoding::Decoder;
+use actix_http::BoxedPayloadStream;
+use actix_http::Payload;
 use actix_http::Uri;
-use actix_http::{BoxedPayloadStream, Payload};
 use awc::http::Method;
 use awc::http::StatusCode;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
 use ccx_api_lib::make_client;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;
 use ccx_api_lib::ClientResponse;
+use serde::de::DeserializeOwned;
+use serde::Deserialize;
+use serde::Serialize;
+use uuid::Uuid;
 
 use crate::client::*;
 // use crate::client::limits::UsedRateLimits;
