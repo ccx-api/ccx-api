@@ -52,8 +52,10 @@ impl CoinbaseExchangeSigner for ExchangeApiCred {
 }
 
 fn sign(secret: &[u8], timestamp: u32, method: &str, url_path: &str, json_payload: &str) -> String {
-    use base64::{engine::general_purpose, Engine as _};
-    use hmac::{Hmac, Mac};
+    use base64::engine::general_purpose;
+    use base64::Engine as _;
+    use hmac::Hmac;
+    use hmac::Mac;
     use sha2::Sha256;
 
     let mut mac = Hmac::<Sha256>::new_from_slice(secret).expect("HMAC can take key of any size");

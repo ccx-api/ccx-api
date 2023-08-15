@@ -1,10 +1,12 @@
-use serde::{Deserialize, Serialize};
+#[cfg(feature = "db")]
+use diesel_derives::AsExpression;
+#[cfg(feature = "db")]
+use diesel_derives::FromSqlRow;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::Atom;
 use crate::Decimal;
-
-#[cfg(feature = "db")]
-use diesel_derives::{AsExpression, FromSqlRow};
 
 /// List all portfolios for which the current API key has read access. (Currently, an API key
 /// is scoped to only one portfolio).

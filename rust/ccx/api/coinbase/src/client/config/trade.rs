@@ -1,9 +1,9 @@
-use url::Url;
-
-use crate::client::CoinbaseTradeSigner;
 use ccx_api_lib::env_var_with_prefix;
 pub use ccx_api_lib::ApiCred;
 pub use ccx_api_lib::Proxy;
+use url::Url;
+
+use crate::client::CoinbaseTradeSigner;
 
 pub static CCX_COINBASE_TRADE_API_PREFIX: &str = "CCX_COINBASE_TRADE_API";
 

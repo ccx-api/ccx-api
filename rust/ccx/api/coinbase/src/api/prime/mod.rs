@@ -49,10 +49,11 @@ pub use with_network::*;
 
 #[cfg(feature = "with_network")]
 mod with_network {
+    use ccx_api_lib::env_var_with_prefix;
+
     use super::*;
     use crate::client::CoinbasePrimeSigner;
     use crate::client::PrimeRateLimiterBuilder;
-    use ccx_api_lib::env_var_with_prefix;
 
     #[derive(Clone)]
     pub struct PrimeApi<S: CoinbasePrimeSigner = PrimeApiCred> {

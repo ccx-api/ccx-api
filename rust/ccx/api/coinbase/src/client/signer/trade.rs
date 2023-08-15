@@ -46,7 +46,8 @@ impl CoinbaseTradeSigner for ApiCred {
 }
 
 fn sign(secret: &str, timestamp: u32, method: &str, url_path: &str, json_payload: &str) -> String {
-    use hmac::{Hmac, Mac};
+    use hmac::Hmac;
+    use hmac::Mac;
     use sha2::Sha256;
 
     let mut mac =
