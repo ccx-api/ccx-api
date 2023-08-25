@@ -11,6 +11,7 @@ pub struct InstrumentsRequest {}
 pub struct InstrumentsResponse {
     pub currencies: Vec<Currency>,
     pub instruments: Vec<Instrument>,
+    pub networks: Vec<Network>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -19,8 +20,8 @@ pub struct Currency {
     pub id: u32,
     pub size: Size,
     pub price: Price,
-    #[serde(default)]
-    pub r#type: Option<String>,
+    pub r#type: String,
+    pub networks: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -31,6 +32,13 @@ pub struct Instrument {
     pub asset_code: String,
     /// repeat pair quote
     pub balance_code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct Network {
+    pub name: String,
+    pub description: String,
+    pub id: u32,
 }
 
 #[cfg(test)]
