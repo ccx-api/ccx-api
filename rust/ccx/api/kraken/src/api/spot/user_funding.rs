@@ -349,7 +349,7 @@ mod with_network {
             nonce: Nonce,
             asset: Option<&str>,
             method: Option<&str>,
-        ) -> KrakenResult<Task<()>> {
+        ) -> KrakenResult<Task<GetStatusOfRecentDepositsResponse>> {
             Ok(self
                 .rate_limiter
                 .task(
