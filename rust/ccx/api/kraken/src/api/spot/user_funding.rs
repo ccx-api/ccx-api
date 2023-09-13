@@ -7,11 +7,11 @@ use super::RL_PRIVATE_PER_MINUTE;
 
 pub const API_0_PRIVATE_DEPOSIT_METHODS: &str = "/0/private/DepositMethods";
 pub const API_0_PRIVATE_DEPOSIT_ADDRESSES: &str = "/0/private/DepositAddresses";
+pub const API_0_PRIVATE_DEPOSIT_STATUS: &str = "/0/private/DepositStatus";
 pub const API_0_PRIVATE_WITHDRAW_INFO: &str = "/0/private/WithdrawInfo";
 pub const API_0_PRIVATE_WITHDRAW: &str = "/0/private/Withdraw";
 pub const API_0_PRIVATE_WITHDRAW_STATUS: &str = "/0/private/WithdrawStatus";
 pub const API_0_PRIVATE_WITHDRAW_CANCEL: &str = "/0/private/WithdrawCancel";
-
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct GetDepositMethodsRequest<'a> {
     asset: &'a str,
@@ -70,6 +70,83 @@ pub struct DepositAddress {
     /// Whether or not address has ever been used.
     #[serde(default, skip_serializing_if = "is_false")]
     pub new: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+struct GetStatusOfRecentDepositsRequest<'a> {
+    asset: Option<&'a str>,
+    method: Option<&'a str>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(transparent)]
+pub struct GetStatusOfRecentDepositsResponse {
+    pub deposits: Vec<Deposit>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct Deposit {
+    /// Name of deposit method.
+    pub method: String,
+
+    /// Asset class.
+    pub aclass: String,
+
+    /// Asset.
+    pub asset: String,
+
+    /// Reference ID.
+    pub refid: String,
+
+    /// Method transaction ID.
+    pub txid: String,
+
+    /// Method transaction information.
+    pub info: String,
+
+    /// Amount deposited.
+    pub amount: Decimal,
+
+    /// Fees paid (if any).
+    #[serde(default)]
+    pub fee: Option<Decimal>,
+
+    /// Unix timestamp when request made.
+    pub time: i64,
+
+    /// Status of deposit.
+    pub status: DepositStatus,
+
+    /// Addition status properties (if available)
+    #[serde(default, rename = "status-prop")]
+    pub status_prop: Option<DepositStatusProperties>,
+
+    /// Client sending transaction id(s) for deposits that credit with a
+    /// sweeping transaction
+    pub originators: Vec<String>,
+}
+
+/// Deposit status according to [IFEX financial transaction states][1].
+///
+/// [1]: https://github.com/globalcitizen/ifex-protocol/blob/master/draft-ifex-00.txt#L837
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub enum DepositStatus {
+    Initial,
+    Pending,
+    Settled,
+    Success,
+    Failure,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub enum DepositStatusProperties {
+    /// A return transaction initiated by Kraken; it cannot be canceled.
+    #[serde(rename = "return")]
+    Return,
+
+    /// Deposit is on hold pending review
+    #[serde(rename = "onhold")]
+    OnHold,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -254,6 +331,32 @@ mod with_network {
                         .post(API_0_PRIVATE_DEPOSIT_ADDRESSES)?
                         .signed(nonce)?
                         .request_body(GetDepositAddressesRequest { asset, method })?,
+                )
+                .cost(RL_PRIVATE_PER_MINUTE, 1)
+                .send())
+        }
+
+        /// Get Status of Recent Deposits
+        ///
+        /// Retrieve information about recent deposits. Any deposits initiated
+        /// in the past 90 days will be included in the response, up to a
+        /// maximum of 25 results, sorted by recency.
+        ///
+        /// * `asset` - Filter for specific asset being deposited
+        /// * `method` - Filter for specific name of deposit method
+        pub fn get_status_of_recent_deposits(
+            &self,
+            nonce: Nonce,
+            asset: Option<&str>,
+            method: Option<&str>,
+        ) -> KrakenResult<Task<()>> {
+            Ok(self
+                .rate_limiter
+                .task(
+                    self.client
+                        .post(API_0_PRIVATE_DEPOSIT_STATUS)?
+                        .signed(nonce)?
+                        .request_body(GetStatusOfRecentDepositsRequest { asset, method })?,
                 )
                 .cost(RL_PRIVATE_PER_MINUTE, 1)
                 .send())
