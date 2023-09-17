@@ -119,6 +119,7 @@ pub enum DepositStatus {
     Pending = 0,
     Success = 1,
     Processing = 6,
+    WaitingForConfirmation = 8,
 }
 
 impl DepositStatus {
