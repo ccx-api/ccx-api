@@ -17,8 +17,8 @@ pub enum TradeType {
     #[serde(rename = "APP")]
     App,
 }
-forward_display_to_serde!(TradeType);
-forward_from_str_to_serde!(TradeType);
+derive_display_from_serialize!(TradeType);
+derive_fromstr_from_deserialize!(TradeType);
 
 impl TradeType {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -39,8 +39,8 @@ pub enum StatusRequest {
     #[serde(rename = "FAIL")]
     Fail,
 }
-forward_display_to_serde!(StatusRequest);
-forward_from_str_to_serde!(StatusRequest);
+derive_display_from_serialize!(StatusRequest);
+derive_fromstr_from_deserialize!(StatusRequest);
 
 impl StatusRequest {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -73,8 +73,8 @@ pub enum StatusOrder {
     #[serde(rename = "EXPIRED")]
     Expired,
 }
-forward_display_to_serde!(StatusOrder);
-forward_from_str_to_serde!(StatusOrder);
+derive_display_from_serialize!(StatusOrder);
+derive_fromstr_from_deserialize!(StatusOrder);
 
 impl StatusOrder {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -189,8 +189,8 @@ pub enum TerminalType {
     #[serde(rename = "OTHERS")]
     Others,
 }
-forward_display_to_serde!(TerminalType);
-forward_from_str_to_serde!(TerminalType);
+derive_display_from_serialize!(TerminalType);
+derive_fromstr_from_deserialize!(TerminalType);
 
 impl TerminalType {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -211,8 +211,8 @@ pub enum OsType {
     #[serde(rename = "ANDRIOD")]
     Andriod,
 }
-forward_display_to_serde!(OsType);
-forward_from_str_to_serde!(OsType);
+derive_display_from_serialize!(OsType);
+derive_fromstr_from_deserialize!(OsType);
 
 impl OsType {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -264,8 +264,8 @@ pub enum GoodsCategory {
     #[default]
     _Z000, //: Others
 }
-forward_display_to_serde!(GoodsCategory);
-forward_from_str_to_serde!(GoodsCategory);
+derive_display_from_serialize!(GoodsCategory);
+derive_fromstr_from_deserialize!(GoodsCategory);
 
 impl GoodsCategory {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -290,8 +290,8 @@ pub enum AddressType {
     #[serde(rename = "04")]
     _04, //: others
 }
-forward_display_to_serde!(AddressType);
-forward_from_str_to_serde!(AddressType);
+derive_display_from_serialize!(AddressType);
+derive_fromstr_from_deserialize!(AddressType);
 
 impl AddressType {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -313,8 +313,8 @@ pub enum GoodsType {
     #[serde(rename = "02")]
     _02, //: Virtual Goods
 }
-forward_display_to_serde!(GoodsType);
-forward_from_str_to_serde!(GoodsType);
+derive_display_from_serialize!(GoodsType);
+derive_fromstr_from_deserialize!(GoodsType);
 
 impl GoodsType {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -335,8 +335,8 @@ pub enum TransferType {
     #[serde(rename = "TO_PAY")]
     ToPay,
 }
-forward_display_to_serde!(TransferType);
-forward_from_str_to_serde!(TransferType);
+derive_display_from_serialize!(TransferType);
+derive_fromstr_from_deserialize!(TransferType);
 
 impl TransferType {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -359,8 +359,8 @@ pub enum TransferStatus {
     #[serde(rename = "PROCESS")]
     Process,
 }
-forward_display_to_serde!(TransferStatus);
-forward_from_str_to_serde!(TransferStatus);
+derive_display_from_serialize!(TransferStatus);
+derive_fromstr_from_deserialize!(TransferStatus);
 
 impl TransferStatus {
     pub fn from_name(name: &str) -> Option<Self> {

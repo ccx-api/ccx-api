@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use serde::Deserialize;
 
 use super::OrderId;
-use crate::Atom;
 use crate::Decimal;
 use crate::DtBitstamp;
 

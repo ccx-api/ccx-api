@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::println;
 use std::thread;
 
-use actix_rt::time::sleep;
 use futures::StreamExt;
 use string_cache::DefaultAtom as Atom;
 
@@ -54,14 +53,14 @@ async fn main_() -> KrakenApiResult<()> {
         println!("Subscribed");
 
         // accumulate last N events
-        const trace_capacity: usize = 50;
+        const TRACE_CAPACITY: usize = 50;
         enum TraceEvent {
             Event(WsEvent),
-            Print,
+            // Print,
         }
         let (tx, rx) = std::sync::mpsc::channel::<TraceEvent>();
         thread::spawn(move || {
-            let mut cache: [WsEvent; trace_capacity] = core::array::from_fn(|_| {
+            let mut cache: [WsEvent; TRACE_CAPACITY] = core::array::from_fn(|_| {
                 WsEvent::Heartbeat(ccx_kraken::ws_stream::Heartbeat {
                     event: ccx_kraken::ws_stream::HeartbeatEvent::Heartbeat,
                 })
@@ -71,17 +70,17 @@ async fn main_() -> KrakenApiResult<()> {
             while let Ok(trace_event) = rx.recv() {
                 let ws_event = match trace_event {
                     TraceEvent::Event(e) => e,
-                    TraceEvent::Print => {
-                        // cache.iter().enumerate().for_each(|(index, item)| {
-                        //     println!("Cache item #{index}");
-                        //     println!("{:?}", item);
-                        //     println!();
-                        // });
-                        continue;
-                    }
+                    // TraceEvent::Print => {
+                    //     // cache.iter().enumerate().for_each(|(index, item)| {
+                    //     //     println!("Cache item #{index}");
+                    //     //     println!("{:?}", item);
+                    //     //     println!();
+                    //     // });
+                    //     continue;
+                    // }
                 };
 
-                cache[i % trace_capacity] = ws_event;
+                cache[i % TRACE_CAPACITY] = ws_event;
                 i += 1;
             }
         });
@@ -107,9 +106,9 @@ async fn main_() -> KrakenApiResult<()> {
             }
         }));
 
-        let txx = tx.clone();
+        // let txx = tx.clone();
         'outer: while let Some(e) = stream.next().await {
-            let tx = txx.clone();
+            // let tx = txx.clone();
 
             // OrderBook 10 - это capacity
 
@@ -124,7 +123,7 @@ async fn main_() -> KrakenApiResult<()> {
                 WsEvent::OrderBookDiff(diff) => {
                     state.get_mut(&diff.pair).unwrap().push_diff(diff).unwrap();
                 }
-                _ => continue,
+                _ => continue 'outer,
             }
             for (_symbol, updater) in &state {
                 match updater.state() {

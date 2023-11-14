@@ -20,8 +20,8 @@ pub enum BizStatus {
     #[serde(rename = "PAY_CLOSED")]
     PayClosed,
 }
-forward_display_to_serde!(BizStatus);
-forward_from_str_to_serde!(BizStatus);
+derive_display_from_serialize!(BizStatus);
+derive_fromstr_from_deserialize!(BizStatus);
 
 impl BizStatus {
     pub fn from_name(name: &str) -> Option<Self> {
@@ -60,8 +60,8 @@ pub enum ReturnCode {
     #[serde(rename = "FAIL")]
     Fail,
 }
-forward_display_to_serde!(ReturnCode);
-forward_from_str_to_serde!(ReturnCode);
+derive_display_from_serialize!(ReturnCode);
+derive_fromstr_from_deserialize!(ReturnCode);
 
 impl ReturnCode {
     pub fn from_name(name: &str) -> Option<Self> {

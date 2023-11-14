@@ -39,19 +39,26 @@ mod datetime {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Timelike;
+
+    const DATE_TIME_STR: &str = "2020-03-11 20:48:46.622052";
+
+    fn date_time_sample() -> DateTime<Utc> {
+        Utc.with_ymd_and_hms(2020, 3, 11, 20, 48, 46)
+            .unwrap()
+            .with_nanosecond(622052000)
+            .unwrap()
+    }
 
     #[test]
     fn test_serialize() {
-        let date_time = Utc.ymd(2020, 3, 11).and_hms_micro(20, 48, 46, 622052);
-        let serialized = serde_plain::to_string(&DtBitstamp(date_time)).unwrap();
-        assert_eq!(serialized, "2020-03-11 20:48:46.622052Z")
+        let serialized = serde_plain::to_string(&DtBitstamp(date_time_sample())).unwrap();
+        assert_eq!(serialized, DATE_TIME_STR)
     }
 
     #[test]
     fn test_deserialize() {
-        let deserialized: DtBitstamp =
-            serde_plain::from_str("2020-03-11 20:48:46.622052Z").unwrap();
-        let date_time = Utc.ymd(2020, 3, 11).and_hms_micro(20, 48, 46, 622052);
-        assert_eq!(deserialized.0, date_time)
+        let deserialized: DtBitstamp = serde_plain::from_str(DATE_TIME_STR).unwrap();
+        assert_eq!(deserialized.0, date_time_sample())
     }
 }

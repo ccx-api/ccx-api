@@ -316,7 +316,7 @@ mod tests {
             \"a\":[[\"39202.93000000\",\"0.00000000\"]]\
         }";
 
-        let _res = serde_json::from_str::<DiffOrderBookEvent>(input).unwrap();
+        let _res = serde_json::from_str::<OrderBookDiffEvent>(input).unwrap();
     }
 
     #[test]

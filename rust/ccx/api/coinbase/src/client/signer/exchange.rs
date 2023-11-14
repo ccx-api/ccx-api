@@ -70,7 +70,7 @@ fn sign(secret: &[u8], timestamp: u32, method: &str, url_path: &str, json_payloa
 }
 
 #[derive(Clone, Copy)]
-pub struct ArrStr<const N: usize> {
+struct ArrStr<const N: usize> {
     len: usize,
     buf: [u8; N],
 }

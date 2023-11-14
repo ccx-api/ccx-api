@@ -54,9 +54,8 @@ impl Default for LiveOrderEventType {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
-    use crate::ws_stream::{Event, WsEvent};
+    use crate::ws_stream::Event;
 
     #[test]
     fn test_order_created() {
