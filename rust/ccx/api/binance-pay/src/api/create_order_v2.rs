@@ -83,6 +83,17 @@ pub struct V2OrderResult {
     // universalUrl	string	Y	maximum length 512	universal url to finish the payment
     #[serde(rename = "universalUrl")]
     pub universal_url: String,
+    // currency	string	Y	-	order currency
+    pub currency: String,
+    // totalFee decimal(.8)	Y	-	order total amount
+    #[serde(rename = "totalFee")]
+    pub total_fee: Decimal,
+    // iatCurrency	string	N	-	order fiat currency, only return when create in fiat
+    #[serde(default, rename = "fiatCurrency")]
+    pub fiat_currency: Option<String>,
+    // fiatAmount	decimal(.8)	N	-	order fiat amount ,only return when create in fiat
+    #[serde(default, rename = "fiatAmount")]
+    pub fiat_amount: Option<Decimal>,
 }
 
 impl<S: crate::client::BinancePaySigner> Api<S> {
@@ -146,7 +157,9 @@ mod tests {
               "qrContent": "https://qrservice.dev.com/en/qr/dplk12121112b",
               "checkoutUrl": "https://pay.binance.com/checkout/dplk12121112b",
               "deeplink": "bnc://app.binance.com/payment/secpay/xxxxxx",
-              "universalUrl": "https://app.binance.com/payment/secpay?_dp=xxx=&linkToken=xxx"
+              "universalUrl": "https://app.binance.com/payment/secpay?_dp=xxx=&linkToken=xxx",
+              "totalFee": "25.17",
+              "currency": "USDT"
             },
             "errorMessage": ""
         }
