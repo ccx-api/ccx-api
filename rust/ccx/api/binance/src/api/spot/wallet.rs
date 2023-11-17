@@ -147,6 +147,8 @@ pub struct NewWithdraw {
 pub struct Withdraw {
     pub address: String,
     pub amount: Decimal,
+    #[serde(default)]
+    pub transaction_fee: Decimal,
     // FIXME decode time, example: "2021-04-29 16:08:00"
     pub apply_time: String,
     pub coin: String,
