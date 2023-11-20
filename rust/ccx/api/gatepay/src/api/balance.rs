@@ -1,3 +1,4 @@
+use ccx_api_lib::serde_util::default_on_null;
 use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
@@ -18,6 +19,8 @@ impl Request for BalanceRequest {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BalancesResponse {
+    /// The list of balances.
+    #[serde(default, deserialize_with = "default_on_null")]
     pub balance_list: Vec<BalanceItem>,
 }
 
@@ -42,5 +45,22 @@ mod with_network {
         pub async fn balance(&self) -> Result<BalancesResponse, RequestError> {
             self.request(&BalanceRequest).await
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_null_in_list() {
+        let json = "{\"status\":\"SUCCESS\",\"code\":\"000000\",\"errorMessage\":\"\",\"data\":{\"balance_list\":null}}\n";
+        let res: BalancesResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            res,
+            BalancesResponse {
+                balance_list: vec![],
+            }
+        );
     }
 }
