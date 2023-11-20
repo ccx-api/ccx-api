@@ -5,7 +5,7 @@ use url::Url;
 
 use crate::client::signer::GatepaySigner;
 
-pub static CCX_GATEPAY_API_PREFIX: &str = "CCX_GATEPAY_API";
+pub static CCX_GATEPAY_MERCHANT_API_PREFIX: &str = "CCX_GATEPAY_MERCHANT_API";
 
 /// API config.
 #[derive(Clone)]
@@ -38,6 +38,6 @@ where
     }
 
     pub fn env_var(postfix: &str) -> Option<String> {
-        env_var_with_prefix(CCX_GATEPAY_API_PREFIX, postfix)
+        env_var_with_prefix(CCX_GATEPAY_MERCHANT_API_PREFIX, postfix)
     }
 }

@@ -201,7 +201,7 @@ where
             .sign_api(timestamp, &nonce, &body)
             .await?;
 
-        let request = request.append_header(("X-GatePay-Signature", sign));
+        let request = request.append_header(("X-GatePay-Signature", sign.to_string()));
 
         Ok(GatepaySignedRequest {
             request,

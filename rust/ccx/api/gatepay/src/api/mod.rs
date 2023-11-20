@@ -46,7 +46,7 @@ mod with_network {
 
     pub use super::*;
     use crate::client::config::GatepayApiConfig;
-    use crate::client::config::CCX_GATEPAY_API_PREFIX;
+    use crate::client::config::CCX_GATEPAY_MERCHANT_API_PREFIX;
     use crate::client::rest::GatepayRestClient;
     use crate::client::rest::RequestError;
     use crate::client::signer::GatepaySigner;
@@ -72,7 +72,7 @@ mod with_network {
             MerchantApi::with_config(GatepayApiConfig::new(signer, api_base, proxy))
         }
         pub fn from_env() -> MerchantApi<GatepayApiCred> {
-            Self::from_env_with_prefix(CCX_GATEPAY_API_PREFIX)
+            Self::from_env_with_prefix(CCX_GATEPAY_MERCHANT_API_PREFIX)
         }
 
         pub fn from_env_with_prefix(prefix: &str) -> MerchantApi<GatepayApiCred> {

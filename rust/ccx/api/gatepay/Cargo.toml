@@ -11,7 +11,7 @@ with_network = [
 ]
 
 [dependencies]
-chrono = { version = "0.4", default_features = false, features = ["clock"] }
+chrono = { version = "0.4.31", default_features = false, features = ["clock"] }
 derive_more = "0.99"
 log = "0.4"
 futures = "0.3"
