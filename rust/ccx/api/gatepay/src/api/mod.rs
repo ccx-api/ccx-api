@@ -46,36 +46,36 @@ mod with_network {
 
     pub use super::*;
     use crate::client::config::GatepayApiConfig;
-    use crate::client::config::CCX_GATEPAY_MERCHANT_API_PREFIX;
+    use crate::client::config::CCX_GATEPAY_API_PREFIX;
     use crate::client::rest::GatepayRestClient;
     use crate::client::rest::RequestError;
     use crate::client::signer::GatepaySigner;
 
     #[derive(Clone)]
-    pub struct MerchantApi<S>
+    pub struct GatepayApi<S>
     where
         S: GatepaySigner,
     {
         pub client: GatepayRestClient<S>,
     }
 
-    impl<S> MerchantApi<S>
+    impl<S> GatepayApi<S>
     where
         S: GatepaySigner,
     {
-        pub fn new(signer: S, is_sandbox: bool, proxy: Option<Proxy>) -> MerchantApi<S> {
+        pub fn new(signer: S, is_sandbox: bool, proxy: Option<Proxy>) -> GatepayApi<S> {
             let api_base = if is_sandbox {
                 API_BASE_SANDBOX.parse().unwrap()
             } else {
                 API_BASE.parse().unwrap()
             };
-            MerchantApi::with_config(GatepayApiConfig::new(signer, api_base, proxy))
+            GatepayApi::with_config(GatepayApiConfig::new(signer, api_base, proxy))
         }
-        pub fn from_env() -> MerchantApi<GatepayApiCred> {
-            Self::from_env_with_prefix(CCX_GATEPAY_MERCHANT_API_PREFIX)
+        pub fn from_env() -> GatepayApi<GatepayApiCred> {
+            Self::from_env_with_prefix(CCX_GATEPAY_API_PREFIX)
         }
 
-        pub fn from_env_with_prefix(prefix: &str) -> MerchantApi<GatepayApiCred> {
+        pub fn from_env_with_prefix(prefix: &str) -> GatepayApi<GatepayApiCred> {
             // FIXME prefix (also in the BinancePay API backend)
             let is_sandbox = GatepayApiConfig::<S>::env_var("SANDBOX").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(prefix);
@@ -83,16 +83,16 @@ mod with_network {
                 "from_env_with_prefix proxy :: {:?}",
                 proxy.as_ref().map(|p| (&p.host, p.port))
             );
-            MerchantApi::new(
+            GatepayApi::new(
                 GatepayApiCred::from_env_with_prefix(prefix),
                 is_sandbox,
                 proxy,
             )
         }
 
-        pub fn with_config(config: GatepayApiConfig<S>) -> MerchantApi<S> {
+        pub fn with_config(config: GatepayApiConfig<S>) -> GatepayApi<S> {
             let client = GatepayRestClient::new(config);
-            MerchantApi { client }
+            GatepayApi { client }
         }
 
         pub async fn request<R: Request>(&self, request: &R) -> Result<R::Response, RequestError> {

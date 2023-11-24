@@ -38,9 +38,9 @@ mod with_network {
     use super::*;
     use crate::client::rest::RequestError;
     use crate::client::signer::GatepaySigner;
-    use crate::MerchantApi;
+    use crate::GatepayApi;
 
-    impl<S: GatepaySigner> MerchantApi<S> {
+    impl<S: GatepaySigner> GatepayApi<S> {
         /// Query merchant balance
         pub async fn balance(&self) -> Result<BalancesResponse, RequestError> {
             self.request(&BalanceRequest).await

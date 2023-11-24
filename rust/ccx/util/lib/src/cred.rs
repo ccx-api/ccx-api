@@ -68,7 +68,7 @@ impl PrimeApiCred {
     }
 }
 
-/// Prime API credentials.
+/// Gatepay API credentials.
 #[derive(Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GatepayApiCred {
@@ -91,7 +91,7 @@ impl GatepayApiCred {
     }
 
     /// Reads credentials from env vars with names like:
-    /// "${prefix}_API_KEY", "${prefix}_CLIENT_ID", "${prefix}_AUTH_KEY",  and "${prefix}_PAYMENT_KEY"
+    /// "${prefix}_API_KEY", "${prefix}_CLIENT_ID", and "${prefix}_AUTH_KEY"
     pub fn from_env_with_prefix(prefix: &str) -> Self {
         GatepayApiCred::new(
             env_var_with_prefix(prefix, "API_KEY"),
@@ -117,11 +117,37 @@ impl GatepayNotificationCred {
     }
 
     /// Reads credentials from env vars with names like:
-    /// "${prefix}_API_KEY", "${prefix}_CLIENT_ID", "${prefix}_AUTH_KEY",  and "${prefix}_PAYMENT_KEY"
+    /// "${prefix}_CLIENT_ID" and "${prefix}_PAYMENT_KEY"
     pub fn from_env_with_prefix(prefix: &str) -> Self {
         GatepayNotificationCred::new(
             env_var_with_prefix(prefix, "CLIENT_ID"),
             env_var_with_prefix(prefix, "PAYMENT_KEY"),
+        )
+    }
+}
+
+/// Gate.io API credentials.
+#[derive(Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GateApiCred {
+    pub key: String,
+    pub secret: String,
+}
+
+impl GateApiCred {
+    pub fn new(key: Option<String>, secret: Option<String>) -> Self {
+        GateApiCred {
+            key: key.unwrap_or_default(),
+            secret: secret.unwrap_or_default(),
+        }
+    }
+
+    /// Reads credentials from env vars with names like:
+    /// "${prefix}_KEY", and "${prefix}_SECRET"
+    pub fn from_env_with_prefix(prefix: &str) -> Self {
+        GateApiCred::new(
+            env_var_with_prefix(prefix, "KEY"),
+            env_var_with_prefix(prefix, "SECRET"),
         )
     }
 }

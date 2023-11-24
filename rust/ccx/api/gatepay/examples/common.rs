@@ -1,5 +1,5 @@
 use ccx_api_lib::GatepayApiCred;
-use ccx_gatepay::MerchantApi;
+use ccx_gatepay::GatepayApi;
 
 #[actix_rt::main]
 async fn main() {
@@ -7,7 +7,7 @@ async fn main() {
 
     env_logger::init();
 
-    let api = MerchantApi::<GatepayApiCred>::from_env();
+    let api = GatepayApi::<GatepayApiCred>::from_env();
 
     dbg!(api.balance().await).unwrap();
 }

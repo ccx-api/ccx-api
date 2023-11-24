@@ -3,13 +3,13 @@ pub use ccx_api_lib::PrimeApiCred;
 pub use ccx_api_lib::Proxy;
 use url::Url;
 
-use crate::client::signer::GatepaySigner;
+use crate::client::signer::GateSigner;
 
-pub static CCX_GATEPAY_API_PREFIX: &str = "CCX_GATEPAY_API";
+pub static CCX_GATE_API_PREFIX: &str = "CCX_GATE_API";
 
 /// API config.
 #[derive(Clone)]
-pub struct GatepayApiConfig<S: GatepaySigner> {
+pub struct GateApiConfig<S: GateSigner> {
     pub signer: S,
     pub api_base: Url,
     // pub stream_base: Url,
@@ -17,9 +17,9 @@ pub struct GatepayApiConfig<S: GatepaySigner> {
     // pub tier: RateLimiterTier,
 }
 
-impl<S> GatepayApiConfig<S>
+impl<S> GateApiConfig<S>
 where
-    S: GatepaySigner,
+    S: GateSigner,
 {
     pub fn new(
         signer: S,
@@ -28,7 +28,7 @@ where
         proxy: Option<Proxy>,
         // tier: RateLimiterTier,
     ) -> Self {
-        GatepayApiConfig {
+        GateApiConfig {
             signer,
             api_base,
             // stream_base,
@@ -38,6 +38,6 @@ where
     }
 
     pub fn env_var(postfix: &str) -> Option<String> {
-        env_var_with_prefix(CCX_GATEPAY_API_PREFIX, postfix)
+        env_var_with_prefix(CCX_GATE_API_PREFIX, postfix)
     }
 }
