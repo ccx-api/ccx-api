@@ -497,6 +497,14 @@ pub enum GateApiError {
     #[error("Server is too busy at the moment {0:?}")]
     #[serde(rename = "TOO_BUSY")]
     TooBusy(GateErrorInfo),
+
+    /*
+     * Client errors
+     */
+    /// Client error, e.g. amount to transfer is bigger than balance.
+    #[error("Internal server error {0:?}")]
+    #[serde(rename = "CLIENT_ERROR")]
+    ClientError(GateErrorInfo),
 }
 
 #[cfg(test)]

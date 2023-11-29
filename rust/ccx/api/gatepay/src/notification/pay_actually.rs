@@ -75,7 +75,7 @@ mod tests {
             actual_currency: None,
             actual_amount: None,
             payer_id: 10000,
-            create_time: DtGatepay::from_timestamp(1676343810430),
+            create_time: DtGatepay::from_timestamp_ms(1676343810430),
             transaction_id: "59847585498494".to_string(),
         }
     }

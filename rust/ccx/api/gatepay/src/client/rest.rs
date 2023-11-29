@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -36,10 +37,19 @@ pub enum CallError {
 
 #[derive(Debug, Error)]
 pub enum RequestError {
+    #[error("Validate error: {0}")]
+    Validate(Cow<'static, str>),
     #[error("Sign error: {0}")]
     Sign(#[from] SignError),
     #[error("Call error: {0}")]
     Call(#[from] CallError),
+}
+
+impl RequestError {
+    #[inline]
+    pub fn validate<T: Into<Cow<'static, str>>>(msg: T) -> Self {
+        Self::Validate(msg.into())
+    }
 }
 
 /// API client.

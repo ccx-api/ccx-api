@@ -2,9 +2,16 @@ use serde::de;
 use serde::Serialize;
 
 mod balance;
+mod close_order;
+mod create_order;
 mod error;
+mod order_status;
 
+pub use balance::*;
+pub use close_order::*;
+pub use create_order::*;
 pub use error::*;
+pub use order_status::*;
 
 pub const API_BASE: &str = "https://openplatform.gateapi.io/";
 pub const API_BASE_SANDBOX: &str = "https://miniapp-sandbox.gateapi.io/";

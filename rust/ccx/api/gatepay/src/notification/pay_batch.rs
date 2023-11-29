@@ -50,7 +50,7 @@ mod tests {
                     currency: "USDT".to_string(),
                     status: "PAID".to_string(),
                     reward_id: "50888456789213330".to_string(),
-                    create_time: DtGatepay::from_timestamp(1676336326072),
+                    create_time: DtGatepay::from_timestamp_ms(1676336326072),
                 },
                 PayBatchOrder {
                     receiver_id: 10001,
@@ -58,7 +58,7 @@ mod tests {
                     currency: "USDT".to_string(),
                     status: "PAID".to_string(),
                     reward_id: "50888456789215557".to_string(),
-                    create_time: DtGatepay::from_timestamp(1676336326072),
+                    create_time: DtGatepay::from_timestamp_ms(1676336326072),
                 },
             ],
         }

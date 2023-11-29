@@ -53,7 +53,7 @@ mod tests {
             currency: "USDT".to_string(),
             total_fee: dec!(1.2),
             order_amount: dec!(1.2),
-            create_time: DtGatepay::from_timestamp(1664123708000),
+            create_time: DtGatepay::from_timestamp_ms(1664123708000),
             transaction_id: "24344545".to_string(),
             transfer_amount: dec!(0.8),
         }

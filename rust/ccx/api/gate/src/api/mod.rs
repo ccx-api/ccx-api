@@ -3,6 +3,7 @@ mod method;
 mod request;
 pub mod spot;
 mod version;
+pub mod wallet;
 
 pub use error::*;
 pub use method::*;

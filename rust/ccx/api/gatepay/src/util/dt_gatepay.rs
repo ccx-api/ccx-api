@@ -17,7 +17,7 @@ impl DtGatepay {
         Self(Utc::now())
     }
 
-    pub fn from_timestamp(timestamp: i64) -> Self {
+    pub fn from_timestamp_ms(timestamp: i64) -> Self {
         Self(Utc.timestamp_millis_opt(timestamp).single().unwrap())
     }
 

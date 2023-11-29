@@ -3,11 +3,9 @@ use serde::Serialize;
 use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "status")]
+#[serde(tag = "status", rename_all = "UPPERCASE")]
 pub enum GatepayResult<T> {
-    #[serde(rename = "SUCCESS")]
     Success(GatepayResponse<T>),
-    #[serde(rename = "FAIL")]
     Fail(GatepayApiError),
 }
 

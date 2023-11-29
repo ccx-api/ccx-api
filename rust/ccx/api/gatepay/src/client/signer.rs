@@ -145,7 +145,7 @@ generate_signature('1700073707111', '456', '{the_answer: 42}', '123')
 
     #[test]
     fn test_sign() {
-        let timestamp = DtGatepay::from_timestamp(1700073707111);
+        let timestamp = DtGatepay::from_timestamp_ms(1700073707111);
         let nonce = Nonce::new("456".to_string());
         let hex_digest = sign("123", timestamp, &nonce, "{the_answer: 42}");
         assert_eq!(

@@ -9,6 +9,7 @@ default = ["with_network"]
 with_network = [
     "ccx-api-lib/with_network",
 ]
+with_diesel = []
 
 [dependencies]
 chrono = { version = "0.4.31", default_features = false, features = ["clock"] }
