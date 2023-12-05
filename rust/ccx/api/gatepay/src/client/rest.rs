@@ -124,6 +124,10 @@ where
         make_client(false, self.inner.config.proxy.as_ref())
     }
 
+    pub fn client_id(&self) -> &str {
+        self.inner.config.signer.client_id()
+    }
+
     pub fn rest<R: Request>(&self, request: &R) -> GatepayRequest<R, S> {
         let body = match R::METHOD {
             ApiMethod::Get => "".to_string(),
@@ -175,7 +179,7 @@ where
         let nonce = Nonce::random();
         let timestamp = DtGatepay::now();
         let request = request
-            .append_header(("X-GatePay-Timestamp", timestamp.timestamp()))
+            .append_header(("X-GatePay-Timestamp", timestamp.timestamp_ms()))
             .append_header(("X-GatePay-Nonce", nonce.to_string()));
 
         GatepayPreparedRequest {

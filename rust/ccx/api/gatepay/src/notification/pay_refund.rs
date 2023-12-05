@@ -37,8 +37,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use super::*;
+    use crate::notification::BizData;
     use crate::notification::BizStatus;
-    use crate::notification::BizType;
     use crate::notification::Notification;
 
     fn data_sample() -> PayRefund {
@@ -111,7 +111,7 @@ mod tests {
             biz_status: BizStatus::RefundSuccess,
             // TODO: client_id is missing in the json sample.
             client_id: "".to_string(),
-            data: BizType::from(data_sample()),
+            data: BizData::from(data_sample()),
         };
 
         assert_eq!(data, sample);

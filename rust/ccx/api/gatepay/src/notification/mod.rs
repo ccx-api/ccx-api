@@ -2,6 +2,8 @@ use derive_more::From;
 use serde::Deserialize;
 use serde::Serialize;
 
+mod biz_status;
+mod biz_type;
 mod pay;
 mod pay_actually;
 mod pay_batch;
@@ -9,6 +11,8 @@ mod pay_refund;
 mod received_delay_convert_address;
 mod transfer_address;
 
+pub use biz_status::*;
+pub use biz_type::*;
 pub use pay::*;
 pub use pay_actually::*;
 pub use pay_batch::*;
@@ -28,13 +32,13 @@ pub struct Notification {
     pub client_id: String,
     /// Message content, varies depending on the bizType
     #[serde(flatten)]
-    pub data: BizType,
+    pub data: BizData,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, From)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[serde(tag = "bizType", content = "data")]
-pub enum BizType {
+pub enum BizData {
     /// Notification of non-address payment order status change to payment success PAY_SUCCESS,
     /// timeout, failure, or payment error, etc.
     Pay(Pay),
@@ -50,39 +54,26 @@ pub enum BizType {
     PayActually(PayActually),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum BizStatus {
-    /// Payment success
-    #[serde(rename = "PAY_SUCCESS")]
-    PaySuccess,
-    /// Payment encountered an error
-    #[serde(rename = "PAY_ERROR")]
-    PayError,
-    /// Order closed by merchant or timed out
-    #[serde(rename = "PAY_CLOSE")]
-    PayClose,
-    /// Refund success
-    #[serde(rename = "REFUND_SUCCESS")]
-    RefundSuccess,
-    /// Refund rejected
-    #[serde(rename = "REFUND_REJECTED")]
-    RefundRejected,
-    /// Notification of an address payment order entering the PROCESS state
-    #[serde(rename = "PAY_EXPIRED_IN_PROCESS")]
-    PayExpiredInProcess,
-    /// Address payment failed due to exchange rate fluctuations
-    #[serde(rename = "PAY_EXPIRED_IN_EXCHANGE_FLUCTUATION")]
-    PayExpiredInExchangeFluctuation,
-    /// Successful transfer of address payment
-    #[serde(rename = "TRANSFERRED_ADDRESS_PAID")]
-    TransferredAddressPaid,
-    /// Expired transfer of address payment
-    #[serde(rename = "TRANSFERRED_ADDRESS_EXPIRE")]
-    TransferredAddressExpire,
-    /// Delayed transfer of address payment
-    #[serde(rename = "TRANSFERRED_ADDRESS_DELAY")]
-    TransferredAddressDelay,
-    /// Delayed payment for a flash exchange, but no transfer was made.
-    #[serde(rename = "CONVERT_ADDRESS_PAY_DELAY")]
-    ConvertAddressPayDelay,
+impl BizData {
+    pub fn merchant_trade_no(&self) -> Option<&str> {
+        match self {
+            BizData::Pay(v) => Some(&v.merchant_trade_no),
+            BizData::PayRefund(v) => Some(&v.merchant_trade_no),
+            BizData::PayBatch(_v) => None,
+            BizData::TransferAddress(v) => Some(&v.merchant_trade_no),
+            BizData::ReceivedConvertDelayAddress(v) => Some(&v.merchant_trade_no),
+            BizData::PayActually(v) => Some(&v.merchant_trade_no),
+        }
+    }
+
+    pub fn as_biz_type(&self) -> BizType {
+        match self {
+            BizData::Pay(_) => BizType::Pay,
+            BizData::PayRefund(_) => BizType::PayRefund,
+            BizData::PayBatch(_) => BizType::PayBatch,
+            BizData::TransferAddress(_) => BizType::TransferAddress,
+            BizData::ReceivedConvertDelayAddress(_) => BizType::ReceivedConvertDelayAddress,
+            BizData::PayActually(_) => BizType::PayActually,
+        }
+    }
 }

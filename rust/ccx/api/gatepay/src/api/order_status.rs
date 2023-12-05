@@ -2,6 +2,8 @@ use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
 use smart_string::SmartString;
+use strum::AsRefStr;
+use strum::EnumString;
 
 use crate::api::ApiMethod;
 use crate::api::ApiVersion;
@@ -23,26 +25,6 @@ impl Request for GetOrderStatusRequest {
     const PATH: &'static str = "pay/order/query";
     type Response = OrderStatusResponse;
 }
-
-// Attribute Name 	Type 	Required 	Description
-// prepayId 	string 	Yes 	Prepay ID
-// merchantId 	int64 	Yes 	Merchant user ID
-// merchantTradeNo 	string 	Yes 	Merchant order ID
-// transactionId 	string 	Yes 	Transaction ID
-// goodsName 	string 	Yes 	Goods name
-// currency 	string 	Yes 	Order currency
-// orderAmount 	string 	Yes 	Order amount
-// status 	string 	Yes 	Order status
-// createTime 	int64 	Yes 	Prepay creation time in milliseconds
-// expireTime 	int64 	Yes 	Prepay expiration time in milliseconds
-// transactTime 	int64 	Yes 	Payment completion time in milliseconds
-// order_name 	string 	Yes 	Order name
-// pay_currency 	string 	Yes 	Currency paid by the user
-// pay_amount 	string 	Yes 	Amount paid by the user
-// expectCurrency 	string 	No 	Revenue currency specified when creating the order. Only returned in the order details with a specified settlement currency by the merchant.
-// actualCurrency 	string 	No 	Currency actually settled to the merchant's account by the Gate backend after the order was paid. Only returned in the order details after Gate settles with the merchant.
-// actualAmount 	string 	No 	Amount in the currency actually settled to the merchant's account by the Gate backend after the order was paid. Only returned in the order details after Gate settles with the merchant.
-// rate 	string 	Yes 	Exchange rate for Flash Exchange payment.
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -92,10 +74,20 @@ pub struct OrderStatusResponse {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
+#[cfg_attr(
+    feature = "with_diesel",
+    derive(diesel_derives::AsExpression, diesel_derives::FromSqlRow)
+)]
+#[cfg_attr(feature = "with_diesel", sql_type = "diesel::sql_types::Text")]
+#[derive(EnumString, AsRefStr)]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum OrderStatus {
     Paid,
     Expired,
 }
+
+#[cfg(feature = "with_diesel")]
+impl_diesel1!(OrderStatus);
 
 #[cfg(feature = "with_network")]
 mod with_network {
@@ -125,6 +117,28 @@ mod with_network {
                 prepay_id,
             })
             .await
+        }
+
+        /// # Order Status Inquiry
+        ///
+        /// In order to facilitate merchants to synchronize order information, GatePay provides
+        /// a query interface for querying order status.
+        pub async fn get_order_status_by_merchant_trade_no(
+            &self,
+            merchant_trade_no: SmartString<32>,
+        ) -> Result<OrderStatusResponse, RequestError> {
+            self.get_order_status(Some(merchant_trade_no), None).await
+        }
+
+        /// # Order Status Inquiry
+        ///
+        /// In order to facilitate merchants to synchronize order information, GatePay provides
+        /// a query interface for querying order status.
+        pub async fn get_order_status_by_prepay_id(
+            &self,
+            prepay_id: SmartString,
+        ) -> Result<OrderStatusResponse, RequestError> {
+            self.get_order_status(None, Some(prepay_id)).await
         }
     }
 }

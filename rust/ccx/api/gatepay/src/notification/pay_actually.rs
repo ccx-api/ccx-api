@@ -54,8 +54,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use super::*;
+    use crate::notification::BizData;
     use crate::notification::BizStatus;
-    use crate::notification::BizType;
     use crate::notification::Notification;
 
     fn data_sample() -> PayActually {
@@ -143,7 +143,7 @@ mod tests {
             biz_id: "577886948403339870".to_string(),
             biz_status: BizStatus::PaySuccess,
             client_id: "cdhu-fgrfg44-5ggd-cdvsa".to_string(),
-            data: BizType::from(data_sample()),
+            data: BizData::from(data_sample()),
         };
 
         assert_eq!(data, sample);

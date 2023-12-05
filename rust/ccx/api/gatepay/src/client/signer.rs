@@ -85,7 +85,7 @@ impl GatepayVerifier for GatepayNotificationCred {
 
 #[inline]
 pub fn sign(secret: &str, timestamp: DtGatepay, nonce: &Nonce, body: &str) -> SmartString<128> {
-    let timestamp: SmartString = timestamp.timestamp().to_fmt();
+    let timestamp: SmartString = timestamp.timestamp_ms().to_fmt();
     sign_str(secret, &timestamp, nonce, body)
 }
 

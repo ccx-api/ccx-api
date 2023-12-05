@@ -78,6 +78,7 @@ mod with_network {
             };
             GatepayApi::with_config(GatepayApiConfig::new(signer, api_base, proxy))
         }
+
         pub fn from_env() -> GatepayApi<GatepayApiCred> {
             Self::from_env_with_prefix(CCX_GATEPAY_API_PREFIX)
         }

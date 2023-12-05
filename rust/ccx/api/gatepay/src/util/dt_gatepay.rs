@@ -21,7 +21,7 @@ impl DtGatepay {
         Self(Utc.timestamp_millis_opt(timestamp).single().unwrap())
     }
 
-    pub fn timestamp(&self) -> i64 {
+    pub fn timestamp_ms(&self) -> i64 {
         self.0.timestamp_millis()
     }
 }

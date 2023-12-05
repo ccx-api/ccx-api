@@ -1,5 +1,8 @@
 extern crate core;
 
+#[macro_use]
+pub mod macros;
+
 pub mod api;
 #[cfg(feature = "with_network")]
 pub mod client;

@@ -2,6 +2,8 @@ use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
 use smart_string::SmartString;
+use strum::AsRefStr;
+use strum::EnumString;
 
 use crate::api::ApiMethod;
 use crate::api::ApiVersion;
@@ -41,14 +43,21 @@ impl Request for CreateOrderRequest {
     type Response = CreateOrderResponse;
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvType {
     pub terminal_type: TerminalType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
+#[derive(EnumString, AsRefStr)]
+#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(
+    feature = "with_diesel",
+    derive(diesel_derives::AsExpression, diesel_derives::FromSqlRow)
+)]
+#[cfg_attr(feature = "with_diesel", sql_type = "diesel::sql_types::Text")]
 pub enum TerminalType {
     App,
     Web,
@@ -56,6 +65,9 @@ pub enum TerminalType {
     Miniapp,
     Others,
 }
+
+#[cfg(feature = "with_diesel")]
+impl_diesel1!(TerminalType);
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
