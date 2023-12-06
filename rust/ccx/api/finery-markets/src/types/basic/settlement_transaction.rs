@@ -57,6 +57,10 @@ pub struct SettlementTransaction {
     /// Efx::Size
     /// Network fee
     pub network_fee: Size,
+    /// 12
+    /// Efx::String
+    /// Network name
+    pub network_name: String,
 }
 
 impl SettlementTransaction {

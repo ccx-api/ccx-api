@@ -589,6 +589,8 @@ pub struct WsSettlementOrder {
     pub created_at: Timestamp,
     #[serde(rename = "counterpartyId")]
     pub counterparty_id: ClientId,
+    pub network_name_1: String,
+    pub network_name_2: String,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize_tuple, Deserialize_tuple)]

@@ -163,6 +163,14 @@ pub struct SettlementOrder {
     /// Efx::ClientId
     /// Counterparty id
     pub counterparty_id: ClientId,
+    /// 7
+    /// Efx::Network name 1
+    /// Network name 1
+    pub network_name_1: String,
+    /// 8
+    /// Efx::Network name 2
+    /// Network name 2
+    pub network_name_2: String,
 }
 
 impl From<WsSettlementOrder> for SettlementOrder {
@@ -175,6 +183,8 @@ impl From<WsSettlementOrder> for SettlementOrder {
             size2: so.size2,
             created_at: so.created_at,
             counterparty_id: so.counterparty_id,
+            network_name_1: so.network_name_1,
+            network_name_2: so.network_name_2,
         }
     }
 }
@@ -195,43 +205,92 @@ pub(crate) mod tests {
 
         let json = r#"
         [
-            5,
+            1016817,
             [
-                [ 
+                [
+                    "USDC",
+                    -215338243034,
+                    87
+                ],
+                [
+                    "ETH",
+                    -901959563,
+                    20
+                ],
+                [
                     "BTC",
-                    10000000,
-                    2
+                    -40000000,
+                    306
+                ],
+                [
+                    "BTC",
+                    -641170232,
+                    20
+                ],
+                [
+                    "BTC",
+                    555000925,
+                    87
+                ],
+                [
+                    "BUSD",
+                    -3764597228924,
+                    87
+                ],
+                [
+                    "EUR",
+                    17768194000000,
+                    20
+                ],
+                [
+                    "EUR",
+                    -1865651000000,
+                    87
                 ],
                 [
                     "USD",
-                    -100000000000,
-                    2
-                ]
-            ],
-            [
+                    1620175000000,
+                    306
+                ],
                 [
-                    "BTC-USD",
-                    0,
-                    0,
-                    0,
-                    1234,
-                    0,
-                    999900000000,
-                    10000000,
-                    8000000,
-                    1558051200000,
-                    0
-                ]
-            ],
-            [
-                [
-                    1229,
-                    "BTC",
                     "USD",
+                    54210000000,
+                    20
+                ],
+                [
+                    "USD",
+                    -15632888000000,
+                    87
+                ],
+                [
+                    "BNB",
+                    -101659305839,
+                    87
+                ]
+            ],
+            [],
+            [
+                [
+                    29578970732,
+                    "BTC",
+                    "",
                     10000000,
-                    100000000000,
-                    1558050900000,
-                    2
+                    0,
+                    1663568623288,
+                    306,
+                    "",
+                    ""
+                ],
+                [
+                    29576985071,
+                    "BTC",
+                    "",
+                    10000000,
+                    0,
+                    1663566604421,
+                    306,
+                    "",
+                    ""
                 ]
             ]
         ]
