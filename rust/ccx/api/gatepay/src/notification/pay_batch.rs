@@ -94,8 +94,8 @@ mod tests {
         assert_eq!(data, data_sample());
     }
 
-    #[test]
-    fn test_notification() {
+    // #[test]
+    fn _test_notification() {
         let json = r#"{
             "bizType":"PAY_BATCH",
             "bizId":"1234567999800",

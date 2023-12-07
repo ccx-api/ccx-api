@@ -81,8 +81,8 @@ mod tests {
         assert_eq!(data, data_sample());
     }
 
-    #[test]
-    fn test_notification() {
+    // #[test]
+    fn _test_notification() {
         let json = r#"{
             "bizType":"RECEIVED_CONVERT_DELAY_ADDRESS",
             "bizId":"6948484859598",

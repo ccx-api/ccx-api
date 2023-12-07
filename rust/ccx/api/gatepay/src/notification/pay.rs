@@ -77,8 +77,8 @@ mod tests {
         assert_eq!(data, data_sample());
     }
 
-    #[test]
-    fn test_notification() {
+    // #[test]
+    fn _test_notification_example_from_docs() {
         let json = r#"{
             "bizType":"PAY",
             "bizId":"6948484859590",
@@ -106,6 +106,34 @@ mod tests {
             biz_status: BizStatus::PaySuccess,
             client_id: "cdhu-fgrfg44-5ggd-cdvsa".to_string(),
             data: BizData::from(data_sample()),
+        };
+
+        assert_eq!(data, sample);
+    }
+
+    #[test]
+    fn test_notification_real_notification() {
+        let json = r#"{"bizType":"PAY","bizId":"167758445495193600","bizStatus":"PAY_SUCCESS","client_id":"1234567","data":"{\"merchantTradeNo\":\"928142df41ce47ce8786a22ca5fb6540\",\"productType\":\"\",\"productName\":\"928142df-41ce-47ce-8786-a22ca5fb6540\",\"tradeType\":\"WEB\",\"goodsName\":\"928142df-41ce-47ce-8786-a22ca5fb6540\",\"terminalType\":\"WEB\",\"currency\":\"USDT\",\"totalFee\":\"1.13\",\"orderAmount\":\"1.13\",\"payerId\":14392088,\"createTime\":1701958330207,\"transactionId\":\"167758445495193600\"}"}"#;
+
+        let data: Notification = serde_json::from_str(json).unwrap();
+
+        let sample = Notification {
+            biz_id: "167758445495193600".to_string(),
+            biz_status: BizStatus::PaySuccess,
+            client_id: "1234567".to_string(),
+            data: BizData::Pay(Pay {
+                merchant_trade_no: "928142df41ce47ce8786a22ca5fb6540".to_string(),
+                product_type: "".to_string(),
+                product_name: "928142df-41ce-47ce-8786-a22ca5fb6540".to_string(),
+                trade_type: "WEB".to_string(),
+                goods_name: "928142df-41ce-47ce-8786-a22ca5fb6540".to_string(),
+                terminal_type: "WEB".to_string(),
+                currency: "USDT".to_string(),
+                total_fee: dec!(1.13),
+                order_amount: dec!(1.13),
+                create_time: DtGatepay::from_timestamp_ms(1701958330207),
+                transaction_id: "167758445495193600".to_string(),
+            }),
         };
 
         assert_eq!(data, sample);
