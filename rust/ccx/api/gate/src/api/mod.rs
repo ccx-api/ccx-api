@@ -4,6 +4,7 @@ mod request;
 pub mod spot;
 mod version;
 pub mod wallet;
+pub mod withdrawal;
 
 pub use error::*;
 pub use method::*;

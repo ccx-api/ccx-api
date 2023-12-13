@@ -32,22 +32,6 @@ impl Request for SpotTickersRequest {
     type Response = SmallVec<[SpotTicker; 1]>;
 }
 
-// » currency_pair 	string 	Currency pair
-// » last 	string 	Last trading price
-// » lowest_ask 	string 	Recent lowest ask
-// » highest_bid 	string 	Recent highest bid
-// » change_percentage 	string 	Change percentage in the last 24h
-// » change_utc0 	string 	utc0 timezone, the percentage change in the last 24 hours
-// » change_utc8 	string 	utc8 timezone, the percentage change in the last 24 hours
-// » base_volume 	string 	Base currency trade volume in the last 24h
-// » quote_volume 	string 	Quote currency trade volume in the last 24h
-// » high_24h 	string 	Highest price in 24h
-// » low_24h 	string 	Lowest price in 24h
-// » etf_net_value 	string 	ETF net value
-// » etf_pre_net_value 	string|null 	ETF previous net value at re-balancing time
-// » etf_pre_timestamp 	integer(int64)|null 	ETF previous re-balancing time
-// » etf_leverage 	string|null 	ETF current leverage
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpotTicker {
     /// Currency pair
@@ -168,7 +152,7 @@ mod tests {
                 low_24h: Some(dec!(1.9863)),
                 etf_net_value: Some(dec!(2.46316141)),
                 etf_pre_net_value: Some(dec!(2.43201848)),
-                etf_pre_timestamp: Some(DtGate::from_timestamp(1611244800000)),
+                etf_pre_timestamp: Some(DtGate::from_timestamp(1611244800)),
                 etf_leverage: Some(dec!(2.2803019447281203)),
             }
         );

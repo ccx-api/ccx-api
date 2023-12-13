@@ -22,10 +22,18 @@ impl DtGate {
     }
 
     pub fn from_timestamp(timestamp: i64) -> Self {
+        Self::from_timestamp_ms(timestamp.checked_mul(1000).unwrap())
+    }
+
+    pub fn from_timestamp_ms(timestamp: i64) -> Self {
         Self(Utc.timestamp_millis_opt(timestamp).single().unwrap())
     }
 
     pub fn timestamp(&self) -> i64 {
+        self.0.timestamp()
+    }
+
+    pub fn timestamp_ms(&self) -> i64 {
         self.0.timestamp_millis()
     }
 

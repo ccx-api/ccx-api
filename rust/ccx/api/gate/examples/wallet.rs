@@ -17,7 +17,7 @@ async fn main() {
             "USDT".into(),
             WalletAccountEnum::Payment,
             WalletAccountEnum::Spot,
-            dec!(0.0001),
+            dec!(0.01),
             None,
             None,
         )
