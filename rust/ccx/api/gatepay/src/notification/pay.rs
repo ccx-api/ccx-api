@@ -28,7 +28,8 @@ pub struct Pay {
     /// Order creation time
     pub create_time: DtGatepay,
     /// Transaction ID
-    pub transaction_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transaction_id: Option<String>,
 }
 
 #[cfg(test)]
@@ -52,7 +53,7 @@ mod tests {
             total_fee: dec!(1.2),
             order_amount: dec!(1.2),
             create_time: DtGatepay::from_timestamp_ms(1664123708000),
-            transaction_id: "24344545".to_string(),
+            transaction_id: Some("24344545".to_string()),
         }
     }
 
@@ -112,7 +113,7 @@ mod tests {
     }
 
     #[test]
-    fn test_notification_real_notification() {
+    fn test_notification_real_notification_success() {
         let json = r#"{"bizType":"PAY","bizId":"167758445495193600","bizStatus":"PAY_SUCCESS","client_id":"1234567","data":"{\"merchantTradeNo\":\"928142df41ce47ce8786a22ca5fb6540\",\"productType\":\"\",\"productName\":\"928142df-41ce-47ce-8786-a22ca5fb6540\",\"tradeType\":\"WEB\",\"goodsName\":\"928142df-41ce-47ce-8786-a22ca5fb6540\",\"terminalType\":\"WEB\",\"currency\":\"USDT\",\"totalFee\":\"1.13\",\"orderAmount\":\"1.13\",\"payerId\":14392088,\"createTime\":1701958330207,\"transactionId\":\"167758445495193600\"}"}"#;
 
         let data: Notification = serde_json::from_str(json).unwrap();
@@ -132,7 +133,35 @@ mod tests {
                 total_fee: dec!(1.13),
                 order_amount: dec!(1.13),
                 create_time: DtGatepay::from_timestamp_ms(1701958330207),
-                transaction_id: "167758445495193600".to_string(),
+                transaction_id: Some("167758445495193600".to_string()),
+            }),
+        };
+
+        assert_eq!(data, sample);
+    }
+
+    #[test]
+    fn test_notification_real_notification_close() {
+        let json = r#"{"bizType":"PAY","bizId":"169912133064069120","bizStatus":"PAY_CLOSE","client_id":"FTbSMwLPwKbOAmhh","data":"{\"merchantTradeNo\":\"dbf2a43e53774a5c852029fc57177c4f\",\"productType\":\"\",\"productName\":\"Crypto dbf2a43e-5377-4a5c-8520-29fc57177c4f\",\"tradeType\":\"WEB\",\"goodsName\":\"Crypto dbf2a43e-5377-4a5c-8520-29fc57177c4f\",\"terminalType\":\"WEB\",\"currency\":\"USDT\",\"totalFee\":\"10.07\",\"orderAmount\":\"10.07\",\"createTime\":1702471809337}"}"#;
+
+        let data: Notification = serde_json::from_str(json).unwrap();
+
+        let sample = Notification {
+            biz_id: "169912133064069120".to_string(),
+            biz_status: BizStatus::PayClose,
+            client_id: "FTbSMwLPwKbOAmhh".to_string(),
+            data: BizData::Pay(Pay {
+                merchant_trade_no: "dbf2a43e53774a5c852029fc57177c4f".to_string(),
+                product_type: "".to_string(),
+                product_name: "Crypto dbf2a43e-5377-4a5c-8520-29fc57177c4f".to_string(),
+                trade_type: "WEB".to_string(),
+                goods_name: "Crypto dbf2a43e-5377-4a5c-8520-29fc57177c4f".to_string(),
+                terminal_type: "WEB".to_string(),
+                currency: "USDT".to_string(),
+                total_fee: dec!(10.07),
+                order_amount: dec!(10.07),
+                create_time: DtGatepay::from_timestamp_ms(1702471809337),
+                transaction_id: None,
             }),
         };
 
