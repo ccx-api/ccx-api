@@ -92,6 +92,8 @@ pub enum WithdrawalWithdrawStatus {
     Dmove,
     /// the order is automatically split due to large amount
     Splitpend,
+    /// locked. (Missing in docs)
+    Locked,
 }
 
 impl WithdrawalWithdrawStatus {
