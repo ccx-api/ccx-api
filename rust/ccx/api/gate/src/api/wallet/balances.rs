@@ -23,27 +23,27 @@ impl Request for WalletBalancesRequest {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WalletBalancesResponse {
     /// Total balances calculated with specified currency unit
-    total: WalletBalance,
+    pub total: WalletBalance,
     /// Total balances in different accounts
-    details: WalletBalanceDetails,
+    pub details: WalletBalanceDetails,
 }
 
 /// Total balances calculated with specified currency unit
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WalletBalanceDetails {
-    cbbc: Option<WalletBalance>,
-    cross_margin: Option<WalletBalance>,
-    delivery: Option<WalletBalance>,
-    finance: Option<WalletBalance>,
-    futures: Option<WalletBalance>,
-    margin: Option<WalletBalance>,
+    pub cbbc: Option<WalletBalance>,
+    pub cross_margin: Option<WalletBalance>,
+    pub delivery: Option<WalletBalance>,
+    pub finance: Option<WalletBalance>,
+    pub futures: Option<WalletBalance>,
+    pub margin: Option<WalletBalance>,
     // missing in docs
-    options: Option<WalletBalance>,
+    pub options: Option<WalletBalance>,
     // missing in docs
-    payment: Option<WalletBalance>,
-    quant: Option<WalletBalance>,
-    spot: Option<WalletBalance>,
-    warrant: Option<WalletBalance>,
+    pub payment: Option<WalletBalance>,
+    pub quant: Option<WalletBalance>,
+    pub spot: Option<WalletBalance>,
+    pub warrant: Option<WalletBalance>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
