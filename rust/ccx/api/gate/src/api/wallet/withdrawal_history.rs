@@ -36,11 +36,14 @@ pub struct WalletWithdrawalHistoryResponse {
     /// Record ID
     pub id: SmartString,
     /// Hash record of the withdrawal
-    pub txid: SmartString<64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub txid: Option<SmartString<64>>,
     /// Client order id, up to 32 length and can only include 0-9, A-Z, a-z, underscore(_), hyphen(-) or dot(.)
-    pub withdraw_order_id: SmartString<32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub withdraw_order_id: Option<SmartString<32>>,
     /// Operation time
-    pub timestamp: DtGate,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<DtGate>,
     /// Currency amount
     pub amount: Decimal,
     /// fee
@@ -50,7 +53,8 @@ pub struct WalletWithdrawalHistoryResponse {
     /// Withdrawal address. Required for withdrawals
     pub address: SmartString<66>,
     /// Additional remarks with regards to the withdrawal
-    pub memo: SmartString,
+    #[serde(default)]
+    pub memo: Option<SmartString>,
     /// Record status.
     pub status: WithdrawalWithdrawStatus,
     /// Name of the chain used in withdrawals
@@ -125,14 +129,14 @@ mod tests {
             res,
             vec![WalletWithdrawalHistoryResponse {
                 id: "210496".into(),
-                timestamp: DtGate::from_timestamp(1542000000),
-                withdraw_order_id: "order_123456".into(),
+                timestamp: Some(DtGate::from_timestamp(1542000000)),
+                withdraw_order_id: Some("order_123456".into()),
                 currency: "USDT".into(),
                 address: "1HkxtBAMrA3tP5ENnYY2CZortjZvFDH5Cs".into(),
-                txid: "128988928203223323290".into(),
+                txid: Some("128988928203223323290".into()),
                 amount: dec!(222.61),
                 fee: dec!(0.01),
-                memo: "".into(),
+                memo: Some("".into()),
                 status: WithdrawalWithdrawStatus::Done,
                 chain: "TRX".into(),
             }]
