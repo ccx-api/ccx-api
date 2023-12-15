@@ -11,14 +11,17 @@ use crate::util::dt_gate::DtGate;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WithdrawalWithdrawRequest {
     /// Client order id, up to 32 length and can only include 0-9, A-Z, a-z, underscore(_), hyphen(-) or dot(.)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub withdraw_order_id: Option<SmartString<32>>,
     /// Currency amount
     pub amount: Decimal,
     /// Currency name
     pub currency: SmartString,
     /// Withdrawal address. Required for withdrawals
-    pub address: Option<SmartString>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address: Option<SmartString<66>>,
     /// Additional remarks with regards to the withdrawal
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub memo: Option<SmartString>,
     /// Name of the chain used in withdrawals
     pub chain: SmartString,
@@ -37,8 +40,9 @@ pub struct WithdrawalWithdrawResponse {
     /// Record ID
     pub id: SmartString,
     /// Hash record of the withdrawal
-    pub txid: SmartString,
+    pub txid: SmartString<64>,
     /// Client order id, up to 32 length and can only include 0-9, A-Z, a-z, underscore(_), hyphen(-) or dot(.)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub withdraw_order_id: Option<SmartString<32>>,
     /// Operation time
     pub timestamp: DtGate,
@@ -47,7 +51,7 @@ pub struct WithdrawalWithdrawResponse {
     /// Currency name
     pub currency: SmartString,
     /// Withdrawal address. Required for withdrawals
-    pub address: SmartString,
+    pub address: SmartString<66>,
     /// Additional remarks with regards to the withdrawal
     pub memo: SmartString,
     /// Record status.
@@ -128,9 +132,12 @@ mod with_network {
         ///
         /// Withdraw
         ///
+        /// ‼️ Be aware that Client order id does not guarantee the uniqueness of the order id on the Gate API side.
+        ///
         /// ## Parameters
         ///
-        /// * `withdraw_order_id` - Client order id, up to 32 length and can only include 0-9, A-Z, a-z, underscore(_), hyphen(-) or dot(.)
+        /// * `withdraw_order_id` - Client order id, up to 32 length and can only include 0-9, A-Z, a-z, underscore(_),
+        ///   hyphen(-) or dot(.)
         /// * `amount` - Currency amount
         /// * `currency` - Currency name
         /// * `address` - Withdrawal address. Required for withdrawals
@@ -141,7 +148,7 @@ mod with_network {
             withdraw_order_id: Option<SmartString<32>>,
             amount: Decimal,
             currency: SmartString,
-            address: Option<SmartString>,
+            address: Option<SmartString<66>>,
             memo: Option<SmartString>,
             chain: SmartString,
         ) -> Result<<WithdrawalWithdrawRequest as Request>::Response, RequestError> {

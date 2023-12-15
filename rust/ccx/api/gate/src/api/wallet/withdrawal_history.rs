@@ -9,13 +9,6 @@ use crate::api::ApiVersion;
 use crate::api::Request;
 use crate::util::dt_gate::DtGate;
 
-// Name 	In 	Type 	Required 	Description
-// currency 	query 	string 	false 	Filter by currency. Return all currency records if not specified
-// from 	query 	integer(int64) 	false 	Time range beginning, default to 7 days before current time
-// to 	query 	integer(int64) 	false 	Time range ending, default to current time
-// limit 	query 	integer 	false 	Maximum number of records to be returned in a single list
-// offset 	query 	integer 	false 	List offset, starting from 0
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WalletWithdrawalHistoryRequest {
     /// Filter by currency. Return all currency records if not specified
@@ -38,24 +31,12 @@ impl Request for WalletWithdrawalHistoryRequest {
     type Response = Vec<WalletWithdrawalHistoryResponse>;
 }
 
-// » id 	string 	Record ID
-// » txid 	string 	Hash record of the withdrawal
-// » withdraw_order_id 	string 	Client order id, up to 32 length and can only include 0-9, A-Z, a-z, underscore(_), hyphen(-) or dot(.)
-// » timestamp 	string 	Operation time
-// » amount 	string 	Currency amount
-// » fee 	string 	fee
-// » currency 	string 	Currency name
-// » address 	string 	Withdrawal address. Required for withdrawals
-// » memo 	string 	Additional remarks with regards to the withdrawal
-// » status 	string 	Record status.
-// » chain 	string 	Name of the chain used in withdrawals
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WalletWithdrawalHistoryResponse {
     /// Record ID
     pub id: SmartString,
     /// Hash record of the withdrawal
-    pub txid: SmartString,
+    pub txid: SmartString<64>,
     /// Client order id, up to 32 length and can only include 0-9, A-Z, a-z, underscore(_), hyphen(-) or dot(.)
     pub withdraw_order_id: SmartString<32>,
     /// Operation time
@@ -67,7 +48,7 @@ pub struct WalletWithdrawalHistoryResponse {
     /// Currency name
     pub currency: SmartString,
     /// Withdrawal address. Required for withdrawals
-    pub address: SmartString,
+    pub address: SmartString<66>,
     /// Additional remarks with regards to the withdrawal
     pub memo: SmartString,
     /// Record status.
