@@ -263,8 +263,6 @@ where
 type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
 fn check_response(res: AwcClientResponse) -> BinanceResult<AwcClientResponse> {
-    use awc::http::StatusCode;
-
     let used_rate_limits = UsedRateLimits::from_headers(res.headers());
 
     log::debug!("  used_rate_limits:  {:?}", used_rate_limits);

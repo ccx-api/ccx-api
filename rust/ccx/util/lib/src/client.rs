@@ -1,6 +1,10 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+pub use awc::error::PayloadError;
+pub use awc::error::SendRequestError;
+pub use awc::http::Method;
+pub use awc::http::StatusCode;
 pub use awc::Client;
 pub use awc::ClientRequest;
 pub use awc::ClientResponse;

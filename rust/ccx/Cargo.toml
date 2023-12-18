@@ -14,6 +14,8 @@ members = [
     "api/coinbase/examples/util",
     "api/finery-markets",
     "api/finery-markets/examples/util",
+    "api/gate",
+    "api/gatepay",
     "api/kraken",
     "api/kraken/examples/util",
     "util/lib",

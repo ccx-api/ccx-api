@@ -12,7 +12,7 @@ pub struct DtCoinbase(#[serde(with = "self")] DateTime<Utc>);
 
 impl From<NaiveDateTime> for DtCoinbase {
     fn from(value: NaiveDateTime) -> Self {
-        Self(DateTime::from_utc(value, Utc))
+        Self(DateTime::from_naive_utc_and_offset(value, Utc))
     }
 }
 

@@ -12,7 +12,7 @@ pub struct DtBitstamp(#[serde(with = "datetime")] DateTime<Utc>);
 
 impl From<NaiveDateTime> for DtBitstamp {
     fn from(value: NaiveDateTime) -> Self {
-        Self(DateTime::from_utc(value, Utc))
+        Self(DateTime::from_naive_utc_and_offset(value, Utc))
     }
 }
 

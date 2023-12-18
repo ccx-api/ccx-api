@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::fmt;
 
-use awc::http::StatusCode;
 use thiserror::Error;
 
 pub use ccx_api_lib::*;
