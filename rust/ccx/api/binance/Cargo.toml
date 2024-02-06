@@ -52,4 +52,5 @@ ccx-api-lib = { path = "../../util/lib" }
 [dev-dependencies]
 env_logger = "0.10"
 dotenv = "0.15"
+rust_decimal_macros = "1"
 ccx-binance-examples-util = { path = "examples/util" }

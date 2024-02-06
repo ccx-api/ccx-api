@@ -121,7 +121,8 @@ pub struct Notification {
     #[serde(rename = "transactionId")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub transaction_id: Option<String>, // string	N	-	issued once the payment is successful
-    pub commission: Decimal, //  decimal	Y	-	Commission fee if any
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub commission: Option<Decimal>, //  decimal	Y	-	Commission fee if any
     #[serde(rename = "payerInfo")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub payer_info: Option<PayerInfo>, //  string	N	-   only merchant got approved by Binance Operation's approval will receive this payerInfo	payer information, refer to
