@@ -19,6 +19,7 @@ mod response;
 mod transfer_fund_v1;
 mod transfer_fund_v2;
 mod webhook;
+mod submerchant_add_v1;
 
 pub mod prelude {
     pub use super::certificates_v1::V1CertificateRequest;
