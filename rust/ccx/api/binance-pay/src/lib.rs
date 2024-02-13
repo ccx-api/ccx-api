@@ -35,6 +35,8 @@ pub use api::prelude::V2CreateOrderRequest;
 pub use api::prelude::V2OrderResult;
 pub use api::prelude::V2QueryOrderRequest;
 pub use api::prelude::V2QueryOrderResult;
+pub use api::prelude::V1SubmerchantAddRequest;
+pub use api::prelude::V1SubmerchantAddResult;
 pub use api::prelude::V2TransferFundRequest;
 pub use api::prelude::V2TransferResult;
 pub use api::uuid_simple;

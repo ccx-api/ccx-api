@@ -1,13 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::api::Api;
 use crate::error::LibResult;
-use crate::types::enums::TransferStatus;
-use crate::types::enums::TransferType;
 use crate::types::time::Time;
-use crate::uuid_simple;
 use crate::BinancePayResponse;
 
 pub const BINANCEPAY_OPENAPI_SUBMERCHANT_ADD: &str = "/binancepay/openapi/submerchant/add";

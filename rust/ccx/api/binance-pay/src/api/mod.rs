@@ -16,10 +16,10 @@ mod create_order_v2;
 mod query_order_v1;
 mod query_order_v2;
 mod response;
+mod submerchant_add_v1;
 mod transfer_fund_v1;
 mod transfer_fund_v2;
 mod webhook;
-mod submerchant_add_v1;
 
 pub mod prelude {
     pub use super::certificates_v1::V1CertificateRequest;
@@ -36,6 +36,8 @@ pub mod prelude {
     pub use super::query_order_v2::V2QueryOrderRequest;
     pub use super::query_order_v2::V2QueryOrderResult;
     pub use super::response::BinancePayResponse;
+    pub use super::submerchant_add_v1::V1SubmerchantAddRequest;
+    pub use super::submerchant_add_v1::V1SubmerchantAddResult;
     pub use super::transfer_fund_v1::V1TransferFundRequest;
     pub use super::transfer_fund_v1::V1TransferResult;
     pub use super::transfer_fund_v2::V2TransferFundRequest;
