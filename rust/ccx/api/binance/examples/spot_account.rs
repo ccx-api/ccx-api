@@ -46,25 +46,25 @@ async fn main_() -> BinanceResult<()> {
     //         .await,
     // )?;
 
-    limit_order(
-        &binance,
-        BTCBUSD,
-        OrderSide::Buy,
-        d("44000"),
-        Quantity::Base(d("0.0005")),
-    )?
-    .await?;
-
-    limit_order(
-        &binance,
-        BTCBUSD,
-        OrderSide::Buy,
-        d("43000"),
-        Quantity::Base(d("0.0005")),
-    )?
-    .await?;
-
-    market_order(&binance, BTCBUSD, OrderSide::Sell, Quantity::Quote(d("22")))?.await?;
+    // limit_order(
+    //     &binance,
+    //     BTCBUSD,
+    //     OrderSide::Buy,
+    //     d("44000"),
+    //     Quantity::Base(d("0.0005")),
+    // )?
+    // .await?;
+    //
+    // limit_order(
+    //     &binance,
+    //     BTCBUSD,
+    //     OrderSide::Buy,
+    //     d("43000"),
+    //     Quantity::Base(d("0.0005")),
+    // )?
+    // .await?;
+    //
+    // market_order(&binance, BTCBUSD, OrderSide::Sell, Quantity::Quote(d("22")))?.await?;
 
     // market_order(
     //     &binance,

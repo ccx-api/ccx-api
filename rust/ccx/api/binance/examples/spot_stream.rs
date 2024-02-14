@@ -1,7 +1,11 @@
+use console::{Style, Term};
+use core::fmt;
 use std::collections::BTreeMap;
 
 use futures::{stream, FutureExt, StreamExt};
-use string_cache::DefaultAtom as Atom;
+use rust_decimal::Decimal;
+use smart_string::{DisplayExt, SmartString};
+use string_cache::{DefaultAtom as Atom, DefaultAtom};
 
 use ccx_binance::api::spot::OrderBookLimit;
 use ccx_binance::util::OrderBook;
@@ -15,7 +19,7 @@ use ccx_binance::SpotApi;
 // use ccx_binance_examples_util::*;
 
 enum X {
-    Snapshot((Atom, OrderBook)),
+    Snapshot(OrderBook),
     SnapshotErr(BinanceError),
     Event(WsEvent),
 }
@@ -25,49 +29,40 @@ async fn main() {
     let _ = dotenv::dotenv();
     env_logger::init();
 
+    let term = Term::stdout();
+    let main_style = Style::new().blue().bold();
+    let num_style = Style::new().white().bold();
+    let ask_style = Style::new().green().bold();
+    let bid_style = Style::new().red().bold();
+    let symbol_style = Style::new().yellow().bold();
+
     let binance_spot = SpotApi::<ApiCred>::from_env();
 
     let res = async move {
         let (sink, stream) = binance_spot.ws().await?.split();
         println!("Connected");
 
-        let listen: Vec<Atom> = vec![
-            "BTCUSDT".into(),
-            // "ETHUSDT".into(),
-            // "LTCUSDT".into(),
-            // "ZECUSDT".into(),
-        ];
+        let symbol = "BTCUSDT";
 
-        sink.subscribe_list(
-            listen
-                .iter()
-                .map(|v| (v.to_lowercase(), WsStream::Depth100ms).into())
-                .collect::<Vec<_>>()
-                .into(),
-        )
-        .await
-        .unwrap();
+        let subscribe_list = [symbol]
+            .into_iter()
+            .map(|v| (v.to_lowercase(), WsStream::Depth100ms).into())
+            .collect();
+
+        sink.subscribe_list(subscribe_list).await.unwrap();
         println!("Subscribed");
 
-        let mut state = BTreeMap::new();
-        let mut snapshots = Vec::new();
+        let mut updater = OrderBookUpdater::new();
 
-        for symbol in &listen {
-            let symbol = symbol.clone();
-            state.insert(symbol.clone(), OrderBookUpdater::new());
-
-            let f = Box::pin(
-                binance_spot
-                    .depth(symbol.clone(), OrderBookLimit::N10)?
-                    .into_stream()
-                    .map(move |r| match r {
-                        Ok(book) => X::Snapshot((symbol.clone(), book.into())),
-                        Err(e) => X::SnapshotErr(e),
-                    }),
-            );
-
-            snapshots.push(f);
-        }
+        let snapshot = Box::pin(
+            binance_spot
+                .depth(symbol, OrderBookLimit::N1000)?
+                .into_stream()
+                .map(move |r| match r {
+                    Ok(book) => X::Snapshot(book.into()),
+                    Err(e) => X::SnapshotErr(e),
+                }),
+        );
 
         let mut stream = Box::pin(stream.filter_map(move |e| async move {
             match e {
@@ -78,67 +73,136 @@ async fn main() {
                 }
             }
         }));
-        let mut stream = stream::select(&mut stream, stream::select_all(snapshots));
+        let mut stream = stream::select(&mut stream, snapshot);
 
         while let Some(e) = stream.next().await {
             match e {
                 X::Event(e) => {
                     if let WsEvent::OrderBookDiff(diff) = e {
-                        state
-                            .get_mut(&diff.symbol)
-                            .unwrap()
-                            .push_diff(diff)
-                            .unwrap();
+                        updater.push_diff(diff).unwrap();
                     }
                 }
-                X::Snapshot((symbol, snapshot)) => {
-                    let book = state.get_mut(&symbol).unwrap();
-                    book.init(snapshot).unwrap();
+                X::Snapshot(snapshot) => {
+                    updater.init(snapshot).unwrap();
                 }
                 X::SnapshotErr(e) => {
                     log::error!("SnapshotErr: {:?}", e);
                     break;
                 }
             }
-            for (_symbol, updater) in &state {
-                match updater.state() {
-                    None => {}
-                    Some(book) => {
-                        let mut lines = vec![];
-
-                        book.asks()
-                            .iter()
-                            .for_each(|(p, v)| lines.push(format!("{}: {}", p, v)));
-
-                        let ask_avg = book.ask_avg().unwrap_or_default();
-                        lines.push(format!("ask avg. {}: {}", ask_avg.0, ask_avg.1));
-                        lines.push(format!("-----------------"));
-
-                        book.bids()
-                            .iter()
-                            .for_each(|(p, v)| lines.push(format!("{}: {}", p, v)));
-
-                        let bid_avg = book.bid_avg().unwrap_or_default();
-                        lines.push(format!("bid avg. {}: {}", bid_avg.0, bid_avg.1));
-                        lines.push(format!("spread: {}", book.spread()));
-
-                        print!("{}\n\n.\n\n", lines.join("\n"));
+            match updater.state() {
+                None => {}
+                Some(book) => {
+                    for _ in 0..5 {
+                        term.clear_line()?;
+                        term.write_line("")?;
                     }
-                }
 
-                // let s = match updater.state() {
-                //     None => format!("<uninitialized>"),
-                //     Some(book) => format!(
-                //         "{:?}  <=>  {:?}",
-                //         book.bids().iter().next_back(),
-                //         book.asks().iter().next(),
-                //     ),
-                // };
-                // println!("{}\t{}", symbol, s);
+                    term.clear_line()?;
+                    term.write_line(&format!(
+                        "                 {:^20}",
+                        symbol_style.apply_to(symbol)
+                    ))?;
+
+                    term.clear_line()?;
+                    term.write_line("")?;
+
+                    let (a, b) = book.ask_avg().unwrap_or_default();
+
+                    term.clear_line()?;
+                    term.write_line(&format!(
+                        "{}",
+                        main_style.apply_to(&format!(
+                            "ask avg.: {} :: {}",
+                            NiceNum(&ask_style, a, 6),
+                            NiceNum(&ask_style, b, 6),
+                        )),
+                    ))?;
+
+                    term.clear_line()?;
+                    term.write_line("")?;
+
+                    let len = book.asks().len();
+                    let begin = len - len.min(10);
+
+                    for (&p, &v) in book.asks().iter().rev().skip(begin) {
+                        term.clear_line()?;
+                        term.write_line(&format!(
+                            "          {} :: {}",
+                            NiceNum(&ask_style, p, 6),
+                            NiceNum(&ask_style, v, 6),
+                        ))?;
+                    }
+
+                    term.clear_line()?;
+                    term.write_line("")?;
+
+                    term.clear_line()?;
+                    // term.write_line(&format!("spread: {}", book.spread()))?;
+                    term.write_line(&format!(
+                        "{}",
+                        main_style.apply_to(&format!(
+                            "spread:   {}",
+                            NiceNum(&num_style, book.spread(), 6),
+                        ))
+                    ))?;
+
+                    term.clear_line()?;
+                    term.write_line("")?;
+
+                    for (&p, &v) in book.bids().iter().rev().take(10) {
+                        term.clear_line()?;
+                        term.write_line(&format!(
+                            "          {} :: {}",
+                            NiceNum(&bid_style, p, 6),
+                            NiceNum(&bid_style, v, 6),
+                        ))?;
+                    }
+
+                    let (a, b) = book.bid_avg().unwrap_or_default();
+
+                    term.clear_line()?;
+                    term.write_line("")?;
+
+                    term.clear_line()?;
+                    term.write_line(&format!(
+                        "{}",
+                        main_style.apply_to(&format!(
+                            "bid avg.: {} :: {}",
+                            NiceNum(&bid_style, a, 6),
+                            NiceNum(&bid_style, b, 6),
+                        )),
+                    ))?;
+
+                    term.move_cursor_up(34)?;
+                }
             }
-            println!();
         }
         Ok::<(), BinanceError>(())
     };
     println!("Execution stopped with: {:?}", res.await);
+}
+
+struct NiceNum<'a>(&'a Style, Decimal, usize);
+
+impl fmt::Display for NiceNum<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self(style, num, left) = *self;
+
+        let num: SmartString<62> = format_args!("{num:0.8}").to_fmt();
+        let dot_pos = num.bytes().position(|c| c == b'.');
+        if let Some(dot_pos) = dot_pos {
+            let int_part = left.min(dot_pos).min(10);
+            let left_pad = left - int_part.min(left);
+            for _ in 0..left_pad {
+                write!(f, " ")?;
+            }
+        }
+        let s = num
+            .trim_end_matches('0')
+            .trim_end_matches('.')
+            .trim_end_matches('0');
+
+        format_args!("{}{}", &style.apply_to(&num[..s.len()]), &num[s.len()..]).write_to_fmt(f)
+    }
 }

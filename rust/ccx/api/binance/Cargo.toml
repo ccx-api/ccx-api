@@ -50,7 +50,10 @@ webpki-roots = { version = "0.25", optional = true }
 ccx-api-lib = { path = "../../util/lib" }
 
 [dev-dependencies]
-env_logger = "0.10"
+console = "0.15"
 dotenv = "0.15"
+env_logger = "0.11"
 rust_decimal_macros = "1"
+smart-string = "0.1.3"
+
 ccx-binance-examples-util = { path = "examples/util" }
