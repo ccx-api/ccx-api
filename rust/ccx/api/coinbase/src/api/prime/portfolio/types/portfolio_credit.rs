@@ -2,8 +2,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::dt_coinbase::DtCoinbase;
-use crate::Decimal;
+use crate::api::prime::prelude::*;
 
 /// List all portfolios for which the current API key has read access. (Currently, an API key
 /// is scoped to only one portfolio).
@@ -41,5 +40,5 @@ pub struct AmountDue {
     /// The amount due.
     pub amount: Decimal,
     /// The date this settlement is due, expressed in UTC.
-    pub due_date: DtCoinbase,
+    pub due_date: DtCoinbasePrime,
 }

@@ -3,11 +3,6 @@ use crate::api::exchange::EitherOrderId;
 use crate::api::exchange::Order;
 use crate::api::exchange::RL_PRIVATE_KEY;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct GetOrderResponse {
-    pub order: Order,
-}
-
 #[cfg(feature = "with_network")]
 impl<S> ExchangeApi<S>
 where
@@ -37,7 +32,7 @@ where
         &self,
         order_id: EitherOrderId,
         market_type: Option<&str>,
-    ) -> CoinbaseResult<Task<GetOrderResponse>> {
+    ) -> CoinbaseResult<Task<Order>> {
         let endpoint = format!("/orders/{order_id}");
         Ok(self
             .rate_limiter

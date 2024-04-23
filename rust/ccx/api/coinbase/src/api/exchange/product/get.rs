@@ -17,7 +17,7 @@ where
     /// * `product_id` - .
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct]
-    pub fn get_product(&self, product_id: Atom) -> CoinbaseResult<Task<GetProductResponse>> {
+    pub fn get_product(&self, product_id: &str) -> CoinbaseResult<Task<GetProductResponse>> {
         let endpoint = format!("products/{product_id}");
         Ok(self
             .rate_limiter

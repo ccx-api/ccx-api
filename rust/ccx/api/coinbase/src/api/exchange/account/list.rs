@@ -14,7 +14,7 @@ where
     ///
     /// Get a list of trading accounts from the profile of the API key.
     ///
-    ///     Note: This endpoint requires either the "view" or "trade" permission.
+    /// Note: This endpoint requires either the "view" or "trade" permission.
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts]
     pub fn list_accounts(&self) -> CoinbaseResult<Task<ListAccountResponse>> {

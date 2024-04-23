@@ -14,7 +14,7 @@ where
     ///
     /// Gets all the user's available Coinbase wallets
     ///
-    ///     Note: These are the wallets/accounts that are used for buying and selling on www.coinbase.com
+    /// Note: These are the wallets/accounts that are used for buying and selling on www.coinbase.com
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcoinbaseaccounts]
     pub fn list_coinbase_accounts(&self) -> CoinbaseResult<Task<ListAccountCoinbaseResponse>> {

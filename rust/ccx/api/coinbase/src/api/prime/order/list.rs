@@ -3,7 +3,6 @@ use crate::api::prime::AccountPortfolioOrder;
 use crate::api::prime::PortfolioOrderSide;
 use crate::api::prime::PortfolioOrderStatus;
 use crate::api::prime::PortfolioOrderType;
-use crate::dt_coinbase::DtCoinbase;
 
 /// List all wallets associated with a given portfolio.
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -45,8 +44,8 @@ where
         product_ids: &[Atom],
         order_type: Option<PortfolioOrderType>,
         order_side: Option<PortfolioOrderSide>,
-        start_date: &DtCoinbase,
-        end_date: Option<&DtCoinbase>,
+        start_date: &DtCoinbasePrime,
+        end_date: Option<&DtCoinbasePrime>,
         page: Page,
     ) -> CoinbaseResult<Task<AccountPortfolioOrdersResponse>> {
         let timestamp = Utc::now().timestamp() as u32;

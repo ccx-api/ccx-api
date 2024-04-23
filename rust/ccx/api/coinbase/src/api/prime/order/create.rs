@@ -25,7 +25,7 @@ struct AccountPortfolioCreateOrderRequest<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AccountPortfolioCreateOrderResponse {
-    pub order: AccountPortfolioOrder,
+    pub order_id: Uuid,
 }
 
 #[cfg(feature = "with_network")]

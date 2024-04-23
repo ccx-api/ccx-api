@@ -3,6 +3,7 @@ pub mod prime;
 pub mod trade;
 
 mod prelude {
+    pub use chrono::Utc;
     pub use rust_decimal::prelude::Zero;
     pub use rust_decimal::Decimal;
     pub use serde::Deserialize;
@@ -17,5 +18,4 @@ mod prelude {
     pub use crate::proto::*;
     pub use crate::util::maybe_str;
     pub use crate::Atom;
-    pub use crate::DtCoinbase;
 }

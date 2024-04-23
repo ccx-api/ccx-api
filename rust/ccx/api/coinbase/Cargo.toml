@@ -31,10 +31,10 @@ awc = { version = "3", optional = true, features = ["rustls"] }
 base64 = "0.21"
 chrono = { version = "0.4", default_features = false, features = ["clock"] }
 derive_more = "0.99"
-log = "0.4"
 futures = "0.3"
 hex = "0.4"
 hmac = "0.12"
+log = "0.4"
 rust_decimal = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -53,4 +53,5 @@ ccx-api-lib = { path = "../../util/lib" }
 env_logger = "0.10"
 dotenv = "0.15"
 ccx-coinbase-examples-util = { path = "examples/util" }
+enum-iterator = "2.0.0"
 serde_plain = "1"

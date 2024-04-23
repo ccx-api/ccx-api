@@ -1,5 +1,5 @@
 use crate::api::exchange::prelude::*;
-use crate::dt_coinbase::DtCoinbase;
+use crate::DtCoinbaseEx;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ProductBook {
@@ -15,7 +15,7 @@ pub struct ProductBook {
     #[serde(default)]
     pub auction: Option<ProductBookAuction>,
     /// The time of the last event.
-    pub time: DtCoinbase,
+    pub time: DtCoinbaseEx,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -47,5 +47,5 @@ pub struct ProductBookAuction {
     /// The current auction time.
     pub can_open: String,
     /// The current auction time.
-    pub time: DtCoinbase,
+    pub time: DtCoinbaseEx,
 }

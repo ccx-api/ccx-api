@@ -6,19 +6,13 @@ use crate::api::exchange::OrderStop;
 use crate::api::exchange::OrderStp;
 use crate::api::exchange::OrderTimeInForce;
 use crate::api::exchange::OrderType;
-use crate::api::exchange::RL_PRIVATE_KEY;
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct CreateOrderResponse {
-    pub order: Order,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CreateOrderRequest {
+struct CreateOrderRequest<'a> {
     profile_id: Option<String>,
     r#type: OrderType,
     side: OrderSide,
-    product_id: Atom,
+    product_id: &'a str,
     stp: Option<OrderStp>,
     stop: Option<OrderStop>,
     stop_price: Option<Decimal>,
@@ -79,7 +73,7 @@ where
     ///
     /// ....
     ///
-    ///     CAUTION: RTFM!
+    /// CAUTION: RTFM!
     ///
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders]
     #[allow(clippy::too_many_arguments)]
@@ -88,7 +82,7 @@ where
         profile_id: Option<String>,
         r#type: OrderType,
         side: OrderSide,
-        product_id: Atom,
+        product_id: &str,
         stp: Option<OrderStp>,
         stop: Option<OrderStop>,
         stop_price: Option<Decimal>,
@@ -99,7 +93,7 @@ where
         cancel_after: Option<CancelAfter>,
         post_only: Option<bool>,
         client_order_id: Option<Uuid>,
-    ) -> CoinbaseResult<Task<CreateOrderResponse>> {
+    ) -> CoinbaseResult<Task<Order>> {
         let endpoint = "/orders";
         Ok(self
             .rate_limiter

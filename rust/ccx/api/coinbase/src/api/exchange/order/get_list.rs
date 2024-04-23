@@ -59,7 +59,7 @@ where
     #[allow(clippy::too_many_arguments)]
     pub fn list_orders(
         &self,
-        profile_id: Option<&str>,
+        profile_id: Option<Uuid>,
         product_id: Option<&str>,
         sorted_by: Option<OrderListSortedBy>,
         sorting: Option<OrderListSorting>,

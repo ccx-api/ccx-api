@@ -29,7 +29,7 @@ where
         &self,
         portfolio_id: Uuid,
         wallet_type: PortfolioWalletType,
-        symbols: &[Atom],
+        symbols: &[&str],
         page: Page,
     ) -> CoinbaseResult<Task<AccountPortfolioWalletsResponse>> {
         let timestamp = Utc::now().timestamp() as u32;
