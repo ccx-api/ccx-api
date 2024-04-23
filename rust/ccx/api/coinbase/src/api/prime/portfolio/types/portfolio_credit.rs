@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::api::prime::prelude::*;
+use crate::Uuid;
 
 /// List all portfolios for which the current API key has read access. (Currently, an API key
 /// is scoped to only one portfolio).

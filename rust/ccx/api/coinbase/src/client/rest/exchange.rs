@@ -15,12 +15,12 @@ use chrono::Utc;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::client::*;
 // use crate::client::limits::UsedRateLimits;
 // use crate::client::WebsocketStream;
 use crate::error::*;
+use crate::Uuid;
 // use crate::proto::TimeWindow;
 
 /// API client.

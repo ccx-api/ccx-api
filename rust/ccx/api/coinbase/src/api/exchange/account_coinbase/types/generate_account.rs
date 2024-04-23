@@ -1,9 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::Atom;
 use crate::DtCoinbaseEx;
+use crate::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateCoinbaseAccount {

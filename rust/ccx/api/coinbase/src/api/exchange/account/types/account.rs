@@ -1,9 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::Atom;
 use crate::Decimal;
+use crate::Uuid;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Account {

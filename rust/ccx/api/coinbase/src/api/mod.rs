@@ -10,7 +10,6 @@ mod prelude {
     pub use serde::Serialize;
     pub use serde_repr::Deserialize_repr;
     pub use serde_repr::Serialize_repr;
-    pub use uuid::Uuid;
 
     pub use crate::client::Task;
     // pub use crate::client::Nonce;
@@ -18,4 +17,5 @@ mod prelude {
     pub use crate::proto::*;
     pub use crate::util::maybe_str;
     pub use crate::Atom;
+    pub use crate::Uuid;
 }
