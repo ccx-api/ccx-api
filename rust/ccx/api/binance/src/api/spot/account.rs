@@ -697,7 +697,7 @@ mod with_network {
         ///
         /// Get trades for a specific account and symbol.
         ///
-        /// Weight(IP): 10
+        /// Weight(IP): 20
         ///
         /// * from_id: TradeId to fetch from. Default gets most recent trades.
         /// * limit: Default 500; max 1000.
@@ -724,7 +724,7 @@ mod with_network {
                         .try_query_arg("fromId", &from_id)?
                         .try_query_arg("limit", &limit)?,
                 )
-                .cost(RL_WEIGHT_PER_MINUTE, 10)
+                .cost(RL_WEIGHT_PER_MINUTE, 20)
                 .send())
         }
     }
