@@ -15,6 +15,7 @@ use crate::client::CCX_KRAKEN_API_PREFIX;
 // TODO mod error;
 // TODO mod savings;
 mod market_data;
+mod trades_history;
 mod user_data;
 mod user_funding;
 mod user_trading;
