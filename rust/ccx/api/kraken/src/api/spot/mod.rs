@@ -25,6 +25,7 @@ pub mod types;
 // TODO mod websocket_auth;
 
 pub use self::market_data::*;
+pub use self::trades_history::*;
 pub use self::types::*;
 pub use self::user_data::*;
 pub use self::user_funding::*;
