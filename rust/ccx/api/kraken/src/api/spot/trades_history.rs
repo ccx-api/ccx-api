@@ -49,7 +49,7 @@ pub struct TradeInfo {
     #[serde(rename = "postxid")]
     pub pos_tx_id: String,
     /// Asset pair.
-    pub pair: String,
+    pub pair: Atom,
     /// Unix timestamp of trade.
     pub time: f64,
     /// Type of order (buy/sell).
