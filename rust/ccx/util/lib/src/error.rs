@@ -99,4 +99,4 @@ where
     }
 }
 
-pub trait CcxApiError: std::error::Error {}
+pub trait CcxApiError: std::error::Error + Send + Sync {}
