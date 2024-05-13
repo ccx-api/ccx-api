@@ -1,5 +1,4 @@
 use crate::api::prime::prelude::*;
-use crate::api::prime::AccountPortfolioOrder;
 use crate::api::prime::PortfolioOrderSide;
 use crate::api::prime::PortfolioOrderTimeInForce;
 use crate::api::prime::PortfolioOrderType;

@@ -9,7 +9,7 @@ use crate::api::exchange::OrderType;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CreateOrderRequest<'a> {
-    profile_id: Option<String>,
+    profile_id: Option<Uuid>,
     r#type: OrderType,
     side: OrderSide,
     product_id: &'a str,
@@ -79,7 +79,7 @@ where
     #[allow(clippy::too_many_arguments)]
     pub fn create_order(
         &self,
-        profile_id: Option<String>,
+        profile_id: Option<Uuid>,
         r#type: OrderType,
         side: OrderSide,
         product_id: &str,
