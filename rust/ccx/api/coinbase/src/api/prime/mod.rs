@@ -28,6 +28,7 @@ mod activity;
 mod address_book;
 mod order;
 mod portfolio;
+mod product;
 mod transaction;
 pub mod types;
 mod wallet;
@@ -36,6 +37,7 @@ pub use activity::*;
 pub use address_book::*;
 pub use order::*;
 pub use portfolio::*;
+pub use product::*;
 pub use transaction::*;
 pub use wallet::*;
 
