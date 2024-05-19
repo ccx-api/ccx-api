@@ -1,5 +1,5 @@
 use crate::api::exchange::prelude::*;
-use crate::DtCoinbaseEx;
+use crate::DtCoinbasePrime;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ProductBook {
@@ -10,12 +10,13 @@ pub struct ProductBook {
     /// The sequence number of the last event.
     // pub sequence: f64,
     /// The current auction mode.
-    pub auction_mode: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auction_mode: Option<bool>,
     /// The current auction state.
     #[serde(default)]
     pub auction: Option<ProductBookAuction>,
     /// The time of the last event.
-    pub time: DtCoinbaseEx,
+    pub time: DtCoinbasePrime,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -47,5 +48,52 @@ pub struct ProductBookAuction {
     /// The current auction time.
     pub can_open: String,
     /// The current auction time.
-    pub time: DtCoinbaseEx,
+    pub time: DtCoinbasePrime,
+}
+
+#[cfg(test)]
+mod tests {
+    use ccx_coinbase_examples_util::d;
+
+    use super::*;
+
+    #[test]
+    fn test_deserialize_doc() {
+        let json = r#"{
+          "sequence": 13051505638,
+          "bids": [
+            [
+              "6247.58",
+              "6.3578146",
+              2
+            ]
+          ],
+          "asks": [
+            [
+              "6251.52",
+              "2",
+              1
+            ]
+          ],
+          "time": "2021-02-12T01:09:23.334723Z"
+        }"#;
+        let sample = ProductBook {
+            asks: vec![ProductBookItem {
+                price: d("6251.52"),
+                size: d("2"),
+                num_orders: 1,
+            }],
+            bids: vec![ProductBookItem {
+                price: d("6247.58"),
+                size: d("6.3578146"),
+                num_orders: 2,
+            }],
+            // sequence: 13051505638.0,
+            auction_mode: None,
+            auction: None,
+            time: DtCoinbasePrime::parse_from_str("2021-02-12T01:09:23.334723Z").unwrap(),
+        };
+        let order: ProductBook = serde_json::from_str(json).unwrap();
+        assert_eq!(order, sample);
+    }
 }

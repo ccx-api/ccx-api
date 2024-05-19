@@ -35,7 +35,7 @@ where
     /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook]
     pub fn get_product_book(
         &self,
-        product_id: Atom,
+        product_id: &str,
         level_id: Option<u8>,
     ) -> CoinbaseResult<Task<GetProductBookResponse>> {
         if level_id == Some(3) {
