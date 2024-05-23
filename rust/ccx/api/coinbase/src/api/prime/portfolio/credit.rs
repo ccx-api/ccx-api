@@ -15,11 +15,15 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Account Balance.
+    /// # Get Portfolio Credit Information.
     ///
-    /// Retrieve all cash balances, net of pending withdrawals.
+    /// Retrieve a portfolio's post-trade credit information.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getposttradecredit]
+    /// ## Parameters
+    ///
+    /// * `portfolio_id` - The portfolio ID.
+    ///
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getposttradecredit]
     pub fn get_portfolio_credit(
         &self,
         portfolio_id: Uuid,

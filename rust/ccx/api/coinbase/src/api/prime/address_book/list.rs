@@ -15,15 +15,17 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Address Book.
+    /// # Get Address Book.
     ///
     /// Gets a list of address book addresses.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `currency_symbol` - Cryptocurrency symbol -- if nothing is passed, all addresses are returned.
     /// * `search` - Query string that matches the address name.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfolioaddressbook]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getportfolioaddressbook]
     pub fn list_address_book(
         &self,
         portfolio_id: Uuid,

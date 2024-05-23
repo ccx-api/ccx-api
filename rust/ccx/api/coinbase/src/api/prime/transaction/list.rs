@@ -16,9 +16,12 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// List Wallet Transactions.
+    /// # List Wallet Transactions.
     ///
-    /// Retrieve transactions for a given wallet (only transactions that affect balances are accessible).
+    /// Retrieve transactions for a given wallet
+    /// (only transactions that affect balances are accessible).
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `wallet_id` - The wallet ID.
@@ -26,7 +29,7 @@ where
     /// * `start_time` - UTC timestamp from which to filter the response (inclusive, ISO-8601 format).
     /// * `end_time` - UTC timestamp until which to filter the response (exclusive, ISO-8601 format).
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getwallettransactions]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getwallettransactions]
     pub fn list_transactions(
         &self,
         portfolio_id: Uuid,

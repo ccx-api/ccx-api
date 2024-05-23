@@ -53,9 +53,11 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Create Withdrawal.
+    /// # Create Withdrawal.
     ///
     /// Create a withdrawal.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `wallet_id` - The wallet ID.
@@ -64,7 +66,7 @@ where
     /// * `currency_symbol` - The currency symbol for the withdrawal.
     /// * `address` - The blockchain address.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_createwalletwithdrawal]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_createwalletwithdrawal]
     pub fn create_withdrawal_blockchain(
         &self,
         portfolio_id: Uuid,

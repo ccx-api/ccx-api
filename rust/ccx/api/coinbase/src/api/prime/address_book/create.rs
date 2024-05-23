@@ -27,16 +27,18 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Create Address Book Entry.
+    /// # Create Address Book Entry.
     ///
     /// Creates an entry for a portfolio's trusted addresses.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `address` - Crypto address to add.
     /// * `currency_symbol` - The currency symbol of the address.
     /// * `name` - Name of address book entry.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_createportfolioaddressbookentry]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_createportfolioaddressbookentry]
     pub fn create_address_book_entry(
         &self,
         portfolio_id: Uuid,

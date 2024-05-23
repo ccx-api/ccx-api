@@ -12,14 +12,16 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Activity by Activity ID
+    /// # Get Activity by Activity ID
     ///
     /// Retrieve an activity by its activity ID.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - Portfolio to retrieve activity for.
     /// * `activity_id` - Id of the activity to retrieve.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfolioactivity]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getportfolioactivity]
     pub fn get_activity(
         &self,
         portfolio_id: Uuid,

@@ -17,9 +17,11 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// List Activities.
+    /// # List Activities.
     ///
     /// List all activities associated with a given entity.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `symbols` - List of symbols by which to filter the response (e.g. \["ETH-USD"\]).
@@ -28,7 +30,7 @@ where
     /// * `start_date` - A start date for the activities to be queried from.
     /// * `end_date` - An end date for the activities to be queried from.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfolioactivities]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getportfolioactivities]
     pub fn list_activities(
         &self,
         portfolio_id: Uuid,

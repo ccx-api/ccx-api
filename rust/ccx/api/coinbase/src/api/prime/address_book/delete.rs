@@ -13,9 +13,11 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Delete Address Book Entry.
+    /// # Delete Address Book Entry.
     ///
     /// Removes an entry for a portfolio's trusted addresses.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `address_id` - The address ID.

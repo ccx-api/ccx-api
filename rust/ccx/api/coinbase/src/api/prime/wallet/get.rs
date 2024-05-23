@@ -14,14 +14,16 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Wallet by Wallet ID.
+    /// # Get Wallet by Wallet ID.
     ///
     /// Retrieve a specific wallet by Wallet ID.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `wallet_id` - The wallet ID.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getwallet]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getwallet]
     pub fn get_wallet(
         &self,
         portfolio_id: Uuid,

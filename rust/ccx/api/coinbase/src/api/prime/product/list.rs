@@ -10,13 +10,15 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// List Portfolio Products.
-    ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfolioproducts]
+    /// # List Portfolio Products.
     ///
     /// List tradable products for a given portfolio.
     ///
+    /// ## Parameters
+    ///
     /// * `portfolio_id` - The portfolio ID.
+    ///
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getportfolioproducts]
     pub fn get_products(
         &self,
         portfolio_id: Uuid,

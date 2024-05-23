@@ -14,14 +14,16 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Wallet Balance.
+    /// # Get Wallet Balance.
     ///
     /// Query balance for a specific wallet.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `wallet_id` - The wallet ID.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getwalletbalance]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getwalletbalance]
     pub fn get_wallet_balance(
         &self,
         portfolio_id: Uuid,

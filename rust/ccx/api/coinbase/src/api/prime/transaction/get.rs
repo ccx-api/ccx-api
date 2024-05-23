@@ -12,14 +12,17 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Transaction by Transaction ID.
+    /// # Get Transaction by Transaction ID.
     ///
-    /// Retrieve a specific transaction by its transaction ID (only transactions that affect balances are accessible).
+    /// Retrieve a specific transaction by its transaction ID
+    /// (only transactions that affect balances are accessible).
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `transaction_id` - The transaction ID.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_gettransaction]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_gettransaction]
     pub fn get_transaction(
         &self,
         portfolio_id: Uuid,

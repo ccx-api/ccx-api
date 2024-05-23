@@ -18,14 +18,16 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// List Portfolio Orders.
+    /// # List Portfolio Orders.
     ///
     /// List historical orders for a given portfolio. This endpoint returns a payload with
     /// a default limit of 100 if not specified by the user. The maximum allowed limit is 3000.
     ///
-    /// **Caution: Currently, you cannot query open orders with this endpoint: use List Open Orders
+    /// **Caution:** Currently, you cannot query open orders with this endpoint: use List Open Orders
     /// if you have less than 1000 open orders, otherwise use Websocket API, or FIX API to stream
-    /// open orders.**
+    /// open orders.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `order_statuses` - List of statuses by which to filter the response.
@@ -35,7 +37,10 @@ where
     /// * `start_date` - A start date for the orders to be queried from.
     /// * `end_date` - An end date for the orders to be queried from.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getorders]
+    /// This is not a full copy of the documentation.
+    /// Please refer to the official documentation for more details.
+    ///
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getorders]
     #[allow(clippy::too_many_arguments)]
     pub fn list_orders(
         &self,
