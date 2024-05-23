@@ -22,20 +22,25 @@ where
     ///
     /// Withdraws funds from the specified profile_id to a www.coinbase.com wallet.
     ///
-    ///
-    /// ## NB Withdraw funds to a Coinbase account
+    /// ## Withdraw funds to a Coinbase account
     ///
     /// You can move funds between your Coinbase accounts and your Coinbase Exchange trading
     /// accounts within your daily limits. Moving funds between Coinbase and Coinbase Exchange
     /// is instant and free. See the Coinbase Accounts section for retrieving your Coinbase
     /// accounts.
     ///
-    ///
     /// ## API Key Permissions
     ///
     /// This endpoint requires the "transfer" permission.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount]
+    /// ## Parameters
+    ///
+    /// * `profile_id` - (undocumented).
+    /// * `coinbase_account_id` - (undocumented).
+    /// * `amount` - (undocumented).
+    /// * `currency` - (undocumented).
+    ///
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount]
     pub fn withdraw_to_coinbase_account(
         &self,
         profile_id: Uuid,

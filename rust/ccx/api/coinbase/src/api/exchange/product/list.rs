@@ -14,9 +14,14 @@ where
     ///
     /// Gets a list of available currency pairs for trading.
     ///
+    /// ## Parameters
+    ///
     /// * `type` - ?
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts]
+    /// This is not a full copy of the documentation.
+    /// Please refer to the official documentation for more details.
+    ///
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getproducts]
     pub fn list_products(
         &self,
         r#type: Option<Atom>,

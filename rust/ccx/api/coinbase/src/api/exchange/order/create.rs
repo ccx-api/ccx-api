@@ -43,12 +43,12 @@ where
     /// cannot place any new orders until the total number of open orders is below 500.
     ///
     ///
-    /// API Key Permissions
+    /// ## API Key Permissions
     ///
     /// This endpoint requires the "trade" permission.
     ///
     ///
-    /// Limit Order Parameters
+    /// ## Limit Order Parameters
     ///
     /// * `price` - Price per base currency.
     /// * `size` - Amount of base currency to buy or sell.
@@ -57,7 +57,7 @@ where
     /// * `post_only` (optional) - Post only flag (Invalid when time_in_force is IOC or FOK).
     ///
     ///
-    /// Market Order Parameters
+    /// ## Market Order Parameters
     ///
     /// * `size` - Desired amount of base currency.
     /// * `funds` - Desired amount of quote currency to use.
@@ -65,17 +65,17 @@ where
     /// One of size or funds is required.
     ///
     ///
-    /// Product ID
+    /// ## Product ID
     ///
     /// The product_id must match a valid product. The products list is available via
     /// the `/products` endpoint.
     ///
-    ///
     /// ....
     ///
-    /// CAUTION: RTFM!
+    /// CAUTION: This is not a full copy of the documentation.
+    ///     Please refer to the official documentation for more information by following the link below.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postorders]
     #[allow(clippy::too_many_arguments)]
     pub fn create_order(
         &self,

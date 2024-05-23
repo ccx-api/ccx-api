@@ -10,14 +10,15 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get profiles.
+    /// # Get profiles.
     ///
     /// Gets a list of all of the current user's profiles.
     ///
-    /// Note: This endpoint requires the "view" permission
-    /// and is accessible by any profile's API key.
+    /// ## API Key Permissions
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getprofiles]
+    /// This endpoint requires the "view" permission and is accessible by any profile's API key.
+    ///
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getprofiles]
     pub fn list_profiles(&self) -> CoinbaseResult<Task<ListProfileResponse>> {
         let endpoint = "profiles";
         Ok(self

@@ -55,7 +55,7 @@ where
     /// * `status` - Array with order statuses to filter by.
     /// * `market_type` - Market type which the order was traded in.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getorders]
     #[allow(clippy::too_many_arguments)]
     pub fn list_orders(
         &self,

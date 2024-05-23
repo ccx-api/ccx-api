@@ -32,11 +32,10 @@ where
     ///
     /// Withdraws funds from the specified profile_id to an external crypto address.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcrypto]
-    ///
     /// ## API Key Permissions
     ///
-    /// This endpoint requires the "transfer" permission. API key must belong to default profile.
+    /// This endpoint requires the "transfer" permission.
+    /// API key must belong to default profile.
     ///
     /// ## Travel Rule
     ///
@@ -47,7 +46,9 @@ where
     /// the Travel Rule data requirements.
     ///
     /// For more details and examples, see
-    /// [Travel Rule for Withdrawals](https://docs.cloud.coinbase.com/exchange/docs/travel-rule-withdrawals).
+    /// [Travel Rule for Withdrawals](https://docs.cdp.coinbase.com/exchange/docs/travel-rule-withdrawals).
+    ///
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcrypto]
     #[allow(clippy::too_many_arguments)]
     pub fn withdraw_to_address(
         &self,

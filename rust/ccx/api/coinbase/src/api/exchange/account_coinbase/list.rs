@@ -10,13 +10,12 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get all Coinbase wallets.
+    /// # Get all Coinbase wallets.
     ///
-    /// Gets all the user's available Coinbase wallets
+    /// Gets all the user's available Coinbase wallets (These are the wallets/accounts
+    /// that are used for buying and selling on www.coinbase.com).
     ///
-    /// Note: These are the wallets/accounts that are used for buying and selling on www.coinbase.com
-    ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcoinbaseaccounts]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getcoinbaseaccounts]
     pub fn list_coinbase_accounts(&self) -> CoinbaseResult<Task<ListAccountCoinbaseResponse>> {
         let endpoint = "/coinbase-accounts";
         Ok(self

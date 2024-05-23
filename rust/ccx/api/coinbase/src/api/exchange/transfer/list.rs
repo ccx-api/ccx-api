@@ -26,7 +26,7 @@ where
     ///
     /// This endpoint requires either the "view" or "trade" permission.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_gettransfers]
     pub fn list_transfers(
         &self,
         profile_id: Option<Uuid>,

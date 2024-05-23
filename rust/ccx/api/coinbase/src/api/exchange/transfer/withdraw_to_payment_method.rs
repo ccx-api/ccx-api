@@ -22,12 +22,19 @@ where
     ///
     /// Withdraws funds from the specified profile_id to a linked external payment method.
     ///
-    ///
     /// ## API Key Permissions
     ///
-    /// This endpoint requires the "transfer" permission. API key must belong to default profile.
+    /// This endpoint requires the "transfer" permission.
+    /// API key must belong to default profile.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcrypto]
+    /// ## Parameters
+    ///
+    /// * `profile_id` - (undocumented).
+    /// * `payment_method_id` - (undocumented).
+    /// * `amount` - (undocumented).
+    /// * `currency` - (undocumented).
+    ///
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod]
     pub fn withdraw_to_payment_method(
         &self,
         profile_id: Option<Uuid>,

@@ -21,11 +21,11 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get address book
+    /// # Get address book
     ///
     /// Get all addresses stored in the address book.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaddressbook]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getaddressbook]
     pub fn get_address_book(&self) -> CoinbaseResult<Task<GetAddressBookResponse>> {
         let endpoint = "/address-book";
         Ok(self

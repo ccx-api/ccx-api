@@ -18,19 +18,25 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Generate crypto address.
+    /// # Generate crypto address.
     ///
     /// Generates a one-time crypto address for depositing crypto.
     ///
-    /// You can generate an address for crypto deposits.
-    /// See the Coinbase Accounts section for information on how to retrieve your coinbase account ID.
+    ///     Note: You can generate an address for crypto deposits.
+    ///     See the [Coinbase Accounts](https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getcoinbaseaccounts/)
+    ///     section for information on how to retrieve your coinbase account ID.
     ///
-    ///    Note: This endpoint requires the "transfer" permission.
-    ///          API key must belong to default profile.
+    /// ## API Key Permissions
     ///
-    /// * `account_id` - .
+    /// This endpoint requires the "transfer" permission. API key must belong to default profile.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccount]
+    /// ## Parameters
+    ///
+    /// * `account_id` - (undocumented).
+    /// * `profile_id` - (undocumented).
+    /// * `network` - (undocumented).
+    ///
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses]
     pub fn generate_coinbase_account<N: AsRef<str>>(
         &self,
         account_id: CoinbaseAccountId,
