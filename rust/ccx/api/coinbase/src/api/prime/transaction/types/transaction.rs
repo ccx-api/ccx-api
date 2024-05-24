@@ -11,7 +11,7 @@ pub struct Transaction {
     pub status: TransactionStatus,
     pub symbol: Atom,
     pub created_at: DtCoinbasePrime,
-    pub completed_at: DtCoinbasePrime,
+    pub completed_at: Option<DtCoinbasePrime>,
     pub amount: Decimal,
     pub transfer_from: TransactionTransfer,
     pub transfer_to: TransactionTransfer,
@@ -196,7 +196,7 @@ mod tests {
             status: TransactionStatus::Done,
             symbol: Atom::from("USDT"),
             created_at: DtCoinbasePrime::parse_from_str("2024-01-23T12:34:56.123Z").unwrap(),
-            completed_at: DtCoinbasePrime::parse_from_str("2024-01-23T12:37:12Z").unwrap(),
+            completed_at: Some(DtCoinbasePrime::parse_from_str("2024-01-23T12:37:12Z").unwrap()),
             amount: d("-10"),
             transfer_from: TransactionTransfer {
                 r#type: "WALLET".into(),
