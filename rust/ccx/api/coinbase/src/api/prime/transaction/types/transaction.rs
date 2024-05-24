@@ -156,7 +156,7 @@ mod tests {
     // }
 
     #[test]
-    fn test_deserialize_transaction_live() {
+    fn test_deserialize_transaction_live_1() {
         let json = r#"{
             "id": "12345678-0000-0000-0000-000000000000",
             "wallet_id": "12345678-0000-0000-0000-000000000000",
@@ -211,6 +211,68 @@ mod tests {
             blockchain_ids: vec![
                 "0x1234567812345678123456781234567812345678123456781234567812345678".to_string(),
             ],
+            transaction_id: "A1B2C3D4".to_string(),
+            destination_symbol: None,
+            estimated_network_fees: None,
+            network: None,
+            estimated_asset_changes: vec![],
+        };
+        let transaction: Transaction = serde_json::from_str(json).unwrap();
+        assert_eq!(transaction, sample);
+    }
+
+    #[test]
+    fn test_deserialize_transaction_live_2() {
+        let json = r#"{
+            "id": "12345678-0000-0000-0000-000000000000",
+            "wallet_id": "12345678-0000-0000-0000-000000000000",
+            "portfolio_id": "12345678-0000-0000-0000-000000000000",
+            "type": "WITHDRAWAL",
+            "status": "TRANSACTION_CREATED",
+            "symbol": "USDT",
+            "created_at": "2024-01-23T12:34:56.123Z",
+            "completed_at": null,
+            "amount": "-10",
+            "transfer_from": {
+                "type": "WALLET",
+                "value": "12345678-0000-0000-0000-000000000000"
+            },
+            "transfer_to": {
+                "type": "ADDRESS",
+                "value": "0x1234567812345678123456781234567812345678"
+            },
+            "network_fees": "0",
+            "fees": "0",
+            "fee_symbol": "ETH",
+            "blockchain_ids": [],
+            "transaction_id": "A1B2C3D4",
+            "destination_symbol": "",
+            "estimated_network_fees": null,
+            "network": "",
+            "estimated_asset_changes": [],
+            "metadata": null
+        }"#;
+        let sample = Transaction {
+            id: Uuid::parse_str("12345678-0000-0000-0000-000000000000").unwrap(),
+            wallet_id: Uuid::parse_str("12345678-0000-0000-0000-000000000000").unwrap(),
+            portfolio_id: Uuid::parse_str("12345678-0000-0000-0000-000000000000").unwrap(),
+            r#type: TransactionType::Withdrawal,
+            status: TransactionStatus::Created,
+            symbol: Atom::from("USDT"),
+            created_at: DtCoinbasePrime::parse_from_str("2024-01-23T12:34:56.123Z").unwrap(),
+            completed_at: None,
+            amount: d("-10"),
+            transfer_from: TransactionTransfer {
+                r#type: "WALLET".into(),
+                value: "12345678-0000-0000-0000-000000000000".to_string(),
+            },
+            transfer_to: TransactionTransfer {
+                r#type: "ADDRESS".into(),
+                value: "0x1234567812345678123456781234567812345678".to_string(),
+            },
+            fees: d("0"),
+            fee_symbol: Atom::from("ETH"),
+            blockchain_ids: vec![],
             transaction_id: "A1B2C3D4".to_string(),
             destination_symbol: None,
             estimated_network_fees: None,
