@@ -26,6 +26,7 @@ pub const RL_PORTFOLIO_LIMIT: u32 = 25;
 // TODO mod error;
 mod activity;
 mod address_book;
+mod asset;
 mod order;
 mod portfolio;
 mod product;
@@ -35,6 +36,7 @@ mod wallet;
 
 pub use activity::*;
 pub use address_book::*;
+pub use asset::*;
 pub use order::*;
 pub use portfolio::*;
 pub use product::*;
