@@ -3,6 +3,8 @@ use ccx_api_lib::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::maybe_str;
+
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AssetDetails {
     /// The name of the asset.
@@ -14,6 +16,7 @@ pub struct AssetDetails {
     /// Indicates whether this asset can be traded.
     pub trading_supported: bool,
     /// Base URL to our recommended block explorer (crypto only).
+    #[serde(with = "maybe_str")]
     pub explorer_url: Option<Atom>,
 }
 
