@@ -6,19 +6,13 @@ use crate::api::exchange::OrderStop;
 use crate::api::exchange::OrderStp;
 use crate::api::exchange::OrderTimeInForce;
 use crate::api::exchange::OrderType;
-use crate::api::exchange::RL_PRIVATE_KEY;
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct CreateOrderResponse {
-    pub order: Order,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CreateOrderRequest {
-    profile_id: Option<String>,
+struct CreateOrderRequest<'a> {
+    profile_id: Option<Uuid>,
     r#type: OrderType,
     side: OrderSide,
-    product_id: Atom,
+    product_id: &'a str,
     stp: Option<OrderStp>,
     stop: Option<OrderStop>,
     stop_price: Option<Decimal>,
@@ -49,12 +43,12 @@ where
     /// cannot place any new orders until the total number of open orders is below 500.
     ///
     ///
-    /// API Key Permissions
+    /// ## API Key Permissions
     ///
     /// This endpoint requires the "trade" permission.
     ///
     ///
-    /// Limit Order Parameters
+    /// ## Limit Order Parameters
     ///
     /// * `price` - Price per base currency.
     /// * `size` - Amount of base currency to buy or sell.
@@ -63,7 +57,7 @@ where
     /// * `post_only` (optional) - Post only flag (Invalid when time_in_force is IOC or FOK).
     ///
     ///
-    /// Market Order Parameters
+    /// ## Market Order Parameters
     ///
     /// * `size` - Desired amount of base currency.
     /// * `funds` - Desired amount of quote currency to use.
@@ -71,24 +65,24 @@ where
     /// One of size or funds is required.
     ///
     ///
-    /// Product ID
+    /// ## Product ID
     ///
     /// The product_id must match a valid product. The products list is available via
     /// the `/products` endpoint.
     ///
-    ///
     /// ....
     ///
-    ///     CAUTION: RTFM!
+    /// CAUTION: This is not a full copy of the documentation.
+    ///     Please refer to the official documentation for more information by following the link below.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postorders]
     #[allow(clippy::too_many_arguments)]
     pub fn create_order(
         &self,
-        profile_id: Option<String>,
+        profile_id: Option<Uuid>,
         r#type: OrderType,
         side: OrderSide,
-        product_id: Atom,
+        product_id: &str,
         stp: Option<OrderStp>,
         stop: Option<OrderStop>,
         stop_price: Option<Decimal>,
@@ -99,7 +93,7 @@ where
         cancel_after: Option<CancelAfter>,
         post_only: Option<bool>,
         client_order_id: Option<Uuid>,
-    ) -> CoinbaseResult<Task<CreateOrderResponse>> {
+    ) -> CoinbaseResult<Task<Order>> {
         let endpoint = "/orders";
         Ok(self
             .rate_limiter

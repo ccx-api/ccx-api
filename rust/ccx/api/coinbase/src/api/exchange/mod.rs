@@ -59,14 +59,16 @@ pub use product::*;
 pub use profile::*;
 pub use transfer::*;
 
-mod prelude {
-    pub use chrono::Utc;
-
-    pub use super::types::*;
+pub mod prelude {
     #[cfg(feature = "with_network")]
     pub use super::ExchangeApi;
+    #[cfg(feature = "with_network")]
+    pub(crate) use super::RL_PRIVATE_KEY;
     pub use crate::api::prelude::*;
-    pub use crate::api::trade::RL_IP_KEY;
+    #[cfg(feature = "with_network")]
+    pub(crate) use crate::api::trade::RL_IP_KEY;
+    pub use crate::DtCoinbaseEx;
+    pub use crate::DtCoinbasePrime;
 }
 
 #[cfg(feature = "with_network")]

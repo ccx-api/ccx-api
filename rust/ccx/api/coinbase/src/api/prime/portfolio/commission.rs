@@ -1,11 +1,11 @@
 use chrono::Utc;
-use uuid::Uuid;
 
 use super::PortfolioCommission;
 use crate::api::prime::PrimeApi;
 use crate::api::prime::RL_PORTFOLIO_KEY;
 use crate::client::Task;
 use crate::CoinbaseResult;
+use crate::Uuid;
 
 pub type GetCommissionResponse = PortfolioCommission;
 
@@ -15,13 +15,15 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Portfolio Commission.
+    /// # Get Portfolio Commission.
     ///
     /// Retrieve commission associated with a given portfolio.
     ///
+    /// ## Parameters
+    ///
     /// * `portfolio_id` - The portfolio ID.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfoliocommission]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getportfoliocommission]
     pub fn get_portfolio_commission(
         &self,
         portfolio_id: Uuid,

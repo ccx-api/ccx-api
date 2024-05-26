@@ -10,16 +10,16 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get fee estimate for crypto withdrawal.
+    /// # Get fee estimate for crypto withdrawal.
     ///
-    /// Gets the fee estimate for the crypto withdrawal to crypto address
+    /// Gets the fee estimate for the crypto withdrawal to crypto address.
     ///
     /// ## API Key Permissions
     ///
     /// This endpoint requires the "transfer" permission.
     /// API key must belong to default profile.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getwithdrawfeeestimate]
     pub fn get_fee_estimate<C: AsRef<str>, N: AsRef<str>, A: AsRef<str>>(
         &self,
         currency: C,

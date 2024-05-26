@@ -22,6 +22,11 @@ pub struct NextPage {
 }
 
 impl Page {
+    pub fn with_limit(mut self, limit: u32) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
     pub fn cursor(&self) -> Option<&str> {
         self.cursor.as_deref()
     }

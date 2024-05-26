@@ -36,6 +36,14 @@ where
             formatter.write_str("a string or non-string value")
         }
 
+        fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
         fn visit_str<E: Error>(self, value: &str) -> Result<Self::Value, E> {
             if value.is_empty() {
                 Ok(None)

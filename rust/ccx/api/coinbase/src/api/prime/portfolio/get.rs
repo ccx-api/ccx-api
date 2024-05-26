@@ -1,11 +1,11 @@
 use chrono::Utc;
-use uuid::Uuid;
 
 use super::PortfolioInfo;
 use crate::api::prime::PrimeApi;
 use crate::api::prime::RL_PORTFOLIO_KEY;
 use crate::client::Task;
 use crate::CoinbaseResult;
+use crate::Uuid;
 
 pub type GetPortfolioResponse = PortfolioInfo;
 
@@ -15,11 +15,15 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Account Balance.
+    /// # Get Portfolio by Portfolio ID.
     ///
-    /// Retrieve all cash balances, net of pending withdrawals.
+    /// Retrieve a given portfolio by its portfolio ID.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfolio]
+    /// ## Parameters
+    ///
+    /// * `portfolio_id` - The portfolio ID.
+    ///
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getportfolio]
     pub fn get_portfolio(&self, portfolio_id: Uuid) -> CoinbaseResult<Task<GetPortfolioResponse>> {
         let timestamp = Utc::now().timestamp() as u32;
         // In the doc `/v1/portfolios/{portfolio_id}/`, but the ending slash leads to 404.

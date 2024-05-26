@@ -14,9 +14,9 @@ where
     ///
     /// Gets a list of all known currencies.
     ///
-    ///     Note: Not all currencies may be currently in use for trading.
+    /// Note: Not all currencies may be currently in use for trading.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getcurrencies]
     pub fn list_currencies(&self) -> CoinbaseResult<Task<ListCurrencyResponse>> {
         let endpoint = "currencies";
         Ok(self

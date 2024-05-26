@@ -1,5 +1,4 @@
 use crate::api::prime::prelude::*;
-use crate::api::prime::AccountPortfolioOrder;
 use crate::api::prime::PortfolioOrderSide;
 use crate::api::prime::PortfolioOrderTimeInForce;
 use crate::api::prime::PortfolioOrderType;
@@ -25,7 +24,7 @@ struct AccountPortfolioCreateOrderRequest<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AccountPortfolioCreateOrderResponse {
-    pub order: AccountPortfolioOrder,
+    pub order_id: Uuid,
 }
 
 #[cfg(feature = "with_network")]
@@ -36,7 +35,9 @@ where
 {
     /// Create Order.
     ///
-    /// Create an order. Always required: portfolio_id, product_id, side, client_order_id, and type.
+    /// Create an order.
+    ///
+    /// Always required: portfolio_id, product_id, side, client_order_id, and type.
     /// One of either base_quantity or quote_value is always required. For LIMIT and TWAP orders,
     /// limit_price is required. For TWAP orders, start_time and expiry_time are required.
     ///
@@ -56,7 +57,10 @@ where
     /// * `display_base_size` -
     /// * `is_raise_exact` -
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_createorder]
+    /// This is not a full copy of the documentation.
+    /// Please refer to the official documentation for more details.
+    ///
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_createorder]
     #[allow(clippy::too_many_arguments)]
     pub fn create_order(
         &self,

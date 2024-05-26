@@ -14,13 +14,13 @@ where
     ///
     /// Get information on a single transfer.
     ///
-    /// * `transfer_id` - .
+    /// * `transfer_id` - (undocumented).
     ///
     /// ## API Key Permissions
     ///
     /// This endpoint requires either the "view" or "trade" permission.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfer]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_gettransfer]
     pub fn get_transfer(&self, transfer_id: Uuid) -> CoinbaseResult<Task<GetTransferResponse>> {
         let endpoint = format!("transfers/{transfer_id}");
         Ok(self

@@ -4,7 +4,6 @@ use crate::api::exchange::OrderStatus;
 use crate::api::exchange::OrderStop;
 use crate::api::exchange::OrderTimeInForce;
 use crate::api::exchange::OrderType;
-use crate::dt_coinbase::DtCoinbase;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct Order {
@@ -27,15 +26,17 @@ pub struct Order {
     /// .
     pub r#type: OrderType,
     /// .
-    pub time_in_force: OrderTimeInForce,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub time_in_force: Option<OrderTimeInForce>,
     /// Timestamp at which order expires.
-    pub expire_time: Option<DtCoinbase>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expire_time: Option<DtCoinbasePrime>,
     /// If true, forces order to be `maker` only.
     pub post_only: bool,
     /// Timestamp at which order was placed.
-    pub created_at: DtCoinbase,
+    pub created_at: DtCoinbasePrime,
     /// Timestamp at which order was done.
-    pub done_at: Option<DtCoinbase>,
+    pub done_at: Option<DtCoinbasePrime>,
     /// Reason order was done (filled, rejected, or otherwise).
     pub done_reason: Option<Atom>,
     /// Reason order was rejected by engine.
@@ -62,4 +63,117 @@ pub struct Order {
     pub client_order_id: Option<Uuid>,
     /// Market type where order was traded.
     pub market_type: Option<Atom>,
+}
+
+#[cfg(test)]
+mod tests {
+    use ccx_coinbase_examples_util::d;
+
+    use super::*;
+
+    #[test]
+    fn test_deserialize_order_live_market_pending() {
+        let json = r#"{
+            "id": "cde8ae1d-af9f-44aa-897c-3680621304d1",
+            "client_oid": "12345678-1234-5678-bcde-000000000001",
+            "product_id": "USDT-EUR",
+            "side": "buy",
+            "stp": "dc",
+            "funds": "0.999955",
+            "specified_funds": "1",
+            "type": "market",
+            "post_only": false,
+            "created_at": "2024-04-04T14:48:48.328519Z",
+            "fill_fees": "0",
+            "filled_size": "0",
+            "executed_value": "0",
+            "status": "pending",
+            "settled": false
+        }"#;
+        let sample = Order {
+            id: Uuid::parse_str("cde8ae1d-af9f-44aa-897c-3680621304d1").unwrap(),
+            price: None,
+            size: None,
+            product_id: "USDT-EUR".into(),
+            profile_id: None,
+            side: OrderSide::Buy,
+            funds: Some(d("0.999955")),
+            specified_funds: Some(d("1")),
+            r#type: OrderType::Market,
+            time_in_force: None,
+            expire_time: None,
+            post_only: false,
+            created_at: DtCoinbasePrime::parse_from_str("2024-04-04T14:48:48.328519Z").unwrap(),
+            done_at: None,
+            done_reason: None,
+            reject_reason: None,
+            fill_fees: d("0"),
+            filled_size: d("0"),
+            executed_value: d("0"),
+            status: OrderStatus::Pending,
+            settled: false,
+            stop: None,
+            stop_price: None,
+            funding_amount: None,
+            client_order_id: Some(Uuid::parse_str("12345678-1234-5678-bcde-000000000001").unwrap()),
+            market_type: None,
+        };
+        let order: Order = serde_json::from_str(json).unwrap();
+        assert_eq!(order, sample);
+    }
+
+    #[test]
+    fn test_deserialize_order_live_market_filled() {
+        let json = r#"{
+            "id": "cde8ae1d-af9f-44aa-897c-3680621304d1",
+            "client_oid": "12345678-1234-5678-bcde-000000000001",
+            "product_id": "USDT-EUR",
+            "profile_id": "817a34ca-a8cc-44e9-b6c8-e9627123d0cb",
+            "side": "buy",
+            "funds": "0.9999550000000000",
+            "specified_funds": "1.0000000000000000",
+            "type": "market",
+            "post_only": false,
+            "created_at": "2024-04-04T14:48:48.330796Z",
+            "done_at": "2024-04-04T14:48:48.330796Z",
+            "done_reason": "filled",
+            "fill_fees": "0.0000447819840000",
+            "filled_size": "1.08000000",
+            "executed_value": "0.9951552000000000",
+            "market_type": "spot",
+            "status": "done",
+            "settled": true,
+            "funding_currency": "EUR"
+        }"#;
+        let sample = Order {
+            id: Uuid::parse_str("cde8ae1d-af9f-44aa-897c-3680621304d1").unwrap(),
+            price: None,
+            size: None,
+            product_id: "USDT-EUR".into(),
+            profile_id: Some(Uuid::parse_str("817a34ca-a8cc-44e9-b6c8-e9627123d0cb").unwrap()),
+            side: OrderSide::Buy,
+            funds: Some(d("0.9999550000000000")),
+            specified_funds: Some(d("1.0000000000000000")),
+            r#type: OrderType::Market,
+            time_in_force: None,
+            expire_time: None,
+            post_only: false,
+            created_at: DtCoinbasePrime::parse_from_str("2024-04-04T14:48:48.330796Z").unwrap(),
+            done_at: Some(DtCoinbasePrime::parse_from_str("2024-04-04T14:48:48.330796Z").unwrap()),
+            done_reason: Some("filled".into()),
+            reject_reason: None,
+            fill_fees: d("0.0000447819840000"),
+            filled_size: d("1.08000000"),
+            executed_value: d("0.9951552000000000"),
+            status: OrderStatus::Done,
+            settled: true,
+            stop: None,
+            stop_price: None,
+            funding_amount: None,
+            client_order_id: Some(Uuid::parse_str("12345678-1234-5678-bcde-000000000001").unwrap()),
+            market_type: Some("spot".into()),
+        };
+        let order: Order = serde_json::from_str(json).unwrap();
+        assert_eq!(order, sample);
+    }
 }

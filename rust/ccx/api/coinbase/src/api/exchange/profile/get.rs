@@ -10,20 +10,19 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get a currency.
+    /// # Get profile by id.
     ///
-    /// Gets a single currency by id.
+    /// Information for a single profile. Use this endpoint when you know the profile_id.
     ///
+    /// ## API Key Permissions
     ///
-    /// Currency Codes
+    /// This endpoint requires the "transfer" permission.
     ///
-    /// Currency codes conform to the ISO 4217 standard where possible. Currencies that have
-    /// no representation in ISO 4217 can use a custom code.
+    /// ## Parameters
     ///
+    /// * `profile_id` - (undocumented).
     ///
-    /// * `currency_id` - .
-    ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrency]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getprofile]
     pub fn get_profile(&self, profile_id: Uuid) -> CoinbaseResult<Task<GetProfileResponse>> {
         fn endpoint(profile_id: Uuid) -> String {
             format!("profiles/{profile_id}")

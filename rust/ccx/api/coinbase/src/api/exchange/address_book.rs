@@ -1,7 +1,6 @@
-use super::prelude::*;
+use crate::api::exchange::prelude::*;
 use crate::api::exchange::RL_PRIVATE_KEY;
-use crate::client::Task;
-use crate::dt_coinbase::DtCoinbase;
+use crate::DtCoinbaseEx;
 
 pub type GetAddressBookResponse = Vec<Address>;
 
@@ -13,7 +12,7 @@ pub struct Address {
     pub currency: Atom,
     pub label: String,
     pub address_book_added_at: String,
-    pub last_used: Option<DtCoinbase>,
+    pub last_used: Option<DtCoinbaseEx>,
 }
 
 #[cfg(feature = "with_network")]
@@ -22,11 +21,11 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get address book
+    /// # Get address book
     ///
     /// Get all addresses stored in the address book.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaddressbook]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getaddressbook]
     pub fn get_address_book(&self) -> CoinbaseResult<Task<GetAddressBookResponse>> {
         let endpoint = "/address-book";
         Ok(self

@@ -1,4 +1,5 @@
 mod get;
+mod get_balance;
 mod list;
 mod types;
 

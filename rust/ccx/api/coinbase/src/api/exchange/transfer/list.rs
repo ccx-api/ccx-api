@@ -1,7 +1,6 @@
 use crate::api::exchange::prelude::*;
 use crate::api::exchange::Transfer;
 use crate::api::exchange::TransferType;
-use crate::api::exchange::RL_PRIVATE_KEY;
 
 pub type ListTransfersResponse = Vec<Transfer>;
 
@@ -27,13 +26,13 @@ where
     ///
     /// This endpoint requires either the "view" or "trade" permission.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_gettransfers]
     pub fn list_transfers(
         &self,
         profile_id: Option<Uuid>,
         r#type: Option<TransferType>,
-        after: Option<DtCoinbase>,
-        before: Option<DtCoinbase>,
+        after: Option<DtCoinbaseEx>,
+        before: Option<DtCoinbaseEx>,
         limit: Option<u64>,
     ) -> CoinbaseResult<Task<ListTransfersResponse>> {
         let endpoint = "/transfers";

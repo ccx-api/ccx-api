@@ -1,9 +1,4 @@
-use serde::Deserialize;
-use serde::Serialize;
-use uuid::Uuid;
-
-use crate::Atom;
-use crate::DtCoinbase;
+use crate::api::exchange::prelude::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Profile {
@@ -12,5 +7,5 @@ pub struct Profile {
     pub name: Atom,
     pub active: bool,
     pub is_default: bool,
-    pub created_at: DtCoinbase,
+    pub created_at: DtCoinbaseEx,
 }

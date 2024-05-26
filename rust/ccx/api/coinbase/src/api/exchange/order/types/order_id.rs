@@ -1,6 +1,6 @@
 use core::fmt;
 
-use uuid::Uuid;
+use crate::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EitherOrderId {

@@ -3,7 +3,8 @@ use std::fmt::Display;
 
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
+
+use crate::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]

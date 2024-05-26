@@ -1,9 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::Atom;
-use crate::DtCoinbase;
+use crate::DtCoinbaseEx;
+use crate::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateCoinbaseAccount {
@@ -12,8 +12,8 @@ pub struct GenerateCoinbaseAccount {
     pub address_info: AddressInfo,
     pub name: Atom,
     pub network: Atom,
-    pub created_at: DtCoinbase,
-    pub updated_at: DtCoinbase,
+    pub created_at: DtCoinbaseEx,
+    pub updated_at: DtCoinbaseEx,
     pub uri_scheme: String,
     pub resource: String,
     pub resource_path: String,

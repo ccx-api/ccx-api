@@ -5,8 +5,7 @@ use diesel_derives::FromSqlRow;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::Atom;
-use crate::Decimal;
+use crate::api::prime::prelude::*;
 
 /// List all portfolios for which the current API key has read access. (Currently, an API key
 /// is scoped to only one portfolio).
@@ -57,14 +56,29 @@ pub struct CurrencyBalance {
     /// Amount that is currently held in obligation to an open order's position
     /// or a pending withdrawal.
     pub holds: Decimal,
-    pub bonded_amount: Decimal,
-    pub reserved_amount: Decimal,
-    pub unbonding_amount: Decimal,
-    pub unvested_amount: Decimal,
-    pub pending_rewards_amount: Decimal,
-    pub past_rewards_amount: Decimal,
-    pub bondable_amount: Decimal,
+    #[serde(default)]
+    #[serde(with = "maybe_str")]
+    pub bonded_amount: Option<Decimal>,
+    #[serde(default)]
+    #[serde(with = "maybe_str")]
+    pub reserved_amount: Option<Decimal>,
+    #[serde(default)]
+    #[serde(with = "maybe_str")]
+    pub unbonding_amount: Option<Decimal>,
+    #[serde(default)]
+    #[serde(with = "maybe_str")]
+    pub unvested_amount: Option<Decimal>,
+    #[serde(default)]
+    #[serde(with = "maybe_str")]
+    pub pending_rewards_amount: Option<Decimal>,
+    #[serde(default)]
+    #[serde(with = "maybe_str")]
+    pub past_rewards_amount: Option<Decimal>,
+    #[serde(default)]
+    #[serde(with = "maybe_str")]
+    pub bondable_amount: Option<Decimal>,
     pub withdrawable_amount: Decimal,
+    pub fiat_amount: Decimal,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -83,4 +97,128 @@ pub struct VaultBalances {
     /// Amount that is currently held in obligation to an open order's position
     /// or a pending withdrawal.
     pub holds: Decimal,
+}
+
+#[cfg(test)]
+mod tests {
+    use ccx_coinbase_examples_util::d;
+
+    use super::*;
+
+    #[test]
+    fn decode_portfolio_balance() {
+        let json = r#"{
+            "balances": [
+                {
+                    "symbol": "usd",
+                    "amount": "0.0032324125",
+                    "holds": "0",
+                    "bonded_amount": "",
+                    "reserved_amount": "",
+                    "unbonding_amount": "",
+                    "unvested_amount": "",
+                    "pending_rewards_amount": "",
+                    "past_rewards_amount": "",
+                    "bondable_amount": "",
+                    "withdrawable_amount": "0.0032324125",
+                    "fiat_amount": "0"
+                },
+                {
+                    "symbol": "usdt",
+                    "amount": "5309.4992533441396509",
+                    "holds": "0",
+                    "bonded_amount": "",
+                    "reserved_amount": "",
+                    "unbonding_amount": "",
+                    "unvested_amount": "",
+                    "pending_rewards_amount": "",
+                    "past_rewards_amount": "",
+                    "bondable_amount": "",
+                    "withdrawable_amount": "5309.4992533441396509",
+                    "fiat_amount": "5309.21"
+                },
+                {
+                    "symbol": "usdc",
+                    "amount": "0.18021",
+                    "holds": "0",
+                    "bonded_amount": "",
+                    "reserved_amount": "",
+                    "unbonding_amount": "",
+                    "unvested_amount": "",
+                    "pending_rewards_amount": "",
+                    "past_rewards_amount": "",
+                    "bondable_amount": "",
+                    "withdrawable_amount": "0.18021",
+                    "fiat_amount": "0.18"
+                }
+            ],
+            "type": "TRADING_BALANCES",
+            "trading_balances": {
+                "total": "5309.39",
+                "holds": "0"
+            },
+            "vault_balances": {
+                "total": "0.00",
+                "holds": "0"
+            }
+        }"#;
+        let sample = PortfolioBalance {
+            balances: vec![
+                CurrencyBalance {
+                    symbol: Atom::from("usd"),
+                    amount: d("0.0032324125"),
+                    holds: d("0"),
+                    bonded_amount: None,
+                    reserved_amount: None,
+                    unbonding_amount: None,
+                    unvested_amount: None,
+                    pending_rewards_amount: None,
+                    past_rewards_amount: None,
+                    bondable_amount: None,
+                    withdrawable_amount: d("0.0032324125"),
+                    fiat_amount: d("0"),
+                },
+                CurrencyBalance {
+                    symbol: Atom::from("usdt"),
+                    amount: d("5309.4992533441396509"),
+                    holds: d("0"),
+                    bonded_amount: None,
+                    reserved_amount: None,
+                    unbonding_amount: None,
+                    unvested_amount: None,
+                    pending_rewards_amount: None,
+                    past_rewards_amount: None,
+                    bondable_amount: None,
+                    withdrawable_amount: d("5309.4992533441396509"),
+                    fiat_amount: d("5309.21"),
+                },
+                CurrencyBalance {
+                    symbol: Atom::from("usdc"),
+                    amount: d("0.18021"),
+                    holds: d("0"),
+                    bonded_amount: None,
+                    reserved_amount: None,
+                    unbonding_amount: None,
+                    unvested_amount: None,
+                    pending_rewards_amount: None,
+                    past_rewards_amount: None,
+                    bondable_amount: None,
+                    withdrawable_amount: d("0.18021"),
+                    fiat_amount: d("0.18"),
+                },
+            ],
+            r#type: BalanceType::TradingBalances,
+            trading_balances: TradingBalances {
+                total: d("5309.39"),
+                holds: d("0"),
+            },
+            vault_balances: VaultBalances {
+                total: d("0.00"),
+                holds: d("0"),
+            },
+        };
+
+        let response: PortfolioBalance = serde_json::from_str(json).unwrap();
+        assert_eq!(response, sample);
+    }
 }

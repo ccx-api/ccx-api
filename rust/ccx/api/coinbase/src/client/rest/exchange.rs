@@ -15,12 +15,12 @@ use chrono::Utc;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::client::*;
 // use crate::client::limits::UsedRateLimits;
 // use crate::client::WebsocketStream;
 use crate::error::*;
+use crate::Uuid;
 // use crate::proto::TimeWindow;
 
 /// API client.
@@ -267,15 +267,13 @@ where
                 .sign_data(timestamp, method.as_str(), url_path.as_str(), &self.body)
                 .await?;
 
+            let passphrase = self.api_client.inner.config.api_passphrase();
             self.request = self
                 .request
                 .append_header(("CB-ACCESS-KEY", self.api_client.inner.config.api_key()))
                 .append_header(("CB-ACCESS-SIGN", signature))
                 .append_header(("CB-ACCESS-TIMESTAMP", timestamp))
-                .append_header((
-                    "CB-ACCESS-PASSPHRASE",
-                    self.api_client.inner.config.api_passphrase(),
-                ));
+                .append_header(("CB-ACCESS-PASSPHRASE", passphrase));
         };
 
         self.request = self
