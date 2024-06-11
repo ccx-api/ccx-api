@@ -34,13 +34,13 @@ pub mod types;
 
 mod prelude {
     pub use chrono::Utc;
-    pub use uuid::Uuid;
 
     pub use super::types::*;
     #[cfg(feature = "with_network")]
     pub use super::TradeApi;
     pub use crate::api::prelude::*;
     pub use crate::api::trade::RL_IP_KEY;
+    pub use crate::Uuid;
 }
 
 #[cfg(feature = "with_network")]

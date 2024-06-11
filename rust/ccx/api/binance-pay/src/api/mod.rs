@@ -17,6 +17,7 @@ mod query_order_v1;
 mod query_order_v2;
 mod response;
 mod submerchant_add_v1;
+mod submerchant_modify_v1;
 mod transfer_fund_v1;
 mod transfer_fund_v2;
 mod webhook;

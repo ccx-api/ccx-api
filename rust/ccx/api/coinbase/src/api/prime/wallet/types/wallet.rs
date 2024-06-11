@@ -1,6 +1,6 @@
 use crate::api::prime::prelude::*;
 use crate::api::prime::PortfolioWalletType;
-use crate::dt_coinbase::DtCoinbase;
+use crate::DtCoinbasePrime;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AccountPortfolioWallet {
@@ -8,5 +8,7 @@ pub struct AccountPortfolioWallet {
     pub name: String,
     pub symbol: Atom,
     pub r#type: PortfolioWalletType,
-    pub created_at: DtCoinbase,
+    pub created_at: DtCoinbasePrime,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address: Option<String>,
 }

@@ -1,5 +1,5 @@
 use crate::api::prime::prelude::*;
-use crate::api::prime::AccountPortfolioOrder;
+use crate::api::prime::AccountPortfolioOrderPreview;
 use crate::api::prime::PortfolioOrderSide;
 use crate::api::prime::PortfolioOrderTimeInForce;
 use crate::api::prime::PortfolioOrderType;
@@ -19,10 +19,7 @@ struct AccountPortfolioOrderPreviewRequest<'a> {
     is_raise_exact: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct AccountPortfolioOrderPreviewResponse {
-    pub order: AccountPortfolioOrder,
-}
+pub type AccountPortfolioOrderPreviewResponse = AccountPortfolioOrderPreview;
 
 #[cfg(feature = "with_network")]
 impl<S> PrimeApi<S>
@@ -46,7 +43,7 @@ where
     /// * `time_in_force` -
     /// * `is_raise_exact` -
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_orderpreview]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_orderpreview]
     #[allow(clippy::too_many_arguments)]
     pub fn get_order_preview(
         &self,

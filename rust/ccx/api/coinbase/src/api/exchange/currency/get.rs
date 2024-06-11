@@ -10,20 +10,20 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get a currency.
+    /// # Get a currency.
     ///
     /// Gets a single currency by id.
     ///
+    /// ## Currency Codes
     ///
-    /// Currency Codes
+    /// Currency codes conform to the ISO 4217 standard where possible. Currencies
+    /// that have no representation in ISO 4217 can use a custom code.
     ///
-    /// Currency codes conform to the ISO 4217 standard where possible. Currencies that have
-    /// no representation in ISO 4217 can use a custom code.
+    /// ## Parameters
     ///
+    /// * `currency_id` - The currency code.
     ///
-    /// * `currency_id` - .
-    ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrency]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getcurrency]
     pub fn get_currency(&self, currency_id: Atom) -> CoinbaseResult<Task<GetCurrencyResponse>> {
         let endpoint = format!("currencies/{currency_id}");
         Ok(self

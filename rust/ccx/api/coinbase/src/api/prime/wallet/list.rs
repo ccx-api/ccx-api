@@ -16,20 +16,22 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// List Portfolio Wallets.
+    /// # List Portfolio Wallets.
     ///
     /// List all wallets associated with a given portfolio.
+    ///
+    /// ## Parameters
     ///
     /// * `portfolio_id` - The portfolio ID.
     /// * `type` - The wallet type.
     /// * `symbols` - A list of symbols by which to filter the response.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getwallets]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getwallets]
     pub fn get_wallets(
         &self,
         portfolio_id: Uuid,
         wallet_type: PortfolioWalletType,
-        symbols: &[Atom],
+        symbols: &[&str],
         page: Page,
     ) -> CoinbaseResult<Task<AccountPortfolioWalletsResponse>> {
         let timestamp = Utc::now().timestamp() as u32;

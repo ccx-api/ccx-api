@@ -8,9 +8,19 @@ use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, From, Deref)]
-pub struct DtCoinbase(#[serde(with = "self")] DateTime<Utc>);
+pub struct DtCoinbasePrime(#[serde(with = "self")] DateTime<Utc>);
 
-impl From<NaiveDateTime> for DtCoinbase {
+impl DtCoinbasePrime {
+    pub fn now() -> Self {
+        Self(Utc::now())
+    }
+
+    pub fn parse_from_str(s: &str) -> Result<Self, chrono::ParseError> {
+        Ok(Utc.datetime_from_str(s, "%Y-%m-%dT%H:%M:%S%.fZ")?.into())
+    }
+}
+
+impl From<NaiveDateTime> for DtCoinbasePrime {
     fn from(value: NaiveDateTime) -> Self {
         Self(DateTime::from_naive_utc_and_offset(value, Utc))
     }
@@ -38,7 +48,7 @@ mod tests {
 
     use super::*;
 
-    const DATE_TIME_STR: &str = "2020-03-11 20:48:46.622052Z";
+    const DATE_TIME_STR: &str = "2020-03-11T20:48:46.622052Z";
 
     fn date_time_sample() -> DateTime<Utc> {
         Utc.with_ymd_and_hms(2020, 3, 11, 20, 48, 46)
@@ -49,13 +59,13 @@ mod tests {
 
     #[test]
     fn test_serialize() {
-        let serialized = serde_plain::to_string(&DtCoinbase(date_time_sample())).unwrap();
+        let serialized = serde_plain::to_string(&DtCoinbasePrime(date_time_sample())).unwrap();
         assert_eq!(serialized, DATE_TIME_STR)
     }
 
     #[test]
     fn test_deserialize() {
-        let deserialized: DtCoinbase = serde_plain::from_str(DATE_TIME_STR).unwrap();
+        let deserialized: DtCoinbasePrime = serde_plain::from_str(DATE_TIME_STR).unwrap();
         assert_eq!(deserialized.0, date_time_sample())
     }
 }

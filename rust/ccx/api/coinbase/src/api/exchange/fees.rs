@@ -1,6 +1,5 @@
 use super::prelude::*;
 use crate::api::exchange::RL_PRIVATE_KEY;
-use crate::client::Task;
 
 /// .
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -19,18 +18,23 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get fees.
+    /// # Get fees.
     ///
-    /// Get fees rates and 30 days trailing volume. This request returns your current maker & taker
-    /// fee rates, as well as your 30-day trailing volume. Quoted rates are subject to change.
+    /// Get fees rates and 30 days trailing volume.
+    ///
+    /// ## Details
+    ///
+    /// This request returns your current maker & taker fee rates, as well
+    /// as your 30-day trailing volume. Quoted rates are subject to change.
+    ///
     /// For more information, see
     /// [What are the fees on Coinbase Pro?](https://help.coinbase.com/en/pro/trading-and-funding/trading-rules-and-fees/fees.html).
     ///
-    /// API Key Permissions.
+    /// ## API Key Permissions.
     ///
     /// This endpoint requires the "view" permission.
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees]
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getfees]
     pub fn get_fees(&self) -> CoinbaseResult<Task<GetFeesResponse>> {
         let endpoint = "/fees";
         Ok(self

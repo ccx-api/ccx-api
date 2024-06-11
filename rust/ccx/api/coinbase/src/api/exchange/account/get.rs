@@ -10,7 +10,7 @@ where
     S: crate::client::CoinbaseExchangeSigner,
     S: Unpin + 'static,
 {
-    /// Get a single account by id
+    /// # Get a single account by id
     ///
     /// Information for a single account.
     /// Use this endpoint when you know the account_id.
@@ -18,9 +18,15 @@ where
     ///
     ///    Note: This endpoint requires either the "view" or "trade" permission.
     ///
-    /// * `account_id` - .
+    /// ## API Key Permissions
     ///
-    /// [https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccount]
+    ///  This endpoint requires either the "view" or "trade" permission.
+    ///
+    /// ## Parameters
+    ///
+    /// * `account_id` - (undocumented).
+    ///
+    /// [https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getaccount]
     pub fn get_account(&self, account_id: Uuid) -> CoinbaseResult<Task<GetAccountResponse>> {
         fn endpoint(account_id: Uuid) -> String {
             format!("accounts/{account_id}")

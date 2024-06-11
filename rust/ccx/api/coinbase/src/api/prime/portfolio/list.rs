@@ -14,11 +14,11 @@ where
     S: crate::client::CoinbasePrimeSigner,
     S: Unpin + 'static,
 {
-    /// Get Account Balance.
+    /// # List Portfolios.
     ///
-    /// Retrieve all cash balances, net of pending withdrawals.
+    /// List all portfolios for which the current API key has read access.
     ///
-    /// [https://docs.cloud.coinbase.com/prime/reference/primerestapi_getportfolios]
+    /// [https://docs.cdp.coinbase.com/prime/reference/primerestapi_getportfolios]
     pub fn get_portfolios(&self) -> CoinbaseResult<Task<GetPortfoliosResponse>> {
         let timestamp = Utc::now().timestamp() as u32;
         let endpoint = "/v1/portfolios";

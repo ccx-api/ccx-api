@@ -24,24 +24,32 @@ pub const RL_PORTFOLIO_LIMIT: u32 = 25;
 // pub const RL_PORTFOLIO_BURST: u32 = 50;
 
 // TODO mod error;
+mod activity;
+mod address_book;
+mod asset;
 mod order;
 mod portfolio;
+mod product;
+mod transaction;
 pub mod types;
 mod wallet;
 
+pub use activity::*;
+pub use address_book::*;
+pub use asset::*;
 pub use order::*;
 pub use portfolio::*;
+pub use product::*;
+pub use transaction::*;
 pub use wallet::*;
 
 mod prelude {
-    pub use chrono::Utc;
-    pub use uuid::Uuid;
-
     pub use super::types::*;
     #[cfg(feature = "with_network")]
     pub use super::PrimeApi;
     pub use crate::api::prelude::*;
     pub use crate::api::prime::RL_PORTFOLIO_KEY;
+    pub use crate::DtCoinbasePrime;
 }
 
 #[cfg(feature = "with_network")]

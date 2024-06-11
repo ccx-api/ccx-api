@@ -15,12 +15,11 @@ pub struct V1SubmerchantAddRequest {
     /// The sub merchant name maximum length 128,
     /// unique under one mainMerchantId.
     pub merchant_name: String,
-    /// 1=Personal(Individual)
-    /// 2=solo proprietor
-    /// 3=Partnership、
-    /// 4=Private company
-    /// 5=Others company
-    pub merchant_type: u8,
+
+    /// - 0: Online
+    /// - 1: Physical
+    /// - -1: Online&Physical
+    pub store_type: i8,
 
     /// Specified code: four-digit number that classifies the business.
     /// Get from [here](1)
@@ -28,16 +27,13 @@ pub struct V1SubmerchantAddRequest {
     /// [1]: https://developers.binance.com/docs/binance-pay/api-submerchant-add#MCC
     pub merchant_mcc: String,
 
-    /// maximum length 500
-    /// Mandatory if merchantMcc is 9999.
-    /// Please specify the industry of this sub merchant here.
+    /// - 1: Personal(Individual)
+    /// - 2: solo proprietor
+    /// - 3: Partnership、
+    /// - 4: Private company
+    /// - 5: Others company
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub pay_industry_description: Option<String>,
-
-    /// maximum length 256
-    /// sub merchant logo url
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub brand_logo: Option<String>,
+    pub merchant_type: Option<u8>,
 
     /// [iso alpha 2 country code](1)
     /// use "GO" if global
@@ -45,12 +41,43 @@ pub struct V1SubmerchantAddRequest {
     /// Can be multiple, split by "," eg:"SG,US"
     ///
     /// [1]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-    pub country: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub country: Option<String>,
+
+    /// maximum length 256
+    /// For Online stores, the URL field is required.
+    /// NOTE: If your online store is, APP, please pass its lint in the app store
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_url: Option<String>,
 
     /// maximum length 1024
-    /// store address
+    /// For Physical stores the address filed is required.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub address: Option<String>,
+
+    /// maximum length 500
+    /// Mandatory if merchantMcc is 9999.
+    /// Please specify the industry of this sub merchant here.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pay_industry_description: Option<String>,
+
+    /// Specified code: four-digit number that classifies the business.
+    /// Get from [here](1)
+    ///
+    /// [1]: https://developers.binance.com/docs/binance-pay/api-submerchant-add#MCC
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sub_pay_mcc_code: Option<String>,
+
+    /// maximum length 500
+    /// Mandatory if merchantMcc is 9999.
+    /// Please specify the industry of this sub merchant here.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sub_pay_industry_description: Option<String>,
+
+    /// maximum length 256
+    /// sub merchant logo url
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brand_logo: Option<String>,
 
     /// maximum length 64
     /// The legal name that is used in the registration
@@ -83,31 +110,6 @@ pub struct V1SubmerchantAddRequest {
     /// Required if merchantType is not Individual
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub incorporation_date: Option<u64>,
-
-    /// 0=Online
-    /// 1=Physical
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub store_type: Option<u8>,
-
-    /// 1=Web
-    /// 2=App
-    /// 3=Binance applets
-    /// 4=Others
-    /// Required if merchantType is not Individual
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub site_type: Option<u8>,
-
-    /// maximum length 256
-    /// The URL of the website
-    /// Required if siteType is Web
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub site_url: Option<String>,
-
-    /// maximum length 32
-    /// The name of the website
-    /// Required if siteType is Web or App or Binance applets
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub site_name: Option<String>,
 
     /// 1=ID
     /// 2=Passport
@@ -181,7 +183,7 @@ mod tests {
             "registrationCountry":null,
             "registrationAddress":null,
             "incorporationDate":null,
-            "storeType":null,
+            "storeType":1,
             "siteType":null,
             "siteUrl":null,
             "siteName":null,
@@ -197,21 +199,21 @@ mod tests {
 
         let request = V1SubmerchantAddRequest {
             merchant_name: "Individual".to_owned(),
-            merchant_type: 1,
+            merchant_type: Some(1),
             merchant_mcc: "5511".to_owned(),
             pay_industry_description: None,
+            sub_pay_mcc_code: None,
+            sub_pay_industry_description: None,
             brand_logo: None,
-            country: "CN,US".to_owned(),
+            country: Some("CN,US".to_owned()),
             address: None,
             company_name: None,
             registration_number: None,
             registration_country: None,
             registration_address: None,
             incorporation_date: None,
-            store_type: None,
-            site_type: None,
+            store_type: 1,
             site_url: None,
-            site_name: None,
             certificate_type: Some(1),
             certificate_country: Some("US".to_owned()),
             certificate_number: Some("123456X".to_owned()),
@@ -229,6 +231,9 @@ mod tests {
             "merchantName":"Sole Proprietor",
             "merchantType":2,
             "merchantMcc":"5511",
+            "payIndustryDescription": null,
+            "subPayMccCode": null,
+            "subPayIndustryDescription": null,
             "brandLogo":"logoUrlDemo",
             "country":"CN,US",
             "address":"store address demo",
@@ -238,9 +243,7 @@ mod tests {
             "registrationAddress":"registration address demo",
             "incorporationDate":1588262400000,
             "storeType":1,
-            "siteType":2,
             "siteUrl":"site url demo",
-            "siteName":"site name demo",
             "certificateType":null,
             "certificateCountry":null,
             "certificateNumber":null,
@@ -253,21 +256,21 @@ mod tests {
 
         let request = V1SubmerchantAddRequest {
             merchant_name: "Sole Proprietor".to_owned(),
-            merchant_type: 2,
+            merchant_type: Some(2),
             merchant_mcc: "5511".to_owned(),
             pay_industry_description: None,
+            sub_pay_mcc_code: None,
+            sub_pay_industry_description: None,
             brand_logo: Some("logoUrlDemo".to_owned()),
-            country: "CN,US".to_owned(),
+            country: Some("CN,US".to_owned()),
             address: Some("store address demo".to_owned()),
             company_name: Some("Sole Proprietor".to_owned()),
             registration_number: Some("registration number demo".to_owned()),
             registration_country: Some("US".to_owned()),
             registration_address: Some("registration address demo".to_owned()),
             incorporation_date: Some(1588262400000),
-            store_type: Some(1),
-            site_type: Some(2),
+            store_type: 1,
             site_url: Some("site url demo".to_owned()),
-            site_name: Some("site name demo".to_owned()),
             certificate_type: None,
             certificate_country: None,
             certificate_number: None,

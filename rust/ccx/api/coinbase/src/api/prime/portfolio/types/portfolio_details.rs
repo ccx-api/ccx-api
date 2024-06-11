@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
-use uuid::Uuid;
+
+use crate::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct PortfolioDetails {
