@@ -1,58 +1,43 @@
 use std::collections::HashMap;
-use std::io;
-use std::time::{Duration, Instant};
+use std::collections::HashSet;
+use std::time::Duration;
+use std::time::Instant;
 
 use actix::io::SinkWrite;
 use actix::prelude::*;
 use actix_codec::Framed;
-use actix_http::ws::{Codec, Item as FrameItem};
+use actix_http::ws::Codec;
+use actix_http::ws::Item as FrameItem;
 use actix_web_actors::ws;
 use awc::BoxedSocket;
 use futures::channel::mpsc;
 use futures::stream::SplitSink;
-use serde::{Deserialize, Serialize};
+use futures::StreamExt as _;
+use string_cache::DefaultAtom as Atom;
 use url::Url;
 
-use crate::client::RestClient;
-use crate::error::{BitstampError, BitstampResult};
-use crate::ws_stream::{Event, SystemEvent, WsCommand, WsEvent, WsSubscription};
+use crate::proto::message::ClientMessage;
+use crate::proto::subscribe::ChannelType;
+use crate::proto::subscribe::Subscribe;
+use crate::proto::subscribe::Unsubscribe;
+use crate::proto::WsCommand;
 
 /// How often heartbeat pings are sent.
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
+
 /// How long before lack of client response causes a timeout.
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(30);
+
 /// Interval between automatic reconnections.
-///
-/// According to documentation every connection older than 90 days will be
-/// automatically dropped.
 const RECONNECT_INTERVAL: Duration = Duration::from_secs(30 * 24 * 60 * 60);
-
-#[derive(actix::Message, Clone, Debug, Serialize, Deserialize)]
-#[rtype(result = "()")]
-struct M<T>(pub T);
-
-#[derive(actix::Message, Clone, Debug)]
-#[rtype(result = "()")]
-struct ReconnectSocket;
-
-pub struct WebsocketStream {
-    tx: WebsocketStreamTx,
-    rx: mpsc::UnboundedReceiver<WsEvent>,
-}
-
-pub struct WebsocketStreamTx {
-    addr: Addr<Websocket>,
-}
 
 pub struct Websocket {
     api_client: awc::Client,
     ws_url: Url,
-    tx: mpsc::UnboundedSender<WsEvent>,
-
-    channels: HashMap<WsSubscription, bool>,
     buffer: Option<Vec<u8>>,
-
     inner: Option<InnerSocket>,
+    tx: mpsc::UnboundedSender<ClientMessage>,
+    channels: HashMap<ChannelType, HashSet<Atom>>,
 }
 
 struct InnerSocket {
@@ -109,10 +94,10 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
 
 impl actix::io::WriteHandler<ws::ProtocolError> for Websocket {}
 
-impl Handler<M<WsCommand>> for Websocket {
+impl Handler<WsCommand> for Websocket {
     type Result = ();
 
-    fn handle(&mut self, M(cmd): M<WsCommand>, ctx: &mut Self::Context) {
+    fn handle(&mut self, cmd: WsCommand, ctx: &mut Self::Context) {
         let msg = serde_json::to_string(&cmd).expect("json encode");
         log::debug!("Sending to server: `{}`", msg);
         if let Err(_) = self.inner_mut().sink.write(ws::Message::Text(msg.into())) {
@@ -120,22 +105,42 @@ impl Handler<M<WsCommand>> for Websocket {
         }
 
         match cmd {
-            WsCommand::Subscribe(cmd) => {
-                self.channels.entry(cmd).or_default();
+            WsCommand::Subscribe(Subscribe {
+                product_ids,
+                channels,
+            }) => {
+                for channel in channels {
+                    let entry = self.channels.entry(channel).or_default();
+                    for product_id in &product_ids {
+                        entry.insert(product_id.clone());
+                    }
+                }
             }
-            WsCommand::Unsubscribe(cmd) => {
-                self.channels.remove(&cmd);
+            WsCommand::Unsubscribe(Unsubscribe {
+                product_ids,
+                channels,
+            }) => {
+                for channel in channels {
+                    self.channels.entry(channel).and_modify(|set| {
+                        for product_id in &product_ids {
+                            set.remove(product_id);
+                        }
+                    });
+                }
             }
         };
     }
 }
 
+/// reconnect message
+#[derive(actix::Message, Clone, Debug)]
+#[rtype(result = "()")]
+pub struct ReconnectSocket;
+
 impl Handler<ReconnectSocket> for Websocket {
     type Result = ResponseActFuture<Self, ()>;
 
     fn handle(&mut self, _: ReconnectSocket, _: &mut Self::Context) -> Self::Result {
-        use futures::StreamExt as _;
-
         let api_client = self.api_client.clone();
         let ws_url = self.ws_url.clone();
 
@@ -144,12 +149,12 @@ impl Handler<ReconnectSocket> for Websocket {
             let (resp, connection) = match res {
                 Ok((resp, connection)) => (resp, connection),
                 Err(err) => {
-                    log::error!("Socket connection was not initialized: {}", err);
+                    log::error!("Socket connection was not initialized: {err}");
                     ctx.stop();
                     return fut::ready(());
                 }
             };
-            log::debug!("Websocket response: {:?}", resp);
+            log::debug!("Websocket response: {resp:?}");
             let (sink, stream) = connection.split();
 
             ctx.add_stream(stream);
@@ -160,8 +165,12 @@ impl Handler<ReconnectSocket> for Websocket {
 
             // Resubscribe to previous subscriptions.
             let old_subscriptions = std::mem::take(&mut act.channels);
-            for (subscription, _) in old_subscriptions {
-                ctx.notify(M(WsCommand::Subscribe(subscription)));
+            for (ty, product_ids) in old_subscriptions {
+                let subscribe = Subscribe {
+                    product_ids: product_ids.into_iter().collect(),
+                    channels: vec![ty],
+                };
+                ctx.notify(WsCommand::Subscribe(subscribe));
             }
 
             fut::ready(())
@@ -171,7 +180,7 @@ impl Handler<ReconnectSocket> for Websocket {
 }
 
 impl Websocket {
-    pub fn new(client: awc::Client, url: Url, tx: mpsc::UnboundedSender<WsEvent>) -> Self {
+    pub fn new(client: awc::Client, url: Url, tx: mpsc::UnboundedSender<ClientMessage>) -> Self {
         Self {
             api_client: client,
             ws_url: url,
@@ -250,10 +259,8 @@ impl Websocket {
         }
     }
 
-    /// Handles raw message bytes serializing them to [`Event`].
-    /// [`Event::Client`] will be passed down
     fn handle_raw_message(&mut self, msg: &[u8], ctx: &mut Context<Self>) {
-        let res = serde_json::from_slice(&msg);
+        let res = serde_json::from_slice::<ClientMessage>(&msg);
         if res.is_err() {
             log::error!(
                 "json message from server: {}",
@@ -269,81 +276,28 @@ impl Websocket {
             Ok(msg) => msg,
         };
 
-        match event {
-            Event::Client(ev) => {
-                if let Err(e) = self.tx.unbounded_send(ev) {
-                    log::warn!("Failed to notify downstream: {:?}", e);
-                    ctx.stop()
-                }
-            }
-            Event::System(ev) => match ev {
-                SystemEvent::ReconnectRequest => {
-                    log::debug!("Reconnect request received");
-                    ctx.notify(ReconnectSocket);
-                }
-                SystemEvent::SubscriptionSucceeded { channel } => {
-                    let subscription = channel.into();
-                    if !self.channels.contains_key(&subscription) {
-                        log::warn!(
-                            "Successfully subscribed to {:?}. But it was \
-                             not found in list of active subscriptions",
-                            subscription,
-                        );
-                    }
-                    self.channels.insert(subscription, true);
-                }
-                SystemEvent::Error { channel, data } => {
-                    log::error!("Websocket Channel({}) returned error: {:?}", channel, data);
-                }
-                SystemEvent::Heartbeat => {}
-            },
+        if let Err(e) = self.tx.unbounded_send(event) {
+            log::warn!("Failed to notify downstream: {:?}", e);
+            ctx.stop()
         }
     }
-}
 
-impl WebsocketStream {
-    pub async fn connect<S: crate::client::BitstampSigner>(
-        api_client: RestClient<S>,
-        url: Url,
-    ) -> BitstampResult<Self> {
-        log::debug!("Connecting WS: {}", url.as_str());
-
-        let client = api_client.client();
-
-        let (tx, rx) = mpsc::unbounded();
-
-        // Initialize new socket and reconnect.
-        let addr = Websocket::new(client, url, tx).start();
-        addr.send(ReconnectSocket)
-            .await
-            .map_err(|_| BitstampError::IoError(io::ErrorKind::ConnectionAborted.into()))?;
-
-        let tx = WebsocketStreamTx { addr };
-        Ok(WebsocketStream { tx, rx })
-    }
-
-    pub fn split(self) -> (WebsocketStreamTx, mpsc::UnboundedReceiver<WsEvent>) {
-        (self.tx, self.rx)
-    }
-}
-
-impl std::ops::Deref for WebsocketStream {
-    type Target = WebsocketStreamTx;
-
-    fn deref(&self) -> &Self::Target {
-        &self.tx
-    }
-}
-
-impl WebsocketStreamTx {
-    pub async fn subscribe_one(
-        &self,
-        subscription: impl Into<WsSubscription>,
-    ) -> BitstampResult<()> {
-        let cmd = WsCommand::Subscribe(subscription.into());
-        self.addr
-            .send(M(cmd))
-            .await
-            .map_err(|_e| BitstampError::IoError(io::ErrorKind::ConnectionAborted.into()))
-    }
+    // fn handle_system_msg(&mut self, ev: SystemEvent, ctx: &mut Context<Self>) {
+    //     match ev {
+    //         SystemEvent::SubscriptionSucceeded { channel } => {
+    //             let subscription = WsSubscription::from(channel);
+    //             if !self.channels.contains_key(&subscription) {
+    //                 log::warn!(
+    //                     "Successfully subscribed to {:?}. But it was \
+    //                      not found in list of active subscriptions",
+    //                     subscription,
+    //                 );
+    //             }
+    //             self.channels.insert(subscription, true);
+    //         }
+    //         SystemEvent::Error { channel } => {
+    //             log::error!("Websocket Channel({}) returned error", channel);
+    //         }
+    //     }
+    // }
 }

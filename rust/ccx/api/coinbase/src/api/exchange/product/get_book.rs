@@ -2,8 +2,6 @@ use crate::api::exchange::prelude::*;
 use crate::api::exchange::ProductBook;
 use crate::api::exchange::RL_PUBLIC_KEY;
 
-pub type GetProductBookResponse = ProductBook;
-
 #[cfg(feature = "with_network")]
 impl<S> ExchangeApi<S>
 where
@@ -52,7 +50,7 @@ where
         &self,
         product_id: &str,
         level_id: Option<u8>,
-    ) -> CoinbaseResult<Task<GetProductBookResponse>> {
+    ) -> CoinbaseResult<Task<ProductBook>> {
         if level_id == Some(3) {
             // TODO: implement level 3
             Err(CoinbaseError::other("Level 3 isn't implemented yet"))?

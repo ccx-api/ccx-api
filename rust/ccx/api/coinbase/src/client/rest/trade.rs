@@ -16,11 +16,8 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use crate::client::*;
-// use crate::client::limits::UsedRateLimits;
-// use crate::client::WebsocketStream;
 use crate::error::*;
 use crate::Uuid;
-// use crate::proto::TimeWindow;
 
 /// API client.
 pub struct RestTradeClient<S>
@@ -73,7 +70,7 @@ where
         RestTradeClient { inner }
     }
 
-    pub(super) fn client(&self) -> Client {
+    pub fn client(&self) -> Client {
         make_client(false, self.inner.config.proxy.as_ref())
     }
 

@@ -12,9 +12,7 @@ mod prelude {
     pub use serde_repr::Serialize_repr;
 
     pub use crate::client::Task;
-    // pub use crate::client::Nonce;
     pub use crate::error::*;
-    pub use crate::proto::*;
     pub use crate::util::maybe_str;
     pub use crate::Atom;
     pub use crate::Uuid;

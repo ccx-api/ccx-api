@@ -11,7 +11,6 @@ use crate::client::Proxy;
 use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBucketMode;
 use crate::client::RestExchangeClient;
-// use crate::client::WebsocketStream;
 use crate::client::CCX_COINBASE_EXCHANGE_API_PREFIX;
 
 pub const API_BASE: &str = "https://api.exchange.coinbase.com/";
@@ -65,8 +64,6 @@ pub mod prelude {
     #[cfg(feature = "with_network")]
     pub(crate) use super::RL_PRIVATE_KEY;
     pub use crate::api::prelude::*;
-    #[cfg(feature = "with_network")]
-    pub(crate) use crate::api::trade::RL_IP_KEY;
     pub use crate::DtCoinbaseEx;
     pub use crate::DtCoinbasePrime;
 }

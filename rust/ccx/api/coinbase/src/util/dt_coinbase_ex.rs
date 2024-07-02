@@ -1,6 +1,5 @@
 use chrono::DateTime;
 use chrono::NaiveDateTime;
-use chrono::TimeZone;
 use chrono::Utc;
 use derive_more::Deref;
 use derive_more::From;
@@ -17,7 +16,9 @@ impl DtCoinbaseEx {
 
     // 2024-03-26 13:52:30.819928+00
     pub fn parse_from_str(s: &str) -> Result<Self, chrono::ParseError> {
-        Ok(Utc.datetime_from_str(s, "%Y-%m-%d %H:%M:%S%.f+00")?.into())
+        Ok(NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S%.f+00")?
+            .and_utc()
+            .into())
     }
 }
 
@@ -39,12 +40,14 @@ where
     D: serde::Deserializer<'de>,
 {
     let date_time_str = String::deserialize(deserializer)?;
-    Utc.datetime_from_str(&date_time_str, "%Y-%m-%d %H:%M:%S%.f+00")
+    NaiveDateTime::parse_from_str(&date_time_str, "%Y-%m-%d %H:%M:%S%.f+00")
         .map_err(serde::de::Error::custom)
+        .map(|ndt| ndt.and_utc())
 }
 
 #[cfg(test)]
 mod tests {
+    use chrono::TimeZone;
     use chrono::Timelike;
 
     use super::*;

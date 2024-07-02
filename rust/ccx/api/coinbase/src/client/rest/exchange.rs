@@ -74,7 +74,7 @@ where
         RestExchangeClient { inner }
     }
 
-    pub(super) fn client(&self) -> Client {
+    pub fn client(&self) -> Client {
         make_client(false, self.inner.config.proxy.as_ref())
     }
 
