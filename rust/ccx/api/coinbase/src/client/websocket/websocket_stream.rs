@@ -1,6 +1,7 @@
 use std::io;
 
 use actix::prelude::*;
+use actix_http::Version;
 use futures::channel::mpsc;
 
 use super::websocket::Websocket;
@@ -20,7 +21,9 @@ impl WebsocketStream {
     pub fn connect() -> CoinbaseResult<Self> {
         let (tx, rx) = mpsc::unbounded();
 
-        let client = awc::Client::new();
+        let client = awc::Client::builder()
+            .max_http_version(Version::HTTP_11)
+            .finish();
 
         // wss://ws-direct.exchange.coinbase.com
         let url = "wss://ws-feed.exchange.coinbase.com".try_into().unwrap();
