@@ -94,6 +94,9 @@ pub struct Deposit {
     pub status: DepositStatus,
     pub address: String,
     pub address_tag: String,
+    /// Returned only when requested with `includeSource` set to `true`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_address: Option<String>,
     pub tx_id: String,
     // FIXME decode time, example: "2021-04-29 16:08:00"
     pub insert_time: u64,
@@ -580,6 +583,7 @@ mod with_network {
         #[allow(clippy::too_many_arguments)]
         pub fn deposit_history(
             &self,
+            include_source: Option<bool>,
             coin: Option<impl Serialize>,
             status: Option<DepositStatus>,
             offset: Option<u16>,
@@ -594,6 +598,7 @@ mod with_network {
                     self.client
                         .get(SAPI_V1_CAPITAL_DEPOSIT_HISTORY)?
                         .signed(time_window)?
+                        .try_query_arg("includeSource", &include_source)?
                         .try_query_arg("coin", &coin)?
                         .try_query_arg("status", &status)?
                         .try_query_arg("offset", &offset)?
