@@ -34,6 +34,11 @@ pub struct Subscribe {
     pub channels: Vec<ChannelType>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct SubscribeResponse {
+    pub channels: Vec<ChannelType>,
+}
+
 impl From<Channel> for Subscribe {
     fn from(channel: Channel) -> Self {
         let Channel { ty, product_id } = channel;
