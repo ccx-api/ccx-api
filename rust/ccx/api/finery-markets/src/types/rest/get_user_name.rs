@@ -1,13 +1,13 @@
-pub const API_GET_USER_NAME: &str = "api/getUsername";
-
 use crate::types::ClientId;
 
+#[deprecated = "API Method \"getUsername\" was replaced with \"getSubaccounts\"."]
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct GetUserNameRequest {
     #[serde(rename = "id")]
     pub counterparty_id: ClientId,
 }
 
+#[deprecated = "API Method \"getUsername\" was replaced with \"getSubaccounts\"."]
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct GetUserNameResponse {
     pub username: String,
