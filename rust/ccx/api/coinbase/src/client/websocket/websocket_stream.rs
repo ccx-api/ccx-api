@@ -18,7 +18,7 @@ pub struct WebsocketStream {
 }
 
 impl WebsocketStream {
-    pub fn connect(subscription: impl Into<Subscribe>) -> CoinbaseResult<Self> {
+    pub fn connect() -> CoinbaseResult<Self> {
         let (tx, rx) = mpsc::unbounded();
 
         let client = awc::Client::builder()
@@ -29,10 +29,6 @@ impl WebsocketStream {
         let url = "wss://ws-feed.exchange.coinbase.com".try_into().unwrap();
         let addr = Websocket::new(client, url, tx).start();
         addr.try_send(ReconnectSocket)
-            .map_err(|_| CoinbaseError::IoError(io::ErrorKind::ConnectionAborted.into()))?;
-
-        let cmd = WsCommand::Subscribe(subscription.into());
-        addr.try_send(cmd)
             .map_err(|_| CoinbaseError::IoError(io::ErrorKind::ConnectionAborted.into()))?;
 
         Ok(WebsocketStream { addr, rx })
