@@ -17,6 +17,7 @@ use string_cache::DefaultAtom as Atom;
 use url::Url;
 
 use crate::proto::message::ClientMessage;
+use crate::proto::subscribe::Channel;
 use crate::proto::subscribe::ChannelType;
 use crate::proto::subscribe::Subscribe;
 use crate::proto::subscribe::Unsubscribe;
@@ -165,12 +166,17 @@ impl Handler<ReconnectSocket> for Websocket {
 
             // Resubscribe to previous subscriptions.
             let old_subscriptions = std::mem::take(&mut act.channels);
+            let is_empty = old_subscriptions.is_empty();
             for (ty, product_ids) in old_subscriptions {
                 let subscribe = Subscribe {
                     product_ids: product_ids.into_iter().collect(),
                     channels: vec![ty],
                 };
                 ctx.notify(WsCommand::Subscribe(subscribe));
+            }
+            if is_empty {
+                let subscribe = Channel::from((ChannelType::Ticker, Atom::from("ETH-USDT")));
+                ctx.notify(WsCommand::Subscribe(subscribe.into()));
             }
 
             fut::ready(())
