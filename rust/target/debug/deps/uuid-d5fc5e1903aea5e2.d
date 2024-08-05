@@ -1,0 +1,15 @@
+/home/nixos/Projects/lunu/ccx-api/rust/target/debug/deps/libuuid-d5fc5e1903aea5e2.rmeta: /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/lib.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/builder.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/error.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/non_nil.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/parser.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/fmt.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/timestamp.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/v4.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/rng.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/external.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/macros.rs
+
+/home/nixos/Projects/lunu/ccx-api/rust/target/debug/deps/uuid-d5fc5e1903aea5e2.d: /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/lib.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/builder.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/error.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/non_nil.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/parser.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/fmt.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/timestamp.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/v4.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/rng.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/external.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/macros.rs
+
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/lib.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/builder.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/error.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/non_nil.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/parser.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/fmt.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/timestamp.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/v4.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/rng.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/external.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/uuid-1.13.1/src/macros.rs:

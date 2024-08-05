@@ -1,0 +1,11 @@
+/home/nixos/Projects/lunu/ccx-api/rust/target/debug/deps/libfutures_task-e94471c06a841497.rmeta: /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/lib.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/spawn.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/arc_wake.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/waker.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/waker_ref.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/future_obj.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/noop_waker.rs
+
+/home/nixos/Projects/lunu/ccx-api/rust/target/debug/deps/futures_task-e94471c06a841497.d: /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/lib.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/spawn.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/arc_wake.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/waker.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/waker_ref.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/future_obj.rs /home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/noop_waker.rs
+
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/lib.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/spawn.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/arc_wake.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/waker.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/waker_ref.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/future_obj.rs:
+/home/nixos/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-task-0.3.31/src/noop_waker.rs:
