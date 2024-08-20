@@ -10,7 +10,7 @@ pub mod ticker;
 
 #[derive(Debug, Serialize, Message)]
 #[rtype(result = "()")]
-#[serde(tag = "type")]
+#[serde(rename_all = "lowercase", tag = "type")]
 pub enum WsCommand {
     Subscribe(Subscribe),
     Unsubscribe(Unsubscribe),
