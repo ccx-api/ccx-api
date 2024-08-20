@@ -206,15 +206,17 @@ impl Websocket {
     /// also this method checks heartbeats from client
     fn hb(&mut self, ctx: &mut <Self as Actor>::Context) {
         ctx.run_interval(HEARTBEAT_INTERVAL, move |act, ctx| {
-            if Instant::now().duration_since(act.inner_mut().hb) > CLIENT_TIMEOUT {
-                log::warn!("Websocket client heartbeat failed, disconnecting!");
-                ctx.stop();
-                return;
+            if let Some(inner) = act.inner.as_mut() {
+                if Instant::now().duration_since(inner.hb) > CLIENT_TIMEOUT {
+                    log::warn!("Websocket client heartbeat failed, disconnecting!");
+                    ctx.stop();
+                    return;
+                }
+                if let Err(_msg) = inner.sink.write(ws::Message::Ping("".into())) {
+                    log::warn!("Websocket client failed to send ping, stopping!");
+                    ctx.stop()
+                };
             }
-            if let Err(_msg) = act.inner_mut().sink.write(ws::Message::Ping("".into())) {
-                log::warn!("Websocket client failed to send ping, stopping!");
-                ctx.stop()
-            };
         });
 
         ctx.run_interval(RECONNECT_INTERVAL, move |_, ctx| {
