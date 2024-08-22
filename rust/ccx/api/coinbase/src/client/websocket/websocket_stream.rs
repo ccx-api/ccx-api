@@ -1,11 +1,12 @@
 use std::io;
 
+use actix::io::SinkWrite;
 use actix::prelude::*;
-use actix_http::Version;
 use futures::channel::mpsc;
+use url::Url;
 
 use super::websocket::Websocket;
-use crate::client::websocket::websocket::ReconnectSocket;
+use crate::client::RestExchangeClient;
 use crate::error::CoinbaseError;
 use crate::error::CoinbaseResult;
 use crate::proto::message::ClientMessage;
@@ -18,18 +19,23 @@ pub struct WebsocketStream {
 }
 
 impl WebsocketStream {
-    pub fn connect() -> CoinbaseResult<Self> {
+    pub async fn connect<S: crate::client::CoinbaseExchangeSigner>(
+        api_client: RestExchangeClient<S>,
+        url: Url,
+    ) -> CoinbaseResult<Self> {
+        use futures::StreamExt;
+
+        log::debug!("Connecting WS: {}", url.as_str());
+
+        let (response, connection) = api_client.client().ws(url.as_str()).connect().await?;
+        log::debug!("{:?}", response);
+
+        let (sink, stream) = connection.split();
         let (tx, rx) = mpsc::unbounded();
-
-        let client = awc::Client::builder()
-            .max_http_version(Version::HTTP_11)
-            .finish();
-
-        // wss://ws-direct.exchange.coinbase.com
-        let url = "wss://ws-feed.exchange.coinbase.com".try_into().unwrap();
-        let addr = Websocket::new(client, url, tx).start();
-        addr.try_send(ReconnectSocket)
-            .map_err(|_| CoinbaseError::IoError(io::ErrorKind::ConnectionAborted.into()))?;
+        let addr = Websocket::create(move |ctx| {
+            Websocket::add_stream(stream, ctx);
+            Websocket::new(SinkWrite::new(sink, ctx), tx)
+        });
 
         Ok(WebsocketStream { addr, rx })
     }

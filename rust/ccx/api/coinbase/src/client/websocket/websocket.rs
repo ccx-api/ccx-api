@@ -12,12 +12,9 @@ use actix_web_actors::ws;
 use awc::BoxedSocket;
 use futures::channel::mpsc;
 use futures::stream::SplitSink;
-use futures::StreamExt as _;
 use string_cache::DefaultAtom as Atom;
-use url::Url;
 
 use crate::proto::message::ClientMessage;
-use crate::proto::subscribe::Channel;
 use crate::proto::subscribe::ChannelType;
 use crate::proto::subscribe::Subscribe;
 use crate::proto::subscribe::Unsubscribe;
@@ -29,20 +26,17 @@ const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout.
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Interval between automatic reconnections.
-const RECONNECT_INTERVAL: Duration = Duration::from_secs(30 * 24 * 60 * 60);
+type SocketSink = SinkWrite<ws::Message, SplitSink<Framed<BoxedSocket, Codec>, ws::Message>>;
 
 pub struct Websocket {
-    api_client: awc::Client,
-    ws_url: Url,
     buffer: Option<Vec<u8>>,
-    inner: Option<InnerSocket>,
+    inner: InnerSocket,
     tx: mpsc::UnboundedSender<ClientMessage>,
     channels: HashMap<ChannelType, HashSet<Atom>>,
 }
 
 struct InnerSocket {
-    sink: SinkWrite<ws::Message, SplitSink<Framed<BoxedSocket, Codec>, ws::Message>>,
+    sink: SocketSink,
     hb: Instant,
 }
 
@@ -68,14 +62,14 @@ impl StreamHandler<Result<ws::Frame, ws::ProtocolError>> for Websocket {
 
         match msg {
             ws::Frame::Ping(msg) => {
-                self.inner_mut().hb = Instant::now();
-                if let Err(_msg) = self.inner_mut().sink.write(ws::Message::Pong(msg)) {
+                self.inner.hb = Instant::now();
+                if let Err(_msg) = self.inner.sink.write(ws::Message::Pong(msg)) {
                     log::warn!("Failed to send Pong. Disconnecting.");
                     ctx.stop()
                 }
             }
             ws::Frame::Pong(_) => {
-                self.inner_mut().hb = Instant::now();
+                self.inner.hb = Instant::now();
             }
             ws::Frame::Binary(_bin) => {
                 log::warn!("unexpected binary message (ignored)");
@@ -101,7 +95,7 @@ impl Handler<WsCommand> for Websocket {
     fn handle(&mut self, cmd: WsCommand, ctx: &mut Self::Context) {
         let msg = serde_json::to_string(&cmd).expect("json encode");
         log::debug!("Sending to server: `{}`", msg);
-        if let Err(_) = self.inner_mut().sink.write(ws::Message::Text(msg.into())) {
+        if let Err(_) = self.inner.sink.write(ws::Message::Text(msg.into())) {
             ctx.stop();
         }
 
@@ -133,94 +127,30 @@ impl Handler<WsCommand> for Websocket {
     }
 }
 
-/// reconnect message
-#[derive(actix::Message, Clone, Debug)]
-#[rtype(result = "()")]
-pub struct ReconnectSocket;
-
-impl Handler<ReconnectSocket> for Websocket {
-    type Result = ResponseActFuture<Self, ()>;
-
-    fn handle(&mut self, _: ReconnectSocket, _: &mut Self::Context) -> Self::Result {
-        let api_client = self.api_client.clone();
-        let ws_url = self.ws_url.clone();
-
-        let fut = async move { api_client.ws(ws_url.as_str()).connect().await };
-        let fut = fut.into_actor(self).then(|res, act, ctx| {
-            let (resp, connection) = match res {
-                Ok((resp, connection)) => (resp, connection),
-                Err(err) => {
-                    log::error!("Socket connection was not initialized: {err}");
-                    ctx.stop();
-                    return fut::ready(());
-                }
-            };
-            log::debug!("Websocket response: {resp:?}");
-            let (sink, stream) = connection.split();
-
-            ctx.add_stream(stream);
-            act.inner = Some(InnerSocket {
-                sink: SinkWrite::new(sink, ctx),
-                hb: Instant::now(),
-            });
-
-            // Resubscribe to previous subscriptions.
-            let old_subscriptions = std::mem::take(&mut act.channels);
-            let is_empty = old_subscriptions.is_empty();
-            for (ty, product_ids) in old_subscriptions {
-                let subscribe = Subscribe {
-                    product_ids: product_ids.into_iter().collect(),
-                    channels: vec![ty],
-                };
-                ctx.notify(WsCommand::Subscribe(subscribe));
-            }
-            if is_empty {
-                let subscribe = Channel::from((ChannelType::Ticker, Atom::from("ETH-USDT")));
-                ctx.notify(WsCommand::Subscribe(subscribe.into()));
-            }
-
-            fut::ready(())
-        });
-        Box::pin(fut)
-    }
-}
-
 impl Websocket {
-    pub fn new(client: awc::Client, url: Url, tx: mpsc::UnboundedSender<ClientMessage>) -> Self {
+    pub fn new(sink: SocketSink, tx: mpsc::UnboundedSender<ClientMessage>) -> Self {
         Self {
-            api_client: client,
-            ws_url: url,
             tx,
             channels: HashMap::new(),
             buffer: None,
-            inner: None,
+            inner: InnerSocket {
+                sink,
+                hb: Instant::now(),
+            },
         }
     }
 
-    fn inner_mut(&mut self) -> &mut InnerSocket {
-        self.inner.as_mut().expect("Uninitialized")
-    }
-
-    /// helper method that sends ping to client every second.
-    ///
-    /// also this method checks heartbeats from client
     fn hb(&mut self, ctx: &mut <Self as Actor>::Context) {
         ctx.run_interval(HEARTBEAT_INTERVAL, move |act, ctx| {
-            if let Some(inner) = act.inner.as_mut() {
-                if Instant::now().duration_since(inner.hb) > CLIENT_TIMEOUT {
-                    log::warn!("Websocket client heartbeat failed, disconnecting!");
-                    ctx.stop();
-                    return;
-                }
-                if let Err(_msg) = inner.sink.write(ws::Message::Ping("".into())) {
-                    log::warn!("Websocket client failed to send ping, stopping!");
-                    ctx.stop()
-                };
+            if Instant::now().duration_since(act.inner.hb) > CLIENT_TIMEOUT {
+                log::warn!("Websocket client heartbeat failed, disconnecting!");
+                ctx.stop();
+                return;
             }
-        });
-
-        ctx.run_interval(RECONNECT_INTERVAL, move |_, ctx| {
-            ctx.notify(ReconnectSocket);
+            if let Err(_msg) = act.inner.sink.write(ws::Message::Ping("".into())) {
+                log::warn!("Websocket client failed to send ping, stopping!");
+                ctx.stop()
+            };
         });
     }
 

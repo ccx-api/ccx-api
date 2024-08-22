@@ -128,10 +128,12 @@ mod with_network {
                 (API_BASE, STREAM_MARKET_BASE, STREAM_DIRECT_BASE)
             };
             let api_base = Url::parse(api_base).unwrap();
-            let _stream_market_base = Url::parse(stream_market_base).unwrap();
+            let stream_market_base = Url::parse(stream_market_base).unwrap();
             let _stream_direct_base = Url::parse(stream_direct_base).unwrap();
             ExchangeApi::with_config(ExchangeConfig::new(
-                signer, api_base, /* , stream_base */
+                signer,
+                api_base,
+                stream_market_base,
                 proxy,
             ))
         }
