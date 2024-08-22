@@ -78,6 +78,8 @@ mod with_network {
     use super::*;
     use crate::client::CoinbaseExchangeSigner;
     use crate::client::ExchangeRateLimiterBuilder;
+    use crate::client::WebsocketStream;
+    use crate::CoinbaseResult;
 
     #[derive(Clone)]
     pub struct ExchangeApi<S: CoinbaseExchangeSigner = ExchangeApiCred> {
@@ -176,10 +178,10 @@ mod with_network {
                 rate_limiter,
             }
         }
-        //
-        //     /// Creates multiplexed websocket stream.
-        //     pub async fn ws(&self) -> CoinbaseResult<WebsocketStream> {
-        //         self.client.web_socket().await
-        //     }
+        
+        /// Creates multiplexed websocket stream.
+        pub async fn ws(&self) -> CoinbaseResult<WebsocketStream> {
+            self.client.web_socket().await
+        }
     }
 }

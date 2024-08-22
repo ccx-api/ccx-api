@@ -15,7 +15,6 @@ use chrono::Utc;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
-use url::Url;
 
 use crate::client::*;
 // use crate::client::limits::UsedRateLimits;
