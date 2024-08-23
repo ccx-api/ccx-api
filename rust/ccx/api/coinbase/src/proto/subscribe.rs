@@ -8,12 +8,14 @@ pub enum ChannelType {
     Ticker,
     #[serde(rename = "auctionfeed")]
     Auction,
+    #[serde(other)]
+    Unknown,
 }
 
-#[derive(Debug, Hash)]
+#[derive(Debug, Deserialize, Hash, Serialize)]
 pub struct Channel {
-    pub ty: ChannelType,
-    pub product_id: Atom,
+    pub name: ChannelType,
+    pub product_ids: Vec<Atom>,
 }
 
 impl<A> From<(ChannelType, A)> for Channel
@@ -22,8 +24,8 @@ where
 {
     fn from((ty, pair): (ChannelType, A)) -> Self {
         Channel {
-            ty,
-            product_id: pair.into(),
+            name: ty,
+            product_ids: vec![pair.into()],
         }
     }
 }
@@ -36,15 +38,14 @@ pub struct Subscribe {
 
 #[derive(Debug, Deserialize)]
 pub struct SubscribeResponse {
-    pub channels: Vec<ChannelType>,
+    pub channels: Vec<Channel>,
 }
 
 impl From<Channel> for Subscribe {
     fn from(channel: Channel) -> Self {
-        let Channel { ty, product_id } = channel;
         Self {
-            product_ids: vec![product_id],
-            channels: vec![ty],
+            product_ids: channel.product_ids,
+            channels: vec![channel.name],
         }
     }
 }

@@ -11,6 +11,8 @@ pub enum ClientMessage {
     Auction(AuctionMessage),
     Subscriptions(SubscribeResponse),
     Error(ErrorMessage),
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Deserialize, Clone)]
