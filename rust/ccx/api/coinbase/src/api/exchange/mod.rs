@@ -178,7 +178,7 @@ mod with_network {
                 rate_limiter,
             }
         }
-        
+
         /// Creates multiplexed websocket stream.
         pub async fn ws(&self) -> CoinbaseResult<WebsocketStream> {
             self.client.web_socket().await
