@@ -25,6 +25,7 @@ mod del_incoming_settlement_cp_request;
 mod del_incoming_settlement_request;
 mod del_limit;
 mod del_outgoing_settlement_transaction;
+mod get_subaccounts;
 mod get_user_name;
 mod instruments;
 mod limits;
