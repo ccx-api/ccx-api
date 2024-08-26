@@ -74,7 +74,7 @@ where
         RestExchangeClient { inner }
     }
 
-    pub(super) fn client(&self) -> Client {
+    pub fn client(&self) -> Client {
         make_client(false, self.inner.config.proxy.as_ref())
     }
 
@@ -110,11 +110,11 @@ where
     pub fn delete(&self, endpoint: &str) -> CoinbaseResult<ExchangeRequestBuilder<S>> {
         self.request(Method::DELETE, endpoint)
     }
-    //
-    // pub async fn web_socket(&self) -> CoinbaseResult<WebsocketStream> {
-    //     let url = self.inner.config.stream_base.clone();
-    //     Ok(WebsocketStream::connect(self.clone(), url).await?)
-    // }
+
+    pub async fn web_socket(&self) -> CoinbaseResult<WebsocketStream> {
+        let url = self.inner.config.stream_base.clone();
+        WebsocketStream::connect(self.clone(), url).await
+    }
 }
 
 impl<S> ExchangeRequestBuilder<S>

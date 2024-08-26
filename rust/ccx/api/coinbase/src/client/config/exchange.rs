@@ -73,7 +73,7 @@ pub static CCX_COINBASE_EXCHANGE_API_PREFIX: &str = "CCX_COINBASE_EXCHANGE_API";
 pub struct ExchangeConfig<S: CoinbaseExchangeSigner> {
     pub signer: S,
     pub api_base: Url,
-    // pub stream_base: Url,
+    pub stream_base: Url,
     pub proxy: Option<Proxy>,
     // pub tier: RateLimiterTier,
 }
@@ -85,14 +85,14 @@ where
     pub fn new(
         signer: S,
         api_base: Url,
-        // stream_base: Url,
+        stream_base: Url,
         proxy: Option<Proxy>,
         // tier: RateLimiterTier,
     ) -> Self {
         ExchangeConfig {
             signer,
             api_base,
-            // stream_base,
+            stream_base,
             proxy,
             // tier,
         }

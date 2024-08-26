@@ -11,7 +11,6 @@ use crate::client::Proxy;
 use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBucketMode;
 use crate::client::RestExchangeClient;
-// use crate::client::WebsocketStream;
 use crate::client::CCX_COINBASE_EXCHANGE_API_PREFIX;
 
 pub const API_BASE: &str = "https://api.exchange.coinbase.com/";
@@ -65,8 +64,6 @@ pub mod prelude {
     #[cfg(feature = "with_network")]
     pub(crate) use super::RL_PRIVATE_KEY;
     pub use crate::api::prelude::*;
-    #[cfg(feature = "with_network")]
-    pub(crate) use crate::api::trade::RL_IP_KEY;
     pub use crate::DtCoinbaseEx;
     pub use crate::DtCoinbasePrime;
 }
@@ -81,6 +78,8 @@ mod with_network {
     use super::*;
     use crate::client::CoinbaseExchangeSigner;
     use crate::client::ExchangeRateLimiterBuilder;
+    use crate::client::WebsocketStream;
+    use crate::CoinbaseResult;
 
     #[derive(Clone)]
     pub struct ExchangeApi<S: CoinbaseExchangeSigner = ExchangeApiCred> {
@@ -131,10 +130,12 @@ mod with_network {
                 (API_BASE, STREAM_MARKET_BASE, STREAM_DIRECT_BASE)
             };
             let api_base = Url::parse(api_base).unwrap();
-            let _stream_market_base = Url::parse(stream_market_base).unwrap();
+            let stream_market_base = Url::parse(stream_market_base).unwrap();
             let _stream_direct_base = Url::parse(stream_direct_base).unwrap();
             ExchangeApi::with_config(ExchangeConfig::new(
-                signer, api_base, /* , stream_base */
+                signer,
+                api_base,
+                stream_market_base,
                 proxy,
             ))
         }
@@ -177,10 +178,10 @@ mod with_network {
                 rate_limiter,
             }
         }
-        //
-        //     /// Creates multiplexed websocket stream.
-        //     pub async fn ws(&self) -> CoinbaseResult<WebsocketStream> {
-        //         self.client.web_socket().await
-        //     }
+
+        /// Creates multiplexed websocket stream.
+        pub async fn ws(&self) -> CoinbaseResult<WebsocketStream> {
+            self.client.web_socket().await
+        }
     }
 }

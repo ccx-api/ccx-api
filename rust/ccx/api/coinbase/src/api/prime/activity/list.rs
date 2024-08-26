@@ -37,8 +37,8 @@ where
         symbols: &[Atom],
         categories: &[ActivityCategory],
         statuses: &[ActivityStatus],
-        start_date: Option<DtCoinbasePrime>,
-        end_date: Option<DtCoinbasePrime>,
+        _start_date: Option<DtCoinbasePrime>,
+        _end_date: Option<DtCoinbasePrime>,
         page: Page,
     ) -> CoinbaseResult<Task<PortfolioActivitiesResponse>> {
         let timestamp = Utc::now().timestamp() as u32;

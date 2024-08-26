@@ -15,10 +15,6 @@ use url::Url;
 
 use crate::client::RestClient;
 use crate::error::{BitstampError, BitstampResult};
-/*
-use crate::ws_stream::UpstreamApiRequest;
-use crate::ws_stream::UpstreamWebsocketMessage;
-*/
 use crate::ws_stream::{Event, SystemEvent, WsCommand, WsEvent, WsSubscription};
 
 /// How often heartbeat pings are sent.

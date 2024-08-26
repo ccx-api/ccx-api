@@ -190,8 +190,12 @@ mod tests {
             "contractTimeIsv":1594656000000
         }
         "#;
-        let request: V1SubmerchantModifyRequest = serde_json::from_str(json).expect("Failed from_str");
-        println!("test_serde_modify_submerchant_individual_request :: {:#?}", request);
+        let request: V1SubmerchantModifyRequest =
+            serde_json::from_str(json).expect("Failed from_str");
+        println!(
+            "test_serde_modify_submerchant_individual_request :: {:#?}",
+            request
+        );
 
         let request = V1SubmerchantModifyRequest {
             sub_merchant_id: "2107268400000001".to_owned(),
@@ -250,8 +254,12 @@ mod tests {
             "contractTimeIsv":1594656000000
         }
         "#;
-        let request: V1SubmerchantModifyRequest = serde_json::from_str(json).expect("Failed from_str");
-        println!("test_serde_modify_submerchant_non_individual_request :: {:#?}", request);
+        let request: V1SubmerchantModifyRequest =
+            serde_json::from_str(json).expect("Failed from_str");
+        println!(
+            "test_serde_modify_submerchant_non_individual_request :: {:#?}",
+            request
+        );
 
         let request = V1SubmerchantModifyRequest {
             sub_merchant_id: "2107268400000001".to_owned(),
@@ -278,7 +286,10 @@ mod tests {
             contract_time_isv: Some(1594656000000),
         };
         let json = serde_json::to_string(&request).expect("Failed to_string");
-        println!("test_serde_modify_submerchant_non_individual_request :: {}", json);
+        println!(
+            "test_serde_modify_submerchant_non_individual_request :: {}",
+            json
+        );
     }
 
     #[test]
@@ -291,6 +302,9 @@ mod tests {
         "#;
         let response: BinancePayResponse<V1SubmerchantModifyResult> =
             serde_json::from_str(example).expect("Failed from_str");
-        println!("test_serde_modify_submerchant_response response :: {:#?}", response);
+        println!(
+            "test_serde_modify_submerchant_response response :: {:#?}",
+            response
+        );
     }
 }

@@ -24,8 +24,8 @@ struct WithdrawalRequest<'a> {
 #[derive(Debug, Serialize, Clone, Eq, PartialEq)]
 #[serde(tag = "destination_type")]
 enum Destination<'a> {
-    #[serde(rename = "DESTINATION_PAYMENT_METHOD")]
-    PaymentMethod { payment_method: PaymentMethod<'a> },
+    // #[serde(rename = "DESTINATION_PAYMENT_METHOD")]
+    // PaymentMethod { payment_method: PaymentMethod<'a> },
     #[serde(rename = "DESTINATION_BLOCKCHAIN")]
     Blockchain {
         blockchain_address: BlockchainAddress<'a>,

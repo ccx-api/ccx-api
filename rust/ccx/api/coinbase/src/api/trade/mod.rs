@@ -9,7 +9,6 @@ use crate::client::RateLimiterBucketMode;
 use crate::client::RestTradeClient;
 use crate::client::TradeConfig;
 use crate::client::TradeRateLimiter;
-// use crate::client::WebsocketStream;
 use crate::client::CCX_COINBASE_TRADE_API_PREFIX;
 
 pub const API_BASE: &str = "https://coinbase.com/";
@@ -20,28 +19,7 @@ pub const RL_IP_INTERVAL: Duration = Duration::from_secs(1);
 pub const RL_IP_LIMIT: u32 = 10;
 
 // TODO mod error;
-// mod portfolio;
-// mod portfolio_balances;
-// mod portfolio_credit;
-// mod portfolios;
 pub mod types;
-// mod wallet;
-// mod order;
-
-// pub use self::portfolio_balances::*;
-// pub use self::wallet::*;
-// pub use self::order::*;
-
-mod prelude {
-    pub use chrono::Utc;
-
-    pub use super::types::*;
-    #[cfg(feature = "with_network")]
-    pub use super::TradeApi;
-    pub use crate::api::prelude::*;
-    pub use crate::api::trade::RL_IP_KEY;
-    pub use crate::Uuid;
-}
 
 #[cfg(feature = "with_network")]
 pub use with_network::*;
