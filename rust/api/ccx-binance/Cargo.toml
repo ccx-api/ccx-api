@@ -1,0 +1,5 @@
+[package]
+name = "ccx-binance"
+version = "0.6.0-dev.0"
+authors = ["CCX-API Library developers <ccx-api@irbis-labs.com>"]
+edition = "2021"

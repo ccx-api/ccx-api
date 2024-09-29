@@ -1,4 +1,7 @@
-*.iml
+**/*.iml
+**/.DS_Store
+**/.idea/
+**/.vscode/
+**/.zed/
 
-.env
-.DS_Store
+**/.env
