@@ -58,7 +58,7 @@ where
     UnknownStatus(awc::http::StatusCode),
     #[cfg(feature = "with_network")]
     #[error("Request Error: {0}")]
-    RequestError(#[from] SendRequestError),
+    RequestError(String),
     #[cfg(feature = "with_network")]
     #[error("Invalid Header: {0}")]
     InvalidHeaderError(#[from] InvalidHeaderValue),
@@ -80,7 +80,7 @@ where
     TimestampError(#[from] time::SystemTimeError),
     #[cfg(feature = "with_network")]
     #[error("Websocket Client Error: {0}")]
-    WsClientError(#[from] WsClientError),
+    WsClientError(String),
     #[cfg(feature = "with_network")]
     #[error("Websocket Protocol Error: {0}")]
     WsProtocolError(#[from] ProtocolError),
@@ -88,6 +88,24 @@ where
     SignError(#[from] SignError),
     #[error("Other Error: {0}")]
     Other(String),
+}
+
+impl<AE> From<SendRequestError> for LibError<AE>
+where
+    AE: CcxApiError + 'static,
+{
+    fn from(e: SendRequestError) -> Self {
+        Self::RequestError(e.to_string())
+    }
+}
+
+impl<AE> From<WsClientError> for LibError<AE>
+where
+    AE: CcxApiError + 'static,
+{
+    fn from(e: WsClientError) -> Self {
+        Self::WsClientError(e.to_string())
+    }
 }
 
 impl<AE> LibError<AE>
