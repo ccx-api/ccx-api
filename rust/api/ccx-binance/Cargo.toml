@@ -3,3 +3,30 @@ name = "ccx-binance"
 version = "0.6.0-dev.0"
 authors = ["CCX-API Library developers <ccx-api@irbis-labs.com>"]
 edition = "2021"
+
+[features]
+default = []
+debug_communication = []
+
+[dependencies]
+ccx-lib = { path = "../ccx-lib" }
+
+chrono = "0.4"
+hmac = "0.12"
+http = "1"
+reqwest = { version = "0.12", features = ["json"] }
+rust_decimal = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.128"
+serde_urlencoded = "0.7.1"
+sha2 = "0.10"
+smart-string = "0.1"
+thiserror = "1"
+url = "2"
+url-macro = "0.1"
+form_urlencoded = "1.2.1"
+
+[dev-dependencies]
+dotenvy = "0.15"
+envconfig = "0.11"
+tokio = { version = "1", features = ["full"] }

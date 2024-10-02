@@ -7,10 +7,12 @@ edition = "2021"
 [workspace]
 members = [
     "api/ccx-binance",
+    "api/ccx-lib",
 ]
 
 [features]
 default = []
+full = ["binance"]
 binance = ["ccx-binance"]
 
 [dependencies]
