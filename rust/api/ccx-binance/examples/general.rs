@@ -24,7 +24,7 @@ async fn main() {
     // for symbol in exchange_info.symbols.iter().take(3) {
     //     println!("{:#?}", symbol);
     // }
-    // for rate_limit in exchange_info.rate_limits.iter().take(3) {
+    // for rate_limit in &exchange_info.rate_limits {
     //     println!("{:#?}", rate_limit);
     // }
     // for filter in exchange_info.exchange_filters.iter().take(3) {
