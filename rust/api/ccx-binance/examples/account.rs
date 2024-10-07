@@ -1,6 +1,7 @@
 use ccx_binance::spot;
 use ccx_binance::spot::client::BinanceSpotClient;
 use ccx_binance::spot::client::BinanceSpotCredential;
+use ccx_binance::spot::proto::BinanceSpotRequest;
 use ccx_binance::spot::proto::BinanceSpotSigned;
 use envconfig::Envconfig;
 
@@ -15,7 +16,7 @@ struct EnvConfig {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = dotenvy::dotenv();
 
     let credential = {
@@ -30,8 +31,7 @@ async fn main() {
             config.key_name,
             config.api_key,
             config.api_secret.as_bytes(),
-        )
-        .unwrap()
+        )?
     };
 
     let spot = {
@@ -39,10 +39,14 @@ async fn main() {
         let config = spot::config::production();
         BinanceSpotClient::new(client, config)
     };
+    let rate_limiter = spot::rate_limiter::RateLimiter::spawn();
 
     let account_info = spot::api::GetAccountInfo::with_omit_zero_balances(true)
+        .throttle(&rate_limiter)
+        .await?
         .sign_now_and_send(&credential, &spot)
-        .await
-        .unwrap();
+        .await?;
     println!("{:#?}", account_info);
+
+    Ok(())
 }

@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::spot::meta::BinanceSpotMeta;
+
 #[derive(Debug, Serialize, Deserialize, Clone, thiserror::Error)]
 #[error("Binance Spot Error: {code} - {msg}")]
 pub struct BinanceSpotErrorResponse {
@@ -22,4 +24,26 @@ pub enum BinanceSpotError {
     Authentication,
     #[error("Other error: {0}")]
     Other(#[from] BinanceSpotErrorResponse),
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("Binance Spot Send Request Error: {error}")]
+pub struct BinanceSpotSendError {
+    pub error: BinanceSpotError,
+    pub meta: Option<BinanceSpotMeta>,
+}
+
+impl BinanceSpotSendError {
+    pub fn new(error: BinanceSpotError, meta: Option<BinanceSpotMeta>) -> Self {
+        BinanceSpotSendError { error, meta }
+    }
+}
+
+impl<T: Into<BinanceSpotError>> From<T> for BinanceSpotSendError {
+    fn from(error: T) -> Self {
+        BinanceSpotSendError {
+            error: error.into(),
+            meta: None,
+        }
+    }
 }

@@ -4,9 +4,12 @@ mod handle;
 mod queue;
 mod types;
 
-pub const RL_WEIGHT_PER_MINUTE: &str = "weight_per_minute";
-pub const RL_ORDERS_PER_SECOND: &str = "orders_per_second";
-pub const RL_ORDERS_PER_DAY: &str = "orders_per_day";
+pub use error::RateLimiterError;
+pub use handle::RateLimiter;
+
+// pub const RL_WEIGHT_PER_MINUTE: &str = "weight_per_minute";
+// pub const RL_ORDERS_PER_SECOND: &str = "orders_per_second";
+// pub const RL_ORDERS_PER_DAY: &str = "orders_per_day";
 
 // Actual rate limits for Binance Spot API:
 //

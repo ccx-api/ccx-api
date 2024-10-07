@@ -4,7 +4,7 @@ use serde::Serialize;
 use crate::spot::proto::BinanceSpotPublic;
 use crate::spot::proto::BinanceSpotRequest;
 use crate::spot::proto::BinanceSpotResponse;
-use crate::spot::rate_limiter::RL_WEIGHT_PER_MINUTE;
+use crate::spot::types::rate_limits::RateLimitType;
 
 #[derive(Default, Debug, Serialize, Deserialize, Copy, Clone, Eq, PartialEq)]
 pub struct Ping {}
@@ -16,7 +16,7 @@ impl BinanceSpotRequest for Ping {
     type Response = Pong;
     const HTTP_METHOD: http::Method = http::Method::GET;
     const ENDPOINT: &'static str = "/api/v3/ping";
-    const RATE_LIMIT: (&'static str, u32) = (RL_WEIGHT_PER_MINUTE, 1);
+    const COSTS: &'static [(RateLimitType, u32)] = &[(RateLimitType::RequestWeight, 1)];
 }
 
 impl BinanceSpotPublic for Ping {}

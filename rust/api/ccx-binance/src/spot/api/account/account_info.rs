@@ -6,14 +6,14 @@ use smart_string::SmartString;
 use crate::spot::proto::BinanceSpotRequest;
 use crate::spot::proto::BinanceSpotResponse;
 use crate::spot::proto::BinanceSpotSigned;
-use crate::spot::rate_limiter::RL_WEIGHT_PER_MINUTE;
+use crate::spot::types::rate_limits::RateLimitType;
 use crate::spot::types::symbols::SymbolPermission;
 
 impl BinanceSpotRequest for GetAccountInfo {
     type Response = AccountInfo;
     const HTTP_METHOD: http::Method = http::Method::GET;
     const ENDPOINT: &'static str = "/api/v3/account";
-    const RATE_LIMIT: (&'static str, u32) = (RL_WEIGHT_PER_MINUTE, 20);
+    const COSTS: &'static [(RateLimitType, u32)] = &[(RateLimitType::RequestWeight, 20)];
 }
 
 impl BinanceSpotSigned for GetAccountInfo {}
