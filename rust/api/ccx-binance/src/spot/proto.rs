@@ -9,14 +9,37 @@ use crate::spot::client::SignedRequest;
 use crate::spot::client::Stamped;
 use crate::spot::client::TimeWindow;
 use crate::spot::error::BinanceSpotError;
+use crate::spot::error::BinanceSpotSendError;
+use crate::spot::meta::BinanceSpotResponseMeta;
+use crate::spot::rate_limiter::RateLimiter;
+use crate::spot::rate_limiter::RateLimiterError;
+use crate::spot::types::rate_limits::RateLimitType;
 
 pub trait BinanceSpotRequest: Serialize {
     type Response: BinanceSpotResponse;
     const HTTP_METHOD: http::Method;
     const ENDPOINT: &'static str;
 
-    /// Rate limiter bucket name and score for this request
-    const RATE_LIMIT: (&'static str, u32);
+    /// Rate limiter bucket type and score for this request.
+    const COSTS: &'static [(RateLimitType, u32)];
+
+    fn costs(&self) -> &'static [(RateLimitType, u32)] {
+        Self::COSTS
+    }
+
+    fn throttle(
+        self,
+        rate_limiter: &RateLimiter,
+    ) -> impl Future<Output = Result<Self, RateLimiterError>> + Send
+    where
+        Self: Sized + Send,
+    {
+        let mut rate_limiter = rate_limiter.clone();
+        async move {
+            rate_limiter.enqueue(0, Self::COSTS).await?;
+            Ok(self)
+        }
+    }
 }
 
 pub trait BinanceSpotResponse: DeserializeOwned {}
@@ -28,14 +51,14 @@ where
     type Response = T::Response;
     const HTTP_METHOD: http::Method = T::HTTP_METHOD;
     const ENDPOINT: &'static str = T::ENDPOINT;
-    const RATE_LIMIT: (&'static str, u32) = T::RATE_LIMIT;
+    const COSTS: &'static [(RateLimitType, u32)] = T::COSTS;
 }
 
 pub trait BinanceSpotPublic: BinanceSpotRequest {
     fn send(
         self,
         client: &BinanceSpotClient,
-    ) -> impl Future<Output = Result<Self::Response, BinanceSpotError>> + Send
+    ) -> impl Future<Output = Result<BinanceSpotResponseMeta<Self::Response>, BinanceSpotSendError>> + Send
     where
         Self: Send + Sync + Sized,
     {
@@ -87,7 +110,7 @@ pub trait BinanceSpotSigned: BinanceSpotRequest + Send {
         self,
         signer: impl BinanceSpotSigner,
         client: &BinanceSpotClient,
-    ) -> impl Future<Output = Result<Self::Response, BinanceSpotError>> + Send
+    ) -> impl Future<Output = Result<BinanceSpotResponseMeta<Self::Response>, BinanceSpotSendError>> + Send
     where
         Self: Send + Sync + Sized,
     {
@@ -102,7 +125,7 @@ where
     fn send(
         self,
         client: &BinanceSpotClient,
-    ) -> impl Future<Output = Result<T::Response, BinanceSpotError>> + Send
+    ) -> impl Future<Output = Result<BinanceSpotResponseMeta<T::Response>, BinanceSpotSendError>> + Send
     where
         Self: Sized + Send + Sync;
 }

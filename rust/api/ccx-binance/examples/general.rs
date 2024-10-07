@@ -1,14 +1,22 @@
 use ccx_binance::spot;
 use ccx_binance::spot::client::BinanceSpotClient;
 use ccx_binance::spot::proto::BinanceSpotPublic;
+use ccx_binance::spot::proto::BinanceSpotRequest;
 
 #[tokio::main]
-async fn main() {
-    let client = reqwest::Client::new();
-    let config = spot::config::production();
-    let spot_client = BinanceSpotClient::new(client, config);
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let spot_client = {
+        let client = reqwest::Client::new();
+        let config = spot::config::production();
+        BinanceSpotClient::new(client, config)
+    };
+    let rate_limiter = spot::rate_limiter::RateLimiter::spawn();
 
-    let pong = spot::api::Ping::new().send(&spot_client).await.unwrap();
+    let pong = spot::api::Ping::new()
+        .throttle(&rate_limiter)
+        .await?
+        .send(&spot_client)
+        .await?;
     println!("{:?}", pong);
 
     // let server_time = spot::api::GetServerTime::new()
@@ -42,4 +50,6 @@ async fn main() {
     //     .await
     //     .unwrap();
     // println!("{:#?}", exchange_info);
+
+    Ok(())
 }

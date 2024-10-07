@@ -2,7 +2,7 @@ use futures::channel::oneshot;
 
 use crate::spot::types::rate_limits::RateLimitType;
 
-pub(super) enum TaskMessage {
+pub(super) enum RateLimiterMessage {
     Enqueue(Task),
 }
 
