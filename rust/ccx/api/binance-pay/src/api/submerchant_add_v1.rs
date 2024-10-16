@@ -139,6 +139,12 @@ pub struct V1SubmerchantAddRequest {
     /// Contract date with ISV
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub contract_time_isv: Option<i64>,
+
+    /// ISO Alpha 2 country codes.
+    /// Blocks payers from specified countries based on their KYC country.
+    /// The list contains the countries to be blocked.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub block_payer_kyc_countries: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -191,7 +197,8 @@ mod tests {
             "certificateCountry":"US",
             "certificateNumber":"123456X",
             "certificateValidDate":1752422400000,
-            "contractTimeIsv":1594656000000
+            "contractTimeIsv":1594656000000,
+            "blockPayerKycCountries": ["US", "AE"]
         }
         "#;
         let request: V1SubmerchantAddRequest = serde_json::from_str(json).expect("Failed from_str");
@@ -222,6 +229,7 @@ mod tests {
             certificate_number: Some("123456X".to_owned()),
             certificate_valid_date: Some(1752422400000),
             contract_time_isv: Some(1594656000000),
+            block_payer_kyc_countries: Some(vec!["US".to_owned(), "AE".to_owned()]),
         };
         let json = serde_json::to_string(&request).expect("Failed to_string");
         println!("test_serde_add_submerchant_individual_request :: {}", json);
@@ -251,7 +259,8 @@ mod tests {
             "certificateCountry":null,
             "certificateNumber":null,
             "certificateValidDate":null,
-            "contractTimeIsv":1594656000000
+            "contractTimeIsv":1594656000000,
+            "blockPayerKycCountries": ["US", "AE"]
         }
         "#;
         let request: V1SubmerchantAddRequest = serde_json::from_str(json).expect("Failed from_str");
@@ -282,6 +291,7 @@ mod tests {
             certificate_number: None,
             certificate_valid_date: None,
             contract_time_isv: Some(1594656000000),
+            block_payer_kyc_countries: Some(vec!["US".to_owned(), "AE".to_owned()]),
         };
         let json = serde_json::to_string(&request).expect("Failed to_string");
         println!(
