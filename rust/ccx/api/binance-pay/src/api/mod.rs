@@ -39,6 +39,8 @@ pub mod prelude {
     pub use super::response::BinancePayResponse;
     pub use super::submerchant_add_v1::V1SubmerchantAddRequest;
     pub use super::submerchant_add_v1::V1SubmerchantAddResult;
+    pub use super::submerchant_modify_v1::V1SubmerchantModifyRequest;
+    pub use super::submerchant_modify_v1::V1SubmerchantModifyResult;
     pub use super::transfer_fund_v1::V1TransferFundRequest;
     pub use super::transfer_fund_v1::V1TransferResult;
     pub use super::transfer_fund_v2::V2TransferFundRequest;

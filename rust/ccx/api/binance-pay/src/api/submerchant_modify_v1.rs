@@ -20,9 +20,10 @@ pub struct V1SubmerchantModifyRequest {
     /// unique under one mainMerchantId.
     pub merchant_name: String,
 
-    /// 0=Online
-    /// 1=Physical
-    pub store_type: u8,
+    /// - 0: Online
+    /// - 1: Physical
+    /// - -1: Online&Physical
+    pub store_type: i8,
 
     /// Specified code: four-digit number that classifies the business.
     /// Get from [here](1)

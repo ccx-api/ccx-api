@@ -29,6 +29,8 @@ pub use api::prelude::V1QueryOrderRequest;
 pub use api::prelude::V1QueryOrderResult;
 pub use api::prelude::V1SubmerchantAddRequest;
 pub use api::prelude::V1SubmerchantAddResult;
+pub use api::prelude::V1SubmerchantModifyRequest;
+pub use api::prelude::V1SubmerchantModifyResult;
 pub use api::prelude::V1TransferFundRequest;
 pub use api::prelude::V1TransferResult;
 pub use api::prelude::V2CertificateRequest;
