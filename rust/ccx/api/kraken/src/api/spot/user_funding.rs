@@ -123,6 +123,7 @@ pub struct Deposit {
 
     /// Client sending transaction id(s) for deposits that credit with a
     /// sweeping transaction
+    #[serde(default)]
     pub originators: Vec<String>,
 }
 
