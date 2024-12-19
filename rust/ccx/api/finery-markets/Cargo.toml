@@ -28,7 +28,7 @@ actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 awc = { version = "3", optional = true, features = ["rustls"] }
 base64 = "0.21"
-chrono = { version = "0.4", default_features = false, features = ["clock"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 bytes = "1"
 enum-iterator = "1"
 futures = { version = "0.3", optional = true }

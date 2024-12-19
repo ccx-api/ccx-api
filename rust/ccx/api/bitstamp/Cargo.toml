@@ -29,7 +29,7 @@ actix-web = { version = "4", features = ["rustls"], optional = true }
 actix-web-actors = { version = "4", optional = true }
 awc = { version = "3", optional = true, features = ["rustls"] }
 base64 = "0.21"
-chrono = { version = "0.4", default_features = false, features = ["clock"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 derive_more = "0.99"
 log = "0.4"
 futures = "0.3"

@@ -34,7 +34,7 @@ actix-service = { version = "2", optional = true }
 actix-tls = { version = "3.0", optional = true }
 actix-web = { version = "4", features = ["rustls"], optional = true }
 awc = { version = "3", optional = true }
-chrono = { version = "0.4", default_features = false, features = ["clock"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 diesel = { version = "1.4.5", features = ["postgres", "serde_json", "r2d2"], optional = true }
 diesel_derives = { version = "1.4.1", optional = true }
 dotenv = "0.15.0"
