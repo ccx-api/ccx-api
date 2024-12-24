@@ -121,7 +121,9 @@ pub struct DepositAddress {
 pub enum DepositStatus {
     Pending = 0,
     Success = 1,
+    Rejected = 2,
     Processing = 6,
+    WrongDeposit = 7,
     WaitingForConfirmation = 8,
 }
 
