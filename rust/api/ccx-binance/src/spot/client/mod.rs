@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use crate::config::ConnectionConfig;
-use crate::spot::error::BinanceSpotError;
 use crate::spot::error::BinanceSpotErrorResponse;
 use crate::spot::error::BinanceSpotSendError;
 use crate::spot::proto::BinanceSpotPublic;

@@ -6,28 +6,20 @@ use crate::spot::types::rate_limits::RateLimitType;
 
 #[derive(Debug)]
 pub struct BinanceSpotResponseMeta<T> {
-    meta: BinanceSpotMeta,
-    payload: T,
+    pub meta: BinanceSpotMeta,
+    pub payload: T,
 }
 
 #[derive(Debug)]
 pub struct BinanceSpotMeta {
-    http_status: StatusCode,
-    id: Option<Uuid>,
-    usage: Vec<(RateLimitType, RateLimitInterval, u32, u64)>,
+    pub http_status: StatusCode,
+    pub id: Option<Uuid>,
+    pub usage: Vec<(RateLimitType, RateLimitInterval, u32, u64)>,
 }
 
 impl<T> BinanceSpotResponseMeta<T> {
     pub fn new(meta: BinanceSpotMeta, payload: T) -> Self {
         BinanceSpotResponseMeta { meta, payload }
-    }
-
-    pub fn meta(&self) -> &BinanceSpotMeta {
-        &self.meta
-    }
-
-    pub fn payload(&self) -> &T {
-        &self.payload
     }
 
     pub fn into_parts(self) -> (BinanceSpotMeta, T) {
