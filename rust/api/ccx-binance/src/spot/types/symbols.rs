@@ -10,11 +10,11 @@ use crate::spot::types::filters::Filter;
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Symbol {
-    pub symbol: SmartString,
+    pub symbol: SymbolName,
     pub status: SymbolStatus,
-    pub base_asset: SmartString,
+    pub base_asset: AssetName,
     pub base_asset_precision: u16,
-    pub quote_asset: SmartString,
+    pub quote_asset: AssetName,
     #[deprecated(note = "will be removed in future api versions (v4+)")]
     pub quote_precision: Option<u16>,
     pub quote_asset_precision: u16,
@@ -29,6 +29,9 @@ pub struct Symbol {
     pub filters: Vec<Filter>,
     pub permissions: Vec<SymbolPermission>,
 }
+
+pub type SymbolName = SmartString;
+pub type AssetName = SmartString;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum SymbolStatus {

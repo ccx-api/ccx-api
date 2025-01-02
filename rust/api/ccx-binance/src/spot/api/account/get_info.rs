@@ -6,6 +6,7 @@ use smart_string::SmartString;
 use crate::spot::proto::BinanceSpotRequest;
 use crate::spot::proto::BinanceSpotResponse;
 use crate::spot::proto::BinanceSpotSigned;
+use crate::spot::types::commission::Commission;
 use crate::spot::types::rate_limits::RateLimitType;
 use crate::spot::types::symbols::SymbolPermission;
 
@@ -20,6 +21,11 @@ impl BinanceSpotSigned for GetAccountInfo {}
 
 impl BinanceSpotResponse for AccountInfo {}
 
+/// [Account information (USER_DATA)](https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data).
+///
+/// Get current account information.
+///
+/// Weight: 20
 #[derive(Default, Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GetAccountInfo {
@@ -33,7 +39,7 @@ pub struct AccountInfo {
     pub taker_commission: Decimal,
     pub buyer_commission: Decimal,
     pub seller_commission: Decimal,
-    pub commission_rates: CommissionRates,
+    pub commission_rates: Commission,
     pub can_trade: bool,
     pub can_withdraw: bool,
     pub can_deposit: bool,
@@ -46,15 +52,6 @@ pub struct AccountInfo {
     // FIXME choose apropriate kind of permission.
     pub permissions: Vec<SymbolPermission>,
     pub uid: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct CommissionRates {
-    pub maker: Decimal,
-    pub taker: Decimal,
-    pub buyer: Decimal,
-    pub seller: Decimal,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]

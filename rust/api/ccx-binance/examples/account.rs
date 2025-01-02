@@ -1,8 +1,4 @@
-use ccx_binance::spot;
-use ccx_binance::spot::client::BinanceSpotClient;
-use ccx_binance::spot::client::BinanceSpotCredential;
-use ccx_binance::spot::proto::BinanceSpotRequest;
-use ccx_binance::spot::proto::BinanceSpotSigned;
+use ccx_binance::spot::prelude::*;
 use envconfig::Envconfig;
 
 #[derive(Debug, Envconfig)]
@@ -39,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let config = spot::config::production();
         BinanceSpotClient::new(client, config)
     };
-    let rate_limiter = spot::rate_limiter::RateLimiter::spawn();
+    let rate_limiter = RateLimiter::spawn();
 
     let account_info = spot::api::GetAccountInfo::with_omit_zero_balances(true)
         .throttle(&rate_limiter)
@@ -47,6 +43,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .sign_now_and_send(&credential, &spot)
         .await?;
     println!("{:#?}", account_info);
+
+    // let my_trades = spot::api::GetAccountTradeList::new("ADAUSDT".into())
+    //     .throttle(&rate_limiter)
+    //     .await?
+    //     .sign_now_and_send(&credential, &spot)
+    //     .await?;
+    // println!("{:#?}", my_trades);
+
+    // let unfilled_order_limits = spot::api::GetUnfilledOrderCount::new()
+    //     .throttle(&rate_limiter)
+    //     .await?
+    //     .sign_now_and_send(&credential, &spot)
+    //     .await?;
+    // println!("{:#?}", unfilled_order_limits);
+
+    // let commission_rates = spot::api::GetCommissionRates::new("ADAUSDT".into())
+    //     .throttle(&rate_limiter)
+    //     .await?
+    //     .sign_now_and_send(&credential, &spot)
+    //     .await?;
+    // println!("{:#?}", commission_rates);
 
     Ok(())
 }
