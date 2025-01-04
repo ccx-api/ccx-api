@@ -3,6 +3,7 @@ use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
+use smart_string::DisplayExt;
 use smart_string::SmartString;
 
 use crate::spot::types::filters::Filter;
@@ -33,24 +34,20 @@ pub struct Symbol {
 pub type SymbolName = SmartString;
 pub type AssetName = SmartString;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
+/// [Symbol status (status)](https://developers.binance.com/docs/binance-spot-api-docs/enums#symbol-status-status)
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash, strum::EnumIter)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SymbolStatus {
-    #[serde(rename = "PRE_TRADING")]
     PreTrading,
-    #[serde(rename = "TRADING")]
     Trading,
-    #[serde(rename = "POST_TRADING")]
     PostTrading,
-    #[serde(rename = "END_OF_DAY")]
     EndOfDay,
-    #[serde(rename = "HALT")]
     Halt,
-    #[serde(rename = "AUCTION_MATCH")]
     AuctionMatch,
-    #[serde(rename = "BREAK")]
     Break,
 }
 
+/// [Account and Symbol Permissions (permissions)](https://developers.binance.com/docs/binance-spot-api-docs/enums#account-and-symbol-permissions-permissions)
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum SymbolPermission {
     Spot,
@@ -69,7 +66,7 @@ impl Serialize for SymbolPermission {
             SymbolPermission::Margin => s.serialize_str("MARGIN"),
             SymbolPermission::Leveraged => s.serialize_str("LEVERAGED"),
             SymbolPermission::TradeGroup(group_num) => {
-                let group_num = format!("TRD_GRP_{:0>4}", group_num);
+                let group_num: SmartString = format_args!("TRD_GRP_{group_num:0>4}").to_fmt();
                 s.serialize_str(&group_num)
             }
         }
@@ -86,7 +83,7 @@ impl<'de> Deserialize<'de> for SymbolPermission {
             "SPOT" => Ok(Self::Spot),
             "MARGIN" => Ok(Self::Margin),
             "LEVERAGED" => Ok(Self::Leveraged),
-            trade_group if trade_group.contains("TRD_GRP") => {
+            trade_group if trade_group.starts_with("TRD_GRP_") => {
                 // Format: TRD_GRP_0001
                 let group_num = trade_group.trim_start_matches("TRD_GRP_");
                 let group_num = group_num.parse::<u16>().map_err(de::Error::custom)?;

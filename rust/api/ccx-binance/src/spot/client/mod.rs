@@ -54,6 +54,10 @@ impl BinanceSpotClient {
             url.set_query(Some(&query));
         }
 
+        if cfg!(feature = "debug_communication") {
+            println!("Request: {}", url);
+        }
+
         let request = inner.client.request(T::HTTP_METHOD, url);
         handle_response(request.send().await?).await
     }
@@ -67,7 +71,12 @@ where
 {
     let meta = BinanceSpotMeta::from_response(&resp);
     if resp.status().is_success() {
-        let payload = resp.json().await?;
+        let full = resp.bytes().await?;
+        if cfg!(feature = "debug_communication") {
+            let string = String::from_utf8_lossy(&full);
+            println!("Response: {}", string);
+        };
+        let payload = serde_json::from_slice(&full)?;
         Ok(BinanceSpotResponseMeta::new(meta, payload))
     } else {
         let body = resp.json::<BinanceSpotErrorResponse>().await;
