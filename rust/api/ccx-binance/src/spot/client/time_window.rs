@@ -1,19 +1,19 @@
-use chrono::Utc;
 use serde::Deserialize;
 use serde::Serialize;
 
 use crate::spot::client::recv_window::RecvWindow;
+use crate::spot::types::timestamp::BinanceTimestamp;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeWindow {
-    timestamp: u64,
+    timestamp: BinanceTimestamp,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     recv_window: Option<RecvWindow>,
 }
 
 impl TimeWindow {
-    pub fn new(timestamp: u64) -> Self {
+    pub fn new(timestamp: BinanceTimestamp) -> Self {
         let recv_window = None;
         TimeWindow {
             timestamp,
@@ -22,6 +22,6 @@ impl TimeWindow {
     }
 
     pub fn now() -> Self {
-        TimeWindow::new(Utc::now().timestamp_millis() as u64)
+        TimeWindow::new(BinanceTimestamp::now())
     }
 }

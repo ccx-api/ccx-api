@@ -22,6 +22,8 @@ pub enum BinanceSpotError {
     Connection(#[from] reqwest::Error),
     #[error("Authentication error")]
     Authentication,
+    #[error("Decoding error: {0}")]
+    Decoding(#[from] serde_json::Error),
     #[error("Other error: {0}")]
     Other(#[from] BinanceSpotErrorResponse),
 }

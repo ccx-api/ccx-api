@@ -7,9 +7,10 @@ use crate::spot::proto::BinanceSpotRequest;
 use crate::spot::proto::BinanceSpotResponse;
 use crate::spot::proto::BinanceSpotSigned;
 use crate::spot::types::rate_limits::RateLimitType;
+use crate::spot::types::timestamp::BinanceTimestamp;
 
 impl BinanceSpotRequest for GetAccountTradeList {
-    type Response = Vec<TradeInfo>;
+    type Response = Vec<AccountTradeInfo>;
     const HTTP_METHOD: http::Method = http::Method::GET;
     const ENDPOINT: &'static str = "/api/v3/myTrades";
     const COSTS: &'static [(RateLimitType, u32)] = &[(RateLimitType::RequestWeight, 20)];
@@ -17,7 +18,7 @@ impl BinanceSpotRequest for GetAccountTradeList {
 
 impl BinanceSpotSigned for GetAccountTradeList {}
 
-impl BinanceSpotResponse for Vec<TradeInfo> {}
+impl BinanceSpotResponse for Vec<AccountTradeInfo> {}
 
 /// [Account trade list (USER_DATA)](https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data).
 ///
@@ -29,8 +30,8 @@ impl BinanceSpotResponse for Vec<TradeInfo> {}
 pub struct GetAccountTradeList {
     symbol: SmartString,
     order_id: Option<u64>,
-    start_time: Option<Decimal>,
-    end_time: Option<Decimal>,
+    start_time: Option<BinanceTimestamp>,
+    end_time: Option<BinanceTimestamp>,
     from_id: Option<u64>,
     limit: Option<u32>,
 }
@@ -46,7 +47,7 @@ pub struct GetAccountTradeList {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub struct TradeInfo {
+pub struct AccountTradeInfo {
     pub symbol: SmartString,
     pub id: u64,
     pub order_id: u64,
@@ -56,7 +57,7 @@ pub struct TradeInfo {
     pub order_qty: Option<Decimal>,
     pub commission: Decimal,
     pub commission_asset: SmartString,
-    pub time: Decimal,
+    pub time: BinanceTimestamp,
     pub is_buyer: bool,
     pub is_maker: bool,
     pub is_best_match: bool,
@@ -94,8 +95,8 @@ impl GetAccountTradeList {
 
     pub fn new_with_time(
         symbol: SmartString,
-        start_time: Option<Decimal>,
-        end_time: Option<Decimal>,
+        start_time: Option<BinanceTimestamp>,
+        end_time: Option<BinanceTimestamp>,
     ) -> Self {
         Self {
             symbol,
@@ -121,7 +122,7 @@ impl GetAccountTradeList {
 
     /// * limit — Default 500; max 1000.
     pub fn limit(self, limit: u32) -> Self {
-        GetAccountTradeList {
+        Self {
             limit: Some(limit),
             ..self
         }
