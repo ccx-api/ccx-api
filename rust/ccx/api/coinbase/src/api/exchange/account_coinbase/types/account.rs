@@ -14,7 +14,7 @@ pub struct CoinbaseAccount {
     pub r#type: String,
     pub primary: bool,
     pub active: bool,
-    pub available_on_consumer: bool,
+    pub available_on_consumer: Option<bool>,
     pub wire_deposit_information: Option<DepositInformation>,
     pub swift_deposit_information: Option<DepositInformation>,
     pub sepa_deposit_information: Option<DepositInformation>,
