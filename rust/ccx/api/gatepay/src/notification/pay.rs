@@ -22,7 +22,7 @@ pub struct Pay {
     /// Order currency
     pub currency: String,
     /// Order amount
-    pub total_fee: Decimal,
+    pub total_fee: Option<Decimal>,
     /// Order amount
     pub order_amount: Decimal,
     /// Order creation time
@@ -50,7 +50,7 @@ mod tests {
             goods_name: "ka".to_string(),
             terminal_type: "APP".to_string(),
             currency: "USDT".to_string(),
-            total_fee: dec!(1.2),
+            total_fee: Some(dec!(1.2)),
             order_amount: dec!(1.2),
             create_time: DtGatepay::from_timestamp_ms(1664123708000),
             transaction_id: Some("24344545".to_string()),
@@ -130,7 +130,7 @@ mod tests {
                 goods_name: "928142df-41ce-47ce-8786-a22ca5fb6540".to_string(),
                 terminal_type: "WEB".to_string(),
                 currency: "USDT".to_string(),
-                total_fee: dec!(1.13),
+                total_fee: Some(dec!(1.13)),
                 order_amount: dec!(1.13),
                 create_time: DtGatepay::from_timestamp_ms(1701958330207),
                 transaction_id: Some("167758445495193600".to_string()),
@@ -158,7 +158,7 @@ mod tests {
                 goods_name: "Crypto dbf2a43e-5377-4a5c-8520-29fc57177c4f".to_string(),
                 terminal_type: "WEB".to_string(),
                 currency: "USDT".to_string(),
-                total_fee: dec!(10.07),
+                total_fee: Some(dec!(10.07)),
                 order_amount: dec!(10.07),
                 create_time: DtGatepay::from_timestamp_ms(1702471809337),
                 transaction_id: None,
