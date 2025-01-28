@@ -10,6 +10,8 @@ if [ -z "${EXAMPLE_BIN}" ]; then
     exit 1
 fi
 
-cargo build --example "${EXAMPLE_BIN}" --features="debug_communication"
+cargo build \
+  --example "${EXAMPLE_BIN}" \
+#  --features="debug_communication" \
 
 "../../target/debug/examples/${EXAMPLE_BIN}"

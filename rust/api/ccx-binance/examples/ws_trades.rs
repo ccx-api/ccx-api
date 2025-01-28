@@ -10,9 +10,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let rate_limiter = RateLimiter::spawn();
 
-    let mut raw_stream = spot_client.websocket().raw_trade("btcusdt".into()).await?;
+    let mut raw_stream = spot_client.websocket().raw_trade("adausdt".into()).await?;
     while let Some(trade) = raw_stream.next().await {
-        println!("{:#?}", trade);
+        let trade = trade?;
+        // println!("{:#?}", trade);
+        let market_side = if trade.is_buyer_market_maker {
+            "📈"
+        } else {
+            "📉"
+        };
+        println!(
+            "{}    {}    {:16.8}  {market_side} {:16.8}",
+            trade.trade_time.timestamp(),
+            trade.symbol,
+            trade.price,
+            trade.quantity,
+        );
     }
 
     // let recent_trades = spot::api::GetRecentTrades::new("ADAUSDT".into())
