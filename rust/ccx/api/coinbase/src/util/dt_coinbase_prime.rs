@@ -1,3 +1,5 @@
+use std::ops;
+
 use chrono::DateTime;
 use chrono::NaiveDateTime;
 use chrono::Utc;
@@ -24,6 +26,14 @@ impl DtCoinbasePrime {
 impl From<NaiveDateTime> for DtCoinbasePrime {
     fn from(value: NaiveDateTime) -> Self {
         Self(DateTime::from_naive_utc_and_offset(value, Utc))
+    }
+}
+
+impl ops::Add<chrono::Duration> for DtCoinbasePrime {
+    type Output = Self;
+
+    fn add(self, rhs: chrono::Duration) -> Self::Output {
+        Self(self.0 + rhs)
     }
 }
 
