@@ -18,6 +18,7 @@ with_network = [
     "ccx-api-lib/with_network",
 ]
 experimental = []
+debug_headers = []
 db = []
 
 [dependencies]
@@ -57,7 +58,7 @@ uuid1 = { package = "uuid", version = "1", optional = true, features = [
 ccx-api-lib = { path = "../../util/lib" }
 
 [dev-dependencies]
-env_logger = "0.10"
+env_logger = "0.11"
 dotenv = "0.15"
 ccx-coinbase-examples-util = { path = "examples/util" }
 enum-iterator = "2.0.0"
