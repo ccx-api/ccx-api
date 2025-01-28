@@ -1,5 +1,4 @@
 use crate::api::exchange::prelude::*;
-use crate::DtCoinbaseEx;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ProductTicker {
@@ -16,5 +15,5 @@ pub struct ProductTicker {
     /// The size of the trade in the base currency.
     pub size: Decimal,
     /// The time of the trade.
-    pub time: DtCoinbaseEx,
+    pub time: DtCoinbasePrime,
 }
