@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::future::Future;
 use std::mem;
+use std::sync::Arc;
 
 use futures::channel::mpsc as fmpsc;
 use futures::channel::oneshot;
@@ -17,6 +18,10 @@ use soketto::Data;
 use soketto::Incoming;
 use tokio::net::lookup_host;
 use tokio::net::TcpStream;
+use tokio_rustls::rustls::pki_types::ServerName;
+use tokio_rustls::rustls::ClientConfig;
+use tokio_rustls::rustls::RootCertStore;
+use tokio_rustls::TlsConnector;
 use tokio_util::compat::Compat;
 use tokio_util::compat::TokioAsyncReadCompatExt;
 use url::Url;
@@ -92,46 +97,56 @@ impl WebSocketClient {
                     _ => None,
                 })
                 .ok_or(WebSocketConnectError::MissingPort)?;
-            let path = stream_url.path();
 
             let host_addr: PascalString<255> = format_args!("{host}:{port}")
                 .try_to_fmt()
                 .map_err(|_| WebSocketConnectError::BadHostname)?;
 
-            println!("resolving {host_addr}");
+            // println!("resolving {host_addr}");
 
-            let socket = {
-                let mut last_error = None;
-                let mut addrs = lookup_host(&*host_addr).await?;
-                loop {
-                    if let Some(addr) = addrs.next() {
-                        match TcpStream::connect(addr).await {
-                            Ok(socket) => {
-                                println!("connected to addr {}", addr);
-                                break socket;
-                            }
-                            Err(e) => {
-                                println!("connect to addr {} failed: {}", addr, e);
-                                last_error = Some(e)
-                            }
-                        }
-                    } else {
-                        Err(last_error.take().unwrap_or_else(|| {
-                            std::io::Error::new(
-                                std::io::ErrorKind::AddrNotAvailable,
-                                "no addresses to connect to",
-                            )
-                        }))?
-                    }
-                }
-            };
+            let mut root_cert_store = RootCertStore::empty();
+            root_cert_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
+            let config = ClientConfig::builder()
+                .with_root_certificates(root_cert_store)
+                .with_no_client_auth();
+            let connector = TlsConnector::from(Arc::new(config));
+            let dnsname = ServerName::try_from(host.to_string()).unwrap();
+
+            let stream = TcpStream::connect(host_addr.as_str()).await?;
+            let mut stream = connector.connect(dnsname, stream).await?;
+
+            // let socket = {
+            //     let mut last_error = None;
+            //     let mut addrs = lookup_host(&*host_addr).await?;
+            //     loop {
+            //         if let Some(addr) = addrs.next() {
+            //             match TcpStream::connect(addr).await {
+            //                 Ok(socket) => {
+            //                     println!("connected to addr {}", addr);
+            //                     break socket;
+            //                 }
+            //                 Err(e) => {
+            //                     println!("connect to addr {} failed: {}", addr, e);
+            //                     last_error = Some(e)
+            //                 }
+            //             }
+            //         } else {
+            //             Err(last_error.take().unwrap_or_else(|| {
+            //                 std::io::Error::new(
+            //                     std::io::ErrorKind::AddrNotAvailable,
+            //                     "no addresses to connect to",
+            //                 )
+            //             }))?
+            //         }
+            //     }
+            // };
             let resource = match stream_url.query() {
                 Some(q) => format!("{}?{}", stream_url.path(), q),
                 None => stream_url.path().to_owned(),
             };
 
             println!("requesting {host}, {resource}");
-            let mut client = Client::new(socket.compat(), &host, &resource);
+            let mut client = Client::new(stream.compat(), &host, &resource);
 
             let (sender, mut receiver) = match client.handshake().await? {
                 ServerResponse::Accepted { .. } => client.into_builder().finish(),
@@ -160,8 +175,8 @@ impl WebSocketClient {
 }
 
 async fn upstream_loop(
-    mut sender: soketto::Sender<Compat<TcpStream>>,
-    mut receiver: soketto::Receiver<Compat<TcpStream>>,
+    mut sender: soketto::Sender<impl futures::AsyncRead + futures::AsyncWrite + Unpin>,
+    mut receiver: soketto::Receiver<impl futures::AsyncRead + futures::AsyncWrite + Unpin>,
     mut cmd_rx: fmpsc::Receiver<Command>,
     mut stream_tx: fmpsc::Sender<Vec<u8>>,
 ) {
@@ -200,7 +215,9 @@ async fn upstream_loop(
                             let count = match data {
                                 Data::Text(count) | Data::Binary(count) => count,
                             };
-                            println!("received {} bytes", count);
+                            if cfg!(feature = "debug_communication") {
+                                println!("received {count} bytes");
+                            }
                             debug_assert_eq!(count, buf.len());
                             let meta = preparse_meta(&buf).unwrap();
                             if let Some(WsMessageId::Int(id)) = meta.id {
@@ -212,7 +229,9 @@ async fn upstream_loop(
                             }
                         }
                         Incoming::Pong(_data) => {
-                            println!("received pong");
+                            if cfg!(feature = "debug_communication") {
+                                println!("received pong");
+                            }
                         }
                         Incoming::Closed(close_reason) => {
                             println!("connection closed: {:?}", close_reason);
