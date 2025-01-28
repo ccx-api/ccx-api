@@ -10,15 +10,25 @@ struct AccountPortfolioCreateOrderRequest<'a> {
     side: PortfolioOrderSide,
     client_order_id: &'a str,
     r#type: PortfolioOrderType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     base_quantity: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     quote_value: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     limit_price: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     start_time: Option<&'a str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     expiry_time: Option<&'a str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     time_in_force: Option<PortfolioOrderTimeInForce>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     stp_id: Option<&'a str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     display_quote_size: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     display_base_size: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     is_raise_exact: Option<bool>,
 }
 

@@ -10,12 +10,19 @@ struct AccountPortfolioOrderPreviewRequest<'a> {
     product_id: &'a str,
     side: PortfolioOrderSide,
     r#type: PortfolioOrderType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     base_quantity: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     quote_value: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     limit_price: Option<Decimal>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     start_time: Option<&'a str>,
-    expiry_time: Option<&'a str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    expiry_time: Option<DtCoinbasePrime>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     time_in_force: Option<PortfolioOrderTimeInForce>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     is_raise_exact: Option<bool>,
 }
 
@@ -55,7 +62,7 @@ where
         quote_value: Option<Decimal>,
         limit_price: Option<Decimal>,
         start_time: Option<&str>,
-        expiry_time: Option<&str>,
+        expiry_time: Option<DtCoinbasePrime>,
         time_in_force: Option<PortfolioOrderTimeInForce>,
         is_raise_exact: Option<bool>,
     ) -> CoinbaseResult<Task<AccountPortfolioOrderPreviewResponse>> {
