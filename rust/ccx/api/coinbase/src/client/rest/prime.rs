@@ -192,6 +192,16 @@ where
             self.request.get_method(),
             self.request.get_uri()
         );
+        if cfg!(feature = "debug_headers") {
+            for (name, value) in self.request.headers().iter() {
+                let value = if name == "x-cb-access-passphrase" {
+                    "****"
+                } else {
+                    value.to_str().unwrap_or("---")
+                };
+                log::debug!("[{request_id}]  Request header: {name}: {value}",);
+            }
+        }
         log::debug!("[{request_id}]  Request body: {:?}", self.body);
 
         let tm = Instant::now();
@@ -206,9 +216,15 @@ where
         );
 
         let code = res.status();
+        log::debug!("[{request_id}]  Response status: {code}");
+        if cfg!(feature = "debug_headers") {
+            for (name, value) in res.headers().iter() {
+                let value = value.to_str().unwrap_or("---");
+                log::debug!("[{request_id}]  Response header: {name}: {value}",);
+            }
+        }
         log::debug!(
-            "[{request_id}]  Response: {} «{}»",
-            code,
+            "[{request_id}]  Response body: {:?}",
             String::from_utf8_lossy(&resp)
         );
 

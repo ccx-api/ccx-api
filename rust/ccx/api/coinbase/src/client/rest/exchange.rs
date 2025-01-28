@@ -197,7 +197,18 @@ where
             self.request.get_method(),
             self.request.get_uri()
         );
+        if cfg!(feature = "debug_headers") {
+            for (name, value) in self.request.headers().iter() {
+                let value = if name == "cb-access-passphrase" {
+                    "****"
+                } else {
+                    value.to_str().unwrap_or("---")
+                };
+                log::debug!("[{request_id}]  Request header: {name}: {value}",);
+            }
+        }
         log::debug!("[{request_id}]  Request body: {:?}", self.body);
+
         let tm = Instant::now();
         let mut res = self.request.send_body(self.body).await?;
         let d1 = tm.elapsed();
@@ -208,12 +219,20 @@ where
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
+
         let code = res.status();
+        log::debug!("[{request_id}]  Response status: {code}");
+        if cfg!(feature = "debug_headers") {
+            for (name, value) in res.headers().iter() {
+                let value = value.to_str().unwrap_or("---");
+                log::debug!("[{request_id}]  Response header: {name}: {value}",);
+            }
+        }
         log::debug!(
-            "[{request_id}]  Response: {} «{}»",
-            code,
+            "[{request_id}]  Response body: {:?}",
             String::from_utf8_lossy(&resp)
         );
+
         if let Err(err) = check_response(res) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
