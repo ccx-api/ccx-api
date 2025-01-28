@@ -12,6 +12,7 @@ mod signed;
 mod signer;
 mod stamped;
 mod time_window;
+mod websocket;
 
 pub use credential::BinanceSpotCredential;
 pub use recv_window::RecvWindow;
@@ -20,6 +21,9 @@ pub use signer::BinanceSpotSigner;
 pub use stamped::Stamped;
 pub use time_window::TimeWindow;
 
+pub use self::websocket::WebSocketClient;
+pub use self::websocket::WebSocketConnectError;
+use crate::spot::api::websocket::WebSocketBuilder;
 use crate::spot::meta::BinanceSpotMeta;
 use crate::spot::meta::BinanceSpotResponseMeta;
 
@@ -38,6 +42,10 @@ impl BinanceSpotClient {
         let inner = ClientInner { client, config };
         let inner = Arc::new(inner);
         BinanceSpotClient { inner }
+    }
+
+    pub fn config(&self) -> &ConnectionConfig {
+        &self.inner.config
     }
 
     pub async fn send_public<T>(
@@ -60,6 +68,10 @@ impl BinanceSpotClient {
 
         let request = inner.client.request(T::HTTP_METHOD, url);
         handle_response(request.send().await?).await
+    }
+
+    pub fn websocket(&self) -> WebSocketBuilder {
+        WebSocketBuilder::new(self.clone())
     }
 }
 
