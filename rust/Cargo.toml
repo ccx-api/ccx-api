@@ -17,3 +17,6 @@ binance = ["ccx-binance"]
 
 [dependencies]
 ccx-binance = { path = "api/ccx-binance", optional = true }
+
+[profile.dev.package."*"]
+opt-level = 3
