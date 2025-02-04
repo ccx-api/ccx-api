@@ -1,5 +1,4 @@
 pub mod spot;
-pub mod um;
 
 mod prelude {
     pub use std::collections::HashMap;

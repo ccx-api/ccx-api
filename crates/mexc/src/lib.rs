@@ -17,5 +17,4 @@ pub use self::with_network::*;
 #[cfg(feature = "with_network")]
 mod with_network {
     pub use super::api::spot::SpotApi;
-    pub use super::api::um::UmApi;
 }
