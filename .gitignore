@@ -1,4 +1,8 @@
-*.iml
-
-.env
+**/target
+**/*.rs.bk
+**/Cargo.lock
+**/.env
+.vscode
+.idea
+.zed/
 .DS_Store

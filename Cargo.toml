@@ -1,0 +1,38 @@
+[package]
+name = "ccx"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[workspace]
+members = [
+    "crates/binance",
+    "crates/binance/examples/util",
+    "crates/binance-pay",
+    "crates/bitstamp",
+    "crates/coinbase",
+    "crates/coinbase/examples/util",
+    "crates/finery-markets",
+    "crates/finery-markets/examples/util",
+    "crates/gate",
+    "crates/gatepay",
+    "crates/kraken",
+    "crates/kraken/examples/util",
+    "crates/ccx-api-lib",
+]
+
+[workspace.package]
+version = "0.5.1"
+authors = ["CCX-API Library developers <irbis.labs@gmail.com>"]
+edition = "2021"
+
+
+[dependencies]
+ccx-binance = { path = "crates/binance" }
+ccx-binance-pay = { path = "crates/binance-pay" }
+ccx-bitstamp = { path = "crates/bitstamp" }
+ccx-coinbase = { path = "crates/coinbase" }
+ccx-finery-markets = { path = "crates/finery-markets" }
+ccx-gate = { path = "crates/gate" }
+ccx-gatepay = { path = "crates/gatepay" }
+ccx-kraken = { path = "crates/kraken" }
