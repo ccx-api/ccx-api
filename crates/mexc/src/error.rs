@@ -21,5 +21,5 @@ impl ApiError {
 
 impl CcxApiError for ApiError {}
 
-pub type BinanceResult<T> = ccx_api_lib::LibResult<T, ApiError>;
-pub type BinanceError = ccx_api_lib::LibError<ApiError>;
+pub type MexcResult<T> = ccx_api_lib::LibResult<T, ApiError>;
+pub type MexcError = ccx_api_lib::LibError<ApiError>;

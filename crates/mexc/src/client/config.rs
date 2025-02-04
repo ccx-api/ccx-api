@@ -3,13 +3,13 @@ pub use ccx_api_lib::ApiCred;
 pub use ccx_api_lib::Proxy;
 use url::Url;
 
-use crate::client::BinanceSigner;
+use crate::client::MexcSigner;
 
 pub static CCX_MEXC_API_PREFIX: &str = "CCX_MEXC_API";
 
 /// API config.
 #[derive(Clone)]
-pub struct Config<S: BinanceSigner> {
+pub struct Config<S: MexcSigner> {
     pub signer: S,
     pub api_base: Url,
     pub stream_base: Url,
@@ -18,7 +18,7 @@ pub struct Config<S: BinanceSigner> {
 
 impl<S> Config<S>
 where
-    S: BinanceSigner,
+    S: MexcSigner,
 {
     pub fn new(signer: S, api_base: Url, stream_base: Url, proxy: Option<Proxy>) -> Self {
         Config {

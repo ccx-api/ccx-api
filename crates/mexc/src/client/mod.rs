@@ -14,7 +14,7 @@ pub use self::signer::*;
 pub use self::websocket::*;
 
 #[derive(Debug, Deserialize)]
-struct BinanceContentError {
+struct MexcContentError {
     #[allow(dead_code)]
     pub code: i16,
     #[allow(dead_code)]

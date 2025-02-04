@@ -6,8 +6,8 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use crate::ws_stream::OrderBookDiffEvent;
-use crate::BinanceError;
-use crate::BinanceResult;
+use crate::MexcError;
+use crate::MexcResult;
 
 pub enum OrderBookUpdater {
     Preparing { buffer: Vec<OrderBookDiffEvent> },
@@ -58,7 +58,7 @@ impl OrderBookUpdater {
         }
     }
 
-    pub fn push_diff(&mut self, update: OrderBookDiffEvent) -> BinanceResult<()> {
+    pub fn push_diff(&mut self, update: OrderBookDiffEvent) -> MexcResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => buffer.push(update),
             OrderBookUpdater::Ready { state } => state.update(update)?,
@@ -66,7 +66,7 @@ impl OrderBookUpdater {
         Ok(())
     }
 
-    pub fn init(&mut self, snapshot: OrderBook) -> BinanceResult<()> {
+    pub fn init(&mut self, snapshot: OrderBook) -> MexcResult<()> {
         match self {
             OrderBookUpdater::Preparing { buffer } => {
                 let mut state = OrderBookState::new(snapshot);
@@ -208,7 +208,7 @@ impl OrderBookState {
         ask - bid
     }
 
-    pub fn update(&mut self, diff: OrderBookDiffEvent) -> BinanceResult<()> {
+    pub fn update(&mut self, diff: OrderBookDiffEvent) -> MexcResult<()> {
         /*
            Drop any event where final_update_id is <= lastUpdateId in the snapshot.
 
@@ -225,7 +225,7 @@ impl OrderBookState {
                 return Ok(());
             }
             if diff.first_update_id > next_id {
-                Err(BinanceError::other(format!(
+                Err(MexcError::other(format!(
                     "first_update_id > next_id:   {};   {}",
                     diff.first_update_id, next_id
                 )))?
@@ -233,7 +233,7 @@ impl OrderBookState {
             // ^^ ensures diff.first_update_id <= next_id && diff.final_update_id > next_id
             self.dirty = false;
         } else if diff.first_update_id != next_id {
-            Err(BinanceError::other(format!(
+            Err(MexcError::other(format!(
                 "first_update_id != next_id:   {};   {}",
                 diff.first_update_id, next_id
             )))?

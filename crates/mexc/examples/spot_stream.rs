@@ -8,7 +8,7 @@ use ccx_mexc::ws_stream::UpstreamWebsocketMessage;
 use ccx_mexc::ws_stream::WsEvent;
 use ccx_mexc::ws_stream::WsStream;
 use ccx_mexc::ApiCred;
-use ccx_mexc::BinanceError;
+use ccx_mexc::MexcError;
 use ccx_mexc::SpotApi;
 use console::Style;
 use console::Term;
@@ -24,7 +24,7 @@ use string_cache::DefaultAtom;
 
 enum X {
     Snapshot(OrderBook),
-    SnapshotErr(BinanceError),
+    SnapshotErr(MexcError),
     Event(WsEvent),
 }
 
@@ -40,10 +40,10 @@ async fn main() {
     let bid_style = Style::new().red().bold();
     let symbol_style = Style::new().yellow().bold();
 
-    let binance_spot = SpotApi::<ApiCred>::from_env();
+    let mexc_spot = SpotApi::<ApiCred>::from_env();
 
     let res = async move {
-        let (sink, stream) = binance_spot.ws().await?.split();
+        let (sink, stream) = mexc_spot.ws().await?.split();
         println!("Connected");
 
         let symbol = "BTCUSDT";
@@ -59,7 +59,7 @@ async fn main() {
         let mut updater = OrderBookUpdater::new();
 
         let snapshot = Box::pin(
-            binance_spot
+            mexc_spot
                 .depth(symbol, OrderBookLimit::N1000)?
                 .into_stream()
                 .map(move |r| match r {
@@ -182,7 +182,7 @@ async fn main() {
                 }
             }
         }
-        Ok::<(), BinanceError>(())
+        Ok::<(), MexcError>(())
     };
     println!("Execution stopped with: {:?}", res.await);
 }

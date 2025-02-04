@@ -178,7 +178,7 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Create a Sub Account.
@@ -189,7 +189,7 @@ mod with_network {
             &self,
             tag: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountCreated>> {
+        ) -> MexcResult<Task<BrokerSubaccountCreated>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -218,7 +218,7 @@ mod with_network {
             margin_trade: Option<bool>,
             futures_trade: Option<bool>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountApiKey>> {
+        ) -> MexcResult<Task<BrokerSubaccountApiKey>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -243,7 +243,7 @@ mod with_network {
             subaccount_id: impl Serialize,
             subaccount_api_key: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountApiKeyDeleted>> {
+        ) -> MexcResult<Task<BrokerSubaccountApiKeyDeleted>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -270,7 +270,7 @@ mod with_network {
             page: Option<u32>,
             size: Option<u32>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<BrokerSubaccount>>> {
+        ) -> MexcResult<Task<Vec<BrokerSubaccount>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -295,7 +295,7 @@ mod with_network {
         pub fn broker_account_info(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerAccountInfo>> {
+        ) -> MexcResult<Task<BrokerAccountInfo>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(SAPI_V1_BROKER_INFO)?.signed(time_window)?)
@@ -320,7 +320,7 @@ mod with_network {
             asset: impl Serialize,
             amount: Decimal,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountTransferCreated>> {
+        ) -> MexcResult<Task<BrokerSubaccountTransferCreated>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -360,7 +360,7 @@ mod with_network {
             page: Option<u16>,
             limit: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<BrokerSubaccountTransfer>>> {
+        ) -> MexcResult<Task<Vec<BrokerSubaccountTransfer>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -414,7 +414,7 @@ mod with_network {
             limit: Option<u16>,
             offset: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<BrokerSubaccountDeposit>>> {
+        ) -> MexcResult<Task<Vec<BrokerSubaccountDeposit>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -445,7 +445,7 @@ mod with_network {
             page: Option<u16>,
             size: Option<u16>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountAssetInfoList>> {
+        ) -> MexcResult<Task<BrokerSubaccountAssetInfoList>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -472,7 +472,7 @@ mod with_network {
             sub_account_id: impl Serialize,
             sub_account_api_key: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountApiIpRestriction>> {
+        ) -> MexcResult<Task<BrokerSubaccountApiIpRestriction>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -493,7 +493,7 @@ mod with_network {
             sub_account_api_key: impl Serialize,
             ip_restrict: bool,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountApiIpRestriction>> {
+        ) -> MexcResult<Task<BrokerSubaccountApiIpRestriction>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -515,7 +515,7 @@ mod with_network {
             sub_account_api_key: impl Serialize,
             ip_address: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountApiIpAddressAdded>> {
+        ) -> MexcResult<Task<BrokerSubaccountApiIpAddressAdded>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -537,7 +537,7 @@ mod with_network {
             sub_account_api_key: impl Serialize,
             ip_address: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<BrokerSubaccountApiIpAddressDeleted>> {
+        ) -> MexcResult<Task<BrokerSubaccountApiIpAddressDeleted>> {
             Ok(self
                 .rate_limiter
                 .task(

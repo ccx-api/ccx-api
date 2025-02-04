@@ -12,14 +12,14 @@ pub const SAPI_V1_FIAT_CLEARJUNCTION_GET_BALANCE: &str = "/sapi/v1/fiat/clearjun
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ClearjunctionWithdraw {
-    /// binance transaction id
+    /// mexc transaction id
     pub transaction_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ClearjunctionTransaction {
-    /// binance transaction id
+    /// mexc transaction id
     pub transaction_id: String,
     pub status: ClearjunctionWithdrawStatus,
     pub fail_reason: Option<String>,
@@ -80,7 +80,7 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Submit withdraw `[SAPI]`
@@ -94,7 +94,7 @@ mod with_network {
         /// * Note.1 'initTime' field is different from 'timestamp' field, can retry sending request
         ///   with same initTime and different timestamp.
         /// * Note.2 Any transaction can only be retry within 15 mins, which means if 'initTime' is
-        ///   already 15 mins ago, binance side will reject the request directly.
+        ///   already 15 mins ago, mexc side will reject the request directly.
         /// * Note.3 Transaction frequency limit is 1 transaction per second. Any request with initTime
         ///   less then 1min from last one will be rejected.
         pub fn clearjunction_withdraw(
@@ -103,7 +103,7 @@ mod with_network {
             amount: Decimal,
             init_time: u64,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<ClearjunctionWithdraw>> {
+        ) -> MexcResult<Task<ClearjunctionWithdraw>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -129,7 +129,7 @@ mod with_network {
             &self,
             transaction_id: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<ClearjunctionTransaction>> {
+        ) -> MexcResult<Task<ClearjunctionTransaction>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -155,7 +155,7 @@ mod with_network {
             end_time: u64,
             currency: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<ClearjunctionTransaction>> {
+        ) -> MexcResult<Task<ClearjunctionTransaction>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -179,7 +179,7 @@ mod with_network {
             &self,
             currency: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<ClearjunctionBalance>> {
+        ) -> MexcResult<Task<ClearjunctionBalance>> {
             Ok(self
                 .rate_limiter
                 .task(

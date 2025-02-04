@@ -360,7 +360,7 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// User Universal Transfer (USER_DATA)
@@ -374,7 +374,7 @@ mod with_network {
             asset: impl Serialize,
             amount: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Transfer>> {
+        ) -> MexcResult<Task<Transfer>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -393,14 +393,14 @@ mod with_network {
         ///
         /// Weight(IP): 1
         ///
-        /// * Currently supports querying the following business assets：Binance Pay, Binance Card,
-        /// Binance Gift Card, Stock Token.
+        /// * Currently supports querying the following business assets：Mexc Pay, Mexc Card,
+        /// Mexc Gift Card, Stock Token.
         pub fn asset_fundings(
             &self,
             asset: Option<impl Serialize>,
             need_btc_valuation: Option<bool>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<FundingAsset>>> {
+        ) -> MexcResult<Task<Vec<FundingAsset>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -419,7 +419,7 @@ mod with_network {
         /// Fetch system status.
         ///
         /// Weight(IP): 1
-        pub fn system_status(&self) -> BinanceResult<Task<SystemStatus>> {
+        pub fn system_status(&self) -> MexcResult<Task<SystemStatus>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(SAPI_V1_ACCOUNT_ENABLE_FAST_WITHDRAW)?)
@@ -435,7 +435,7 @@ mod with_network {
         pub fn all_coins_information(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<CoinInformation>>> {
+        ) -> MexcResult<Task<Vec<CoinInformation>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -458,7 +458,7 @@ mod with_network {
         pub fn disable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<NoResponse>> {
+        ) -> MexcResult<Task<NoResponse>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -476,12 +476,12 @@ mod with_network {
         ///
         /// This request will enable fastwithdraw switch under your account.
         /// You need to enable "trade" option for the api key which requests this endpoint.
-        /// When Fast Withdraw Switch is on, transferring funds to a Binance account will be done
+        /// When Fast Withdraw Switch is on, transferring funds to a Mexc account will be done
         ///   instantly. There is no on-chain transaction, no transaction ID and no withdrawal fee.
         pub fn enable_fast_withdraw_switch(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<NoResponse>> {
+        ) -> MexcResult<Task<NoResponse>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -507,7 +507,7 @@ mod with_network {
             coin: impl Serialize,
             network: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<DepositAddress>> {
+        ) -> MexcResult<Task<DepositAddress>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -549,7 +549,7 @@ mod with_network {
             transaction_fee_flag: Option<bool>,
             name: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<NewWithdraw>> {
+        ) -> MexcResult<Task<NewWithdraw>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -592,7 +592,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<Deposit>>> {
+        ) -> MexcResult<Task<Vec<Deposit>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -633,7 +633,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<Withdraw>>> {
+        ) -> MexcResult<Task<Vec<Withdraw>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -659,7 +659,7 @@ mod with_network {
         pub fn account_status(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<AccountStatus>> {
+        ) -> MexcResult<Task<AccountStatus>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -679,7 +679,7 @@ mod with_network {
         pub fn account_trading_status(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<AccountTradingStatus>> {
+        ) -> MexcResult<Task<AccountTradingStatus>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -702,7 +702,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<AssetDribblet>> {
+        ) -> MexcResult<Task<AssetDribblet>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -728,7 +728,7 @@ mod with_network {
             &self,
             asset: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<AssetDust>> {
+        ) -> MexcResult<Task<AssetDust>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -753,7 +753,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<AssetDividend>> {
+        ) -> MexcResult<Task<AssetDividend>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -771,7 +771,7 @@ mod with_network {
 
         /// Asset Detail (USER_DATA)
         ///
-        /// Fetch details of assets supported on Binance.
+        /// Fetch details of assets supported on Mexc.
         ///
         /// Weight(IP): 1
         ///
@@ -781,7 +781,7 @@ mod with_network {
             &self,
             asset: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<AssetDetail>> {
+        ) -> MexcResult<Task<AssetDetail>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -803,7 +803,7 @@ mod with_network {
             &self,
             symbol: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<TradeFee>>> {
+        ) -> MexcResult<Task<Vec<TradeFee>>> {
             Ok(self
                 .rate_limiter
                 .task(

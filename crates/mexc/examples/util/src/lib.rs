@@ -1,9 +1,9 @@
 use std::fmt;
 
-use ccx_mexc::BinanceResult;
+use ccx_mexc::MexcResult;
 use ccx_mexc::Decimal;
 
-pub fn print_res<T: fmt::Debug>(res: BinanceResult<T>) -> BinanceResult<T> {
+pub fn print_res<T: fmt::Debug>(res: MexcResult<T>) -> MexcResult<T> {
     match &res {
         Ok(answer) => println!("Answer: {:#?}", answer),
         Err(e) => println!("Error: {:?}", e),

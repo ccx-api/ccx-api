@@ -26,7 +26,7 @@ pub enum OrderSide {
 }
 
 /// More information on how the order types definitions can be found here:
-/// [Types of Orders](https://www.binance.com/en/support/articles/360033779452)
+/// [Types of Orders](https://www.mexc.com/en/support/articles/360033779452)
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
 #[repr(u8)]
 pub enum OrderType {
@@ -307,7 +307,7 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Test New Order (TRADE)
@@ -333,7 +333,7 @@ mod with_network {
             new_client_order_id: Option<impl Serialize>,
             new_order_resp_type: Option<OrderResponseType>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<NewTestOrder>> {
+        ) -> MexcResult<Task<NewTestOrder>> {
             let request = self.prepare_order_request(
                 symbol,
                 side,
@@ -378,7 +378,7 @@ mod with_network {
             new_client_order_id: Option<impl Serialize>,
             new_order_resp_type: Option<OrderResponseType>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<NewOrder> {
+        ) -> MexcResult<NewOrder> {
             let request = self.prepare_order_request(
                 symbol,
                 side,
@@ -430,7 +430,7 @@ mod with_network {
             new_order_resp_type: Option<OrderResponseType>,
             is_test: bool,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<RequestBuilder<S>> {
+        ) -> MexcResult<RequestBuilder<S>> {
             let endpoint = if is_test {
                 API_V3_ORDER_TEST
             } else {
@@ -524,7 +524,7 @@ mod with_network {
             orig_client_order_id: Option<impl Serialize>,
             new_client_order_id: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<CancelledOrder>> {
+        ) -> MexcResult<Task<CancelledOrder>> {
             if order_id.is_none() && orig_client_order_id.is_none() {
                 Err(ApiError::mandatory_field_omitted(
                     "order_id or orig_client_order_id",
@@ -556,7 +556,7 @@ mod with_network {
             &self,
             symbol: impl Serialize,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<CancelledOrder>>> {
+        ) -> MexcResult<Task<Vec<CancelledOrder>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -585,7 +585,7 @@ mod with_network {
             order_id: Option<u64>,
             orig_client_order_id: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Order>> {
+        ) -> MexcResult<Task<Order>> {
             if order_id.is_none() && orig_client_order_id.is_none() {
                 Err(ApiError::mandatory_field_omitted(
                     "order_id or orig_client_order_id",
@@ -616,7 +616,7 @@ mod with_network {
             &self,
             symbol: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<Order>>> {
+        ) -> MexcResult<Task<Vec<Order>>> {
             let weight: u32 = if symbol.is_some() { 3 } else { 40 };
             Ok(self
                 .rate_limiter
@@ -651,7 +651,7 @@ mod with_network {
             order_id: Option<u64>,
             limit: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<Order>>> {
+        ) -> MexcResult<Task<Vec<Order>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -682,7 +682,7 @@ mod with_network {
         pub fn account(
             &self,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<AccountInformation>> {
+        ) -> MexcResult<Task<AccountInformation>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_ACCOUNT)?.signed(time_window)?)
@@ -708,7 +708,7 @@ mod with_network {
             from_id: Option<u64>,
             limit: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<MyTrade>>> {
+        ) -> MexcResult<Task<Vec<MyTrade>>> {
             Ok(self
                 .rate_limiter
                 .task(

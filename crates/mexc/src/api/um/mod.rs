@@ -4,7 +4,7 @@ use ccx_api_lib::env_var_with_prefix;
 use url::Url;
 
 use crate::client::ApiCred;
-use crate::client::BinanceSigner;
+use crate::client::MexcSigner;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RateLimiter;
@@ -32,11 +32,11 @@ mod prelude {
     pub use crate::api::prelude::*;
 }
 
-pub const API_BASE: &str = "https://fapi.binance.com/";
-pub const STREAM_BASE: &str = "wss://fstream.binance.com/stream";
+pub const API_BASE: &str = "https://fapi.mexc.com/";
+pub const STREAM_BASE: &str = "wss://fstream.mexc.com/stream";
 
-pub const API_BASE_TESTNET: &str = "https://testnet.binancefuture.com/";
-pub const STREAM_BASE_TESTNET: &str = "wss://stream.binancefuture.com/stream";
+pub const API_BASE_TESTNET: &str = "https://testnet.mexcfuture.com/";
+pub const STREAM_BASE_TESTNET: &str = "wss://stream.mexcfuture.com/stream";
 
 pub const RL_WEIGHT_PER_MINUTE: &str = "weight_per_minute";
 
@@ -50,7 +50,7 @@ mod with_network {
     #[derive(Clone)]
     pub struct UmApi<S>
     where
-        S: BinanceSigner,
+        S: MexcSigner,
     {
         pub(crate) client: RestClient<S>,
         pub(crate) rate_limiter: RateLimiter,
@@ -58,7 +58,7 @@ mod with_network {
 
     impl<S> UmApi<S>
     where
-        S: BinanceSigner,
+        S: MexcSigner,
     {
         pub fn new(signer: S, testnet: bool, proxy: Option<Proxy>) -> Self {
             let (api_base, stream_base) = if testnet {
@@ -112,7 +112,7 @@ mod with_network {
         }
 
         /// Creates multiplexed websocket stream.
-        pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
+        pub async fn ws(&self) -> MexcResult<WebsocketStream> {
             self.client.web_socket().await
         }
     }

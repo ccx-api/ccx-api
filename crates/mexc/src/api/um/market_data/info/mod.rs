@@ -47,13 +47,13 @@ mod with_network {
 
     impl<S> UmApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Current exchange trading rules and symbol information.
         ///
         /// Weight: 1
-        pub fn exchange_info(&self) -> BinanceResult<Task<ExchangeInformation>> {
+        pub fn exchange_info(&self) -> MexcResult<Task<ExchangeInformation>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(FAPI_V1_EXCHANGE_INFO)?)

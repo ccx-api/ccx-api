@@ -16,13 +16,13 @@ mod with_network {
 
     impl<S> UmApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Test connectivity to the Rest API.
         ///
         /// Weight: 1
-        pub fn ping(&self) -> BinanceResult<Task<Pong>> {
+        pub fn ping(&self) -> MexcResult<Task<Pong>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(FAPI_V1_PING)?)

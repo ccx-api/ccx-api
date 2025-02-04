@@ -16,8 +16,8 @@ use serde::Serialize;
 use url::Url;
 
 use crate::client::RestClient;
-use crate::error::BinanceError;
-use crate::error::BinanceResult;
+use crate::error::MexcError;
+use crate::error::MexcResult;
 use crate::ws_stream::UpstreamApiRequest;
 use crate::ws_stream::UpstreamWebsocketMessage;
 use crate::ws_stream::WsCommand;
@@ -162,10 +162,10 @@ impl Websocket {
 }
 
 impl WebsocketStream {
-    pub async fn connect<S: crate::client::BinanceSigner>(
+    pub async fn connect<S: crate::client::MexcSigner>(
         api_client: RestClient<S>,
         url: Url,
-    ) -> BinanceResult<Self> {
+    ) -> MexcResult<Self> {
         use futures::StreamExt;
 
         log::debug!("Connecting WS: {}", url.as_str());
@@ -206,19 +206,19 @@ impl WebsocketStreamTx {
     pub async fn subscribe_one(
         &self,
         subscription: impl Into<WsSubscription>,
-    ) -> BinanceResult<()> {
+    ) -> MexcResult<()> {
         let cmd = WsCommand::Subscribe1([subscription.into()]);
         self.addr
             .send(M(cmd))
             .await
-            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))
+            .map_err(|_e| MexcError::IoError(io::ErrorKind::ConnectionAborted.into()))
     }
 
-    pub async fn subscribe_list(&self, subscriptions: Box<[WsSubscription]>) -> BinanceResult<()> {
+    pub async fn subscribe_list(&self, subscriptions: Box<[WsSubscription]>) -> MexcResult<()> {
         let cmd = WsCommand::Subscribe(subscriptions);
         self.addr
             .send(M(cmd))
             .await
-            .map_err(|_e| BinanceError::IoError(io::ErrorKind::ConnectionAborted.into()))
+            .map_err(|_e| MexcError::IoError(io::ErrorKind::ConnectionAborted.into()))
     }
 }

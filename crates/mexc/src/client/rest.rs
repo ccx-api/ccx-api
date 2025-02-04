@@ -21,14 +21,14 @@ use crate::proto::TimeWindow;
 /// API client.
 pub struct RestClient<S>
 where
-    S: BinanceSigner,
+    S: MexcSigner,
 {
     inner: Arc<ClientInner<S>>,
 }
 
 impl<S> Clone for RestClient<S>
 where
-    S: BinanceSigner,
+    S: MexcSigner,
 {
     fn clone(&self) -> Self {
         Self {
@@ -39,14 +39,14 @@ where
 
 struct ClientInner<S>
 where
-    S: BinanceSigner,
+    S: MexcSigner,
 {
     config: Config<S>,
 }
 
 pub struct RequestBuilder<S>
 where
-    S: BinanceSigner,
+    S: MexcSigner,
 {
     api_client: RestClient<S>,
     request: ClientRequest,
@@ -55,7 +55,7 @@ where
 
 impl<S> RestClient<S>
 where
-    S: BinanceSigner,
+    S: MexcSigner,
 {
     pub fn new(config: Config<S>) -> Self {
         let inner = Arc::new(ClientInner { config });
@@ -74,7 +74,7 @@ where
         self.client_(true)
     }
 
-    pub fn request(&self, method: Method, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
+    pub fn request(&self, method: Method, endpoint: &str) -> MexcResult<RequestBuilder<S>> {
         let url = self.inner.config.api_base.join(endpoint)?;
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
@@ -86,23 +86,23 @@ where
         })
     }
 
-    pub fn get(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
+    pub fn get(&self, endpoint: &str) -> MexcResult<RequestBuilder<S>> {
         self.request(Method::GET, endpoint)
     }
 
-    pub fn post(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
+    pub fn post(&self, endpoint: &str) -> MexcResult<RequestBuilder<S>> {
         self.request(Method::POST, endpoint)
     }
 
-    pub fn put(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
+    pub fn put(&self, endpoint: &str) -> MexcResult<RequestBuilder<S>> {
         self.request(Method::PUT, endpoint)
     }
 
-    pub fn delete(&self, endpoint: &str) -> BinanceResult<RequestBuilder<S>> {
+    pub fn delete(&self, endpoint: &str) -> MexcResult<RequestBuilder<S>> {
         self.request(Method::DELETE, endpoint)
     }
 
-    pub async fn web_socket(&self) -> BinanceResult<WebsocketStream> {
+    pub async fn web_socket(&self) -> MexcResult<WebsocketStream> {
         let url = self.inner.config.stream_base.clone();
         WebsocketStream::connect(self.clone(), url).await
     }
@@ -110,13 +110,13 @@ where
 
 impl<S> RequestBuilder<S>
 where
-    S: BinanceSigner,
+    S: MexcSigner,
 {
     pub fn uri(&self) -> String {
         self.request.get_uri().to_string()
     }
 
-    pub fn query_args<T: Serialize>(mut self, query: &T) -> BinanceResult<Self> {
+    pub fn query_args<T: Serialize>(mut self, query: &T) -> MexcResult<Self> {
         self.request = self.request.query(query)?;
         Ok(self)
     }
@@ -125,7 +125,7 @@ where
         mut self,
         name: Name,
         query: &T,
-    ) -> BinanceResult<Self> {
+    ) -> MexcResult<Self> {
         let mut parts = self.request.get_uri().clone().into_parts();
 
         if let Some(path_and_query) = parts.path_and_query {
@@ -141,7 +141,7 @@ where
             buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
             parts.path_and_query = buf.parse().ok();
             let uri =
-                Uri::from_parts(parts).map_err(|e| BinanceError::other(format!("{:?}", e)))?;
+                Uri::from_parts(parts).map_err(|e| MexcError::other(format!("{:?}", e)))?;
             self.request = self.request.uri(uri);
         }
 
@@ -152,26 +152,26 @@ where
         self,
         name: Name,
         query: &Option<T>,
-    ) -> BinanceResult<Self> {
+    ) -> MexcResult<Self> {
         match query {
             Some(val) => self.query_arg(name, val),
             None => Ok(self),
         }
     }
 
-    pub fn auth_header(mut self) -> BinanceResult<Self> {
+    pub fn auth_header(mut self) -> MexcResult<Self> {
         self.request = self
             .request
             .append_header(("X-MBX-APIKEY", self.api_client.inner.config.api_key()));
         Ok(self)
     }
 
-    pub fn signed(mut self, time_window: impl Into<TimeWindow>) -> BinanceResult<Self> {
+    pub fn signed(mut self, time_window: impl Into<TimeWindow>) -> MexcResult<Self> {
         self.sign = Some(time_window.into());
         self.auth_header()
     }
 
-    pub async fn send<V>(mut self) -> BinanceResult<V>
+    pub async fn send<V>(mut self) -> MexcResult<V>
     where
         V: serde::de::DeserializeOwned,
     {
@@ -215,7 +215,7 @@ where
         }
     }
 
-    // pub async fn send_no_response(mut self) -> BinanceResult<()> {
+    // pub async fn send_no_response(mut self) -> MexcResult<()> {
     //     self = if let Some(sign) = self.sign.clone() {
     //         self = self.query_arg("timestamp", &sign.timestamp())?;
     //         let recv_window = sign.recv_window();
@@ -249,7 +249,7 @@ where
     //     Ok(())
     // }
 
-    async fn sign(self) -> BinanceResult<Self> {
+    async fn sign(self) -> MexcResult<Self> {
         let query = self.request.get_uri().query().unwrap_or("");
         let signature = self
             .api_client
@@ -264,7 +264,7 @@ where
 
 type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
-fn check_response(res: AwcClientResponse) -> BinanceResult<AwcClientResponse> {
+fn check_response(res: AwcClientResponse) -> MexcResult<AwcClientResponse> {
     let used_rate_limits = UsedRateLimits::from_headers(res.headers());
 
     log::debug!("  used_rate_limits:  {:?}", used_rate_limits);
@@ -275,11 +275,11 @@ fn check_response(res: AwcClientResponse) -> BinanceResult<AwcClientResponse> {
         StatusCode::SERVICE_UNAVAILABLE => Err(ApiServiceError::ServiceUnavailable)?,
         StatusCode::UNAUTHORIZED => Err(ApiError::Unauthorized)?,
         // StatusCode::BAD_REQUEST => {
-        //     let error_json: BinanceContentError = response.json()?;
+        //     let error_json: MexcContentError = response.json()?;
         //
-        //     Err(ErrorKind::BinanceError(error_json.code, error_json.msg, response).into())
+        //     Err(ErrorKind::MexcError(error_json.code, error_json.msg, response).into())
         // }
-        s => Err(BinanceError::UnknownStatus(s))?,
+        s => Err(MexcError::UnknownStatus(s))?,
     }
 }
 

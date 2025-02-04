@@ -7,7 +7,7 @@ pub mod error;
 pub mod proto;
 pub mod util;
 
-pub use self::client::BinanceSigner;
+pub use self::client::MexcSigner;
 pub use self::client::SignResult;
 pub use self::error::*;
 pub use self::proto::*;

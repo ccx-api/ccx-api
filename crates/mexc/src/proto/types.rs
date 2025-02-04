@@ -3,7 +3,7 @@ use std::ops;
 use chrono::Utc;
 
 use crate::ApiError;
-use crate::BinanceResult;
+use crate::MexcResult;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct TimeWindow {
@@ -53,7 +53,7 @@ impl ops::Deref for RecvWindow {
 impl RecvWindow {
     pub const DEFAULT: RecvWindow = RecvWindow(5000);
 
-    pub fn new(window: u32) -> BinanceResult<Self> {
+    pub fn new(window: u32) -> MexcResult<Self> {
         match () {
             () if window > 60000 => Err(ApiError::OutOfBounds)?,
             () => Ok(RecvWindow(window)),

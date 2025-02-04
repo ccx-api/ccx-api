@@ -5,7 +5,7 @@ use crate::client::Task;
 pub const SAPI_V1_FUTURES_TRANSFER: &str = "/sapi/v1/futures/transfer";
 pub const SAPI_V2_FUTURES_LOAN_CONFIGS: &str = "/sapi/v1/futures/loan/configs";
 
-/// [https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data]
+/// [https://mexc-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data]
 #[derive(
     Clone, Copy, Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Ord, PartialOrd, Hash,
 )]
@@ -48,7 +48,7 @@ pub struct FuturesAccountTransfer {
     pub status: FuturesTransferStatus,
 }
 
-/// [https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data]
+/// [https://mexc-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum FuturesTransferStatus {
     /// Pending to execution.
@@ -88,7 +88,7 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// New Future Account Transfer (USER_DATA).
@@ -105,7 +105,7 @@ mod with_network {
             amount: Decimal,
             r#type: FuturesTransferType,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<NewFuturesAccountTransfer>> {
+        ) -> MexcResult<Task<NewFuturesAccountTransfer>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -134,7 +134,7 @@ mod with_network {
             current_page: Option<u64>,
             page_size: Option<u64>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<FuturesAccountTransferHistoryList>> {
+        ) -> MexcResult<Task<FuturesAccountTransferHistoryList>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -169,7 +169,7 @@ mod with_network {
             loan_coin: Option<impl Serialize>,
             collateral_coin: Option<impl Serialize>,
             time_window: impl Into<TimeWindow>,
-        ) -> BinanceResult<Task<Vec<FuturesCrossCollateranlInformationV2>>> {
+        ) -> MexcResult<Task<Vec<FuturesCrossCollateranlInformationV2>>> {
             Ok(self
                 .rate_limiter
                 .task(

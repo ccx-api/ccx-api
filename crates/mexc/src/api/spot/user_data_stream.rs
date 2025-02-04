@@ -19,7 +19,7 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Create a listenKey.
@@ -28,7 +28,7 @@ mod with_network {
         /// The stream will close after 60 minutes unless a keepalive is sent.
         ///
         /// Weight: 1
-        pub fn user_data_stream(&self) -> BinanceResult<Task<ListenKey>> {
+        pub fn user_data_stream(&self) -> MexcResult<Task<ListenKey>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.post(V1_USER_DATA_STREAM)?.auth_header()?)

@@ -44,13 +44,13 @@ pub use self::subaccount::*;
 pub use self::user_data_stream::*;
 pub use self::wallet::*;
 pub use self::websocket_market::*;
-use crate::client::BinanceSigner;
+use crate::client::MexcSigner;
 
-pub const API_BASE: &str = "https://api.binance.com/";
-pub const STREAM_BASE: &str = "wss://stream.binance.com/stream";
+pub const API_BASE: &str = "https://api.mexc.com/";
+pub const STREAM_BASE: &str = "wss://stream.mexc.com/stream";
 
-pub const API_BASE_TESTNET: &str = "https://testnet.binance.vision/";
-pub const STREAM_BASE_TESTNET: &str = "wss://testnet.binance.vision/stream";
+pub const API_BASE_TESTNET: &str = "https://testnet.mexc.vision/";
+pub const STREAM_BASE_TESTNET: &str = "wss://testnet.mexc.vision/stream";
 
 pub const RL_WEIGHT_PER_MINUTE: &str = "weight_per_minute";
 pub const RL_ORDERS_PER_SECOND: &str = "orders_per_second";
@@ -78,7 +78,7 @@ mod with_network {
     #[derive(Clone)]
     pub struct SpotApi<S>
     where
-        S: BinanceSigner,
+        S: MexcSigner,
     {
         pub client: RestClient<S>,
         pub(crate) rate_limiter: RateLimiter,
@@ -86,7 +86,7 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: BinanceSigner,
+        S: MexcSigner,
     {
         pub fn new(signer: S, testnet: bool, proxy: Option<Proxy>) -> Self {
             let (api_base, stream_base) = if testnet {
@@ -156,7 +156,7 @@ mod with_network {
         }
 
         /// Creates multiplexed websocket stream.
-        pub async fn ws(&self) -> BinanceResult<WebsocketStream> {
+        pub async fn ws(&self) -> MexcResult<WebsocketStream> {
             self.client.web_socket().await
         }
     }

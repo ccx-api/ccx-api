@@ -3,17 +3,17 @@ use std::pin::Pin;
 
 use ccx_api_lib::ApiCred;
 
-use crate::BinanceResult;
+use crate::MexcResult;
 
-pub type SignResult<'a> = Pin<Box<dyn Future<Output = BinanceResult<String>> + Send + 'a>>;
+pub type SignResult<'a> = Pin<Box<dyn Future<Output = MexcResult<String>> + Send + 'a>>;
 
-pub trait BinanceSigner: Sync + Send {
+pub trait MexcSigner: Sync + Send {
     fn sign_data<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a>;
 
     fn api_key(&self) -> &str;
 }
 
-impl BinanceSigner for ApiCred {
+impl MexcSigner for ApiCred {
     fn sign_data<'a, 'b: 'a, 'c: 'b>(&'c self, query: &'b str) -> SignResult<'a> {
         Box::pin(async move { Ok(sign(query, self.secret.as_bytes())) })
     }

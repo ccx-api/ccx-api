@@ -16,14 +16,14 @@ use futures::prelude::*;
 use futures::task::Context;
 use futures::task::Poll;
 
-use super::BinanceSigner;
+use super::MexcSigner;
 use super::RequestBuilder;
-use crate::BinanceResult;
+use crate::MexcResult;
 use crate::LibError;
 
 type BucketName = Cow<'static, str>;
 type TaskCosts = HashMap<BucketName, u32>;
-type TaskMessageResult = BinanceResult<()>;
+type TaskMessageResult = MexcResult<()>;
 
 struct TaskMessage {
     priority: u8,
@@ -74,7 +74,7 @@ pub(crate) struct RateLimiter {
 impl RateLimiter {
     pub fn task<S>(&self, builder: RequestBuilder<S>) -> TaskBuilder<S>
     where
-        S: BinanceSigner + Unpin,
+        S: MexcSigner + Unpin,
     {
         TaskBuilder {
             priority: 0,
@@ -136,7 +136,7 @@ impl RateLimiter {
     async fn timeout(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         costs: &TaskCosts,
-    ) -> BinanceResult<Option<Duration>> {
+    ) -> MexcResult<Option<Duration>> {
         let mut timeout = Duration::default();
 
         for (name, cost) in costs {
@@ -186,7 +186,7 @@ impl RateLimiter {
     async fn set_costs(
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         costs: &TaskCosts,
-    ) -> BinanceResult<()> {
+    ) -> MexcResult<()> {
         for (name, cost) in costs {
             let mut bucket = match buckets.get(name) {
                 Some(bucket) => bucket.lock().await,
@@ -300,7 +300,7 @@ impl Iterator for Queue {
 
 pub(crate) struct TaskBuilder<S>
 where
-    S: BinanceSigner + Unpin + 'static,
+    S: MexcSigner + Unpin + 'static,
 {
     priority: u8,
     costs: TaskCosts,
@@ -310,7 +310,7 @@ where
 
 impl<S> TaskBuilder<S>
 where
-    S: BinanceSigner + Unpin + 'static,
+    S: MexcSigner + Unpin + 'static,
 {
     pub fn priority(mut self, priority: u8) -> Self {
         self.priority = priority;
@@ -365,7 +365,7 @@ pub struct Task<V>
 where
     V: serde::de::DeserializeOwned + Debug,
 {
-    fut: Pin<Box<dyn Future<Output = BinanceResult<V>>>>,
+    fut: Pin<Box<dyn Future<Output = MexcResult<V>>>>,
     costs: TaskCosts,
 }
 
@@ -384,7 +384,7 @@ impl<V> Future for Task<V>
 where
     V: serde::de::DeserializeOwned + Debug,
 {
-    type Output = BinanceResult<V>;
+    type Output = MexcResult<V>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         self.fut.poll_unpin(cx)

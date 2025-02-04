@@ -5,7 +5,7 @@ use ccx_mexc::api::spot::OrderSide;
 use ccx_mexc::api::spot::OrderType;
 use ccx_mexc::client::Task;
 use ccx_mexc::ApiCred;
-use ccx_mexc::BinanceResult;
+use ccx_mexc::MexcResult;
 use ccx_mexc::Decimal;
 use ccx_mexc::SpotApi;
 use ccx_mexc::TimeWindow;
@@ -19,26 +19,26 @@ async fn main() {
     let _ = main_().await;
 }
 
-async fn main_() -> BinanceResult<()> {
+async fn main_() -> MexcResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance = SpotApi::<ApiCred>::from_env();
+    let mexc = SpotApi::<ApiCred>::from_env();
 
-    // let book = print_res(binance.ticker_book(BTCBUSD).await)?;
-    // let time = print_res(binance.time().await)?;
+    // let book = print_res(mexc.ticker_book(BTCBUSD).await)?;
+    // let time = print_res(mexc.time().await)?;
 
-    // print_res(binance.account(TimeWindow::now()).await)?;
-    // print_res(binance.my_trades(BTCBUSD, None, None, None, Some(10), TimeWindow::now()).await)?;
-    // print_res(binance.my_trades(EURBUSD, None, None, None, Some(10), TimeWindow::now()).await)?;
+    // print_res(mexc.account(TimeWindow::now()).await)?;
+    // print_res(mexc.my_trades(BTCBUSD, None, None, None, Some(10), TimeWindow::now()).await)?;
+    // print_res(mexc.my_trades(EURBUSD, None, None, None, Some(10), TimeWindow::now()).await)?;
 
-    // print_res(binance.all_orders(SYMBOL, None, None, None, Some(10), TimeWindow::now()).await)?;
-    // print_res(binance.open_orders(Some(SYMBOL), TimeWindow::now()).await)?;
-    // print_res(binance.open_orders(Some(SYMBOL), TimeWindow::now()).await)?;
-    // print_res(binance.open_orders(None::<&str>, TimeWindow::now()).await)?;
+    // print_res(mexc.all_orders(SYMBOL, None, None, None, Some(10), TimeWindow::now()).await)?;
+    // print_res(mexc.open_orders(Some(SYMBOL), TimeWindow::now()).await)?;
+    // print_res(mexc.open_orders(Some(SYMBOL), TimeWindow::now()).await)?;
+    // print_res(mexc.open_orders(None::<&str>, TimeWindow::now()).await)?;
 
     // print_res(
-    //     binance
+    //     mexc
     //         .cancel_all_orders(
     //             SYMBOL,
     //             TimeWindow::now(),
@@ -47,7 +47,7 @@ async fn main_() -> BinanceResult<()> {
     // )?;
 
     // limit_order(
-    //     &binance,
+    //     &mexc,
     //     BTCBUSD,
     //     OrderSide::Buy,
     //     d("44000"),
@@ -56,7 +56,7 @@ async fn main_() -> BinanceResult<()> {
     // .await?;
     //
     // limit_order(
-    //     &binance,
+    //     &mexc,
     //     BTCBUSD,
     //     OrderSide::Buy,
     //     d("43000"),
@@ -64,10 +64,10 @@ async fn main_() -> BinanceResult<()> {
     // )?
     // .await?;
     //
-    // market_order(&binance, BTCBUSD, OrderSide::Sell, Quantity::Quote(d("22")))?.await?;
+    // market_order(&mexc, BTCBUSD, OrderSide::Sell, Quantity::Quote(d("22")))?.await?;
 
     // market_order(
-    //     &binance,
+    //     &mexc,
     //     EURBUSD,
     //     OrderSide::Buy,
     //     Quantity::Base(d("20")),
@@ -77,7 +77,7 @@ async fn main_() -> BinanceResult<()> {
     // let order = order.as_result().unwrap();
 
     // print_res(
-    //     binance
+    //     mexc
     //         .cancel_order(
     //             &order.symbol,
     //             Some(order.order_id),
@@ -89,7 +89,7 @@ async fn main_() -> BinanceResult<()> {
     // )?;
 
     // print_res(
-    //     binance
+    //     mexc
     //         .get_order(
     //             &order.symbol,
     //             Some(order.order_id),
@@ -102,14 +102,14 @@ async fn main_() -> BinanceResult<()> {
 }
 
 fn limit_order(
-    binance: &SpotApi<ApiCred>,
+    mexc: &SpotApi<ApiCred>,
     symbol: &str,
     side: OrderSide,
     price: Decimal,
     quantity: Quantity,
-) -> BinanceResult<Task<NewOrderResult>> {
+) -> MexcResult<Task<NewOrderResult>> {
     let (quantity, quote_quantity) = quantity.to_arg();
-    let task = binance
+    let task = mexc
         .create_order(
             symbol,
             side,
@@ -130,13 +130,13 @@ fn limit_order(
 }
 
 fn market_order(
-    binance: &SpotApi<ApiCred>,
+    mexc: &SpotApi<ApiCred>,
     symbol: &str,
     side: OrderSide,
     quantity: Quantity,
-) -> BinanceResult<Task<NewOrderResult>> {
+) -> MexcResult<Task<NewOrderResult>> {
     let (quantity, quote_quantity) = quantity.to_arg();
-    let task = binance
+    let task = mexc
         .create_order(
             symbol,
             side,

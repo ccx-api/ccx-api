@@ -390,7 +390,7 @@ impl<'de> Deserialize<'de> for SymbolPermission {
 
 // FIXME clarify: the documentation is ambiguous; only these values are listed as valid,
 //       but below it has a caution about value 0.
-//       [https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book]
+//       [https://github.com/mexc-exchange/mexc-official-api-docs/blob/master/rest-api.md#order-book]
 //       If 0 is valid, add it and specify its weight.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum OrderBookLimit {
@@ -567,13 +567,13 @@ mod with_network {
 
     impl<S> SpotApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Test connectivity to the Rest API.
         ///
         /// Weight: 1
-        pub fn ping(&self) -> BinanceResult<Task<Pong>> {
+        pub fn ping(&self) -> MexcResult<Task<Pong>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_PING)?)
@@ -584,7 +584,7 @@ mod with_network {
         /// Test connectivity to the Rest API and get the current server time.
         ///
         /// Weight: 1
-        pub fn time(&self) -> BinanceResult<Task<ServerTime>> {
+        pub fn time(&self) -> MexcResult<Task<ServerTime>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_TIME)?)
@@ -596,7 +596,7 @@ mod with_network {
         /// Current exchange trading rules and symbol information.
         ///
         /// Weight: 1
-        pub fn exchange_info(&self) -> BinanceResult<Task<ExchangeInformation>> {
+        pub fn exchange_info(&self) -> MexcResult<Task<ExchangeInformation>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_EXCHANGE_INFO)?)
@@ -620,7 +620,7 @@ mod with_network {
             &self,
             symbol: SM,
             limit: impl Into<Option<OrderBookLimit>>,
-        ) -> BinanceResult<Task<SpotOrderBook>> {
+        ) -> MexcResult<Task<SpotOrderBook>> {
             let limit: Option<OrderBookLimit> = limit.into();
             let weight = limit.as_ref().map(|f| f.weight()).unwrap_or(1);
 
@@ -651,7 +651,7 @@ mod with_network {
             &self,
             symbol: SM,
             limit: Option<usize>,
-        ) -> BinanceResult<Task<Vec<Trade>>> {
+        ) -> MexcResult<Task<Vec<Trade>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -681,7 +681,7 @@ mod with_network {
             symbol: SM,
             limit: Option<usize>,
             from_id: Option<u64>,
-        ) -> BinanceResult<Task<Vec<Trade>>> {
+        ) -> MexcResult<Task<Vec<Trade>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -724,7 +724,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             limit: Option<usize>,
-        ) -> BinanceResult<Task<Vec<AggTrade>>> {
+        ) -> MexcResult<Task<Vec<AggTrade>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -765,7 +765,7 @@ mod with_network {
             start_time: Option<u64>,
             end_time: Option<u64>,
             limit: Option<usize>,
-        ) -> BinanceResult<Task<Vec<Kline>>> {
+        ) -> MexcResult<Task<Vec<Kline>>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -793,7 +793,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub fn avg_price<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<AvgPrice>> {
+        pub fn avg_price<SM: AsRef<str>>(&self, symbol: SM) -> MexcResult<Task<AvgPrice>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -815,7 +815,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub fn ticker_24hr<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<TickerStats>> {
+        pub fn ticker_24hr<SM: AsRef<str>>(&self, symbol: SM) -> MexcResult<Task<TickerStats>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -834,7 +834,7 @@ mod with_network {
         /// Weight: 40
         ///
         /// Data Source: Memory
-        pub fn ticker_24hr_all(&self) -> BinanceResult<Task<Vec<TickerStats>>> {
+        pub fn ticker_24hr_all(&self) -> MexcResult<Task<Vec<TickerStats>>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_TICKER_24HR)?)
@@ -852,7 +852,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub fn ticker_price<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<PriceTicker>> {
+        pub fn ticker_price<SM: AsRef<str>>(&self, symbol: SM) -> MexcResult<Task<PriceTicker>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -871,7 +871,7 @@ mod with_network {
         /// Weight: 2
         ///
         /// Data Source: Memory
-        pub fn ticker_price_all(&self) -> BinanceResult<Task<Vec<PriceTicker>>> {
+        pub fn ticker_price_all(&self) -> MexcResult<Task<Vec<PriceTicker>>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_TICKER_PRICE)?)
@@ -889,7 +889,7 @@ mod with_network {
         /// * `symbol`
         ///
         /// Data Source: Memory
-        pub fn ticker_book<SM: AsRef<str>>(&self, symbol: SM) -> BinanceResult<Task<BookTicker>> {
+        pub fn ticker_book<SM: AsRef<str>>(&self, symbol: SM) -> MexcResult<Task<BookTicker>> {
             Ok(self
                 .rate_limiter
                 .task(
@@ -908,7 +908,7 @@ mod with_network {
         /// Weight: 2
         ///
         /// Data Source: Memory
-        pub fn ticker_book_all(&self) -> BinanceResult<Task<Vec<BookTicker>>> {
+        pub fn ticker_book_all(&self) -> MexcResult<Task<Vec<BookTicker>>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_TICKER_BOOK_TICKER)?)

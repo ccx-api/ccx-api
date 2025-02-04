@@ -19,13 +19,13 @@ mod with_network {
 
     impl<S> UmApi<S>
     where
-        S: crate::client::BinanceSigner,
+        S: crate::client::MexcSigner,
         S: Unpin + 'static,
     {
         /// Test connectivity to the Rest API and get the current server time.
         ///
         /// Weight: 1
-        pub fn time(&self) -> BinanceResult<Task<ServerTime>> {
+        pub fn time(&self) -> MexcResult<Task<ServerTime>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(FAPI_V1_TIME)?)

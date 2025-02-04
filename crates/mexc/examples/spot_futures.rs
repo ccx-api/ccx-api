@@ -1,5 +1,5 @@
 use ccx_mexc::ApiCred;
-use ccx_mexc::BinanceResult;
+use ccx_mexc::MexcResult;
 use ccx_mexc::SpotApi;
 use ccx_mexc::TimeWindow;
 use ccx_mexc_examples_util::*;
@@ -12,25 +12,25 @@ async fn main() {
     main_().await.unwrap();
 }
 
-async fn main_() -> BinanceResult<()> {
+async fn main_() -> MexcResult<()> {
     let _ = dotenv::dotenv();
     env_logger::init();
 
-    let binance_spot = SpotApi::<ApiCred>::from_env();
+    let mexc_spot = SpotApi::<ApiCred>::from_env();
 
-    // let time = print_res(binance_spot.time().await)?;
+    // let time = print_res(mexc_spot.time().await)?;
     // let start_time = time.server_time - 365 * 24 * 3600 * 1000;
 
     // let amount = d("1");
 
     let _cross_collateral_info = print_res(
-        binance_spot
+        mexc_spot
             .futures_cross_collateral_info_v2(None::<&str>, None::<&str>, TimeWindow::now())?
             .await,
     )?;
 
     // let _balance = print_res(
-    //     binance_spot
+    //     mexc_spot
     //         .futures_transfer_history(USDT, start_time, None, None, Some(100), TimeWindow::now())
     //         .await,
     // )?;
@@ -41,7 +41,7 @@ async fn main_() -> BinanceResult<()> {
     }
 
     // let _withdraw = print_res(
-    //     binance_spot
+    //     mexc_spot
     //         .clearjunction_withdraw(EUR, amount, init_time, TimeWindow::now())
     //         .await,
     // )?;
