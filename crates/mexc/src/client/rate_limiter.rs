@@ -18,8 +18,8 @@ use futures::task::Poll;
 
 use super::MexcSigner;
 use super::RequestBuilder;
-use crate::MexcResult;
 use crate::LibError;
+use crate::MexcResult;
 
 type BucketName = Cow<'static, str>;
 type TaskCosts = HashMap<BucketName, u32>;
@@ -412,11 +412,7 @@ mod tests {
     #[actix_rt::test]
     async fn test_rate_limiter_queue() {
         let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
-        let spot_api = SpotApi::new(
-            ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
-            true,
-            proxy,
-        );
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX), proxy);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(
@@ -452,11 +448,7 @@ mod tests {
     #[actix_rt::test]
     async fn test_rate_limiter_metadata() {
         let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
-        let spot_api = SpotApi::new(
-            ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
-            true,
-            proxy,
-        );
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX), proxy);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(
@@ -488,11 +480,7 @@ mod tests {
     #[actix_rt::test]
     async fn test_rate_limiter_delay() {
         let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
-        let spot_api = SpotApi::new(
-            ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
-            true,
-            proxy,
-        );
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX), proxy);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(
@@ -521,11 +509,7 @@ mod tests {
     #[actix_rt::test]
     async fn test_rate_limiter_wrong_bucket() {
         let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
-        let spot_api = SpotApi::new(
-            ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
-            true,
-            proxy,
-        );
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX), proxy);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(
@@ -548,11 +532,7 @@ mod tests {
     #[actix_rt::test]
     async fn test_rate_limiter_priority() {
         let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
-        let spot_api = SpotApi::new(
-            ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
-            true,
-            proxy,
-        );
+        let spot_api = SpotApi::new(ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX), proxy);
 
         let rate_limiter = RateLimiterBuilder::default()
             .bucket(

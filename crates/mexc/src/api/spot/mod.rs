@@ -47,10 +47,7 @@ pub use self::websocket_market::*;
 use crate::client::MexcSigner;
 
 pub const API_BASE: &str = "https://api.mexc.com/";
-pub const STREAM_BASE: &str = "wss://stream.mexc.com/stream";
-
-pub const API_BASE_TESTNET: &str = "https://testnet.mexc.vision/";
-pub const STREAM_BASE_TESTNET: &str = "wss://testnet.mexc.vision/stream";
+pub const STREAM_BASE: &str = "wss://wbs.mexc.com/ws";
 
 pub const RL_WEIGHT_PER_MINUTE: &str = "weight_per_minute";
 pub const RL_ORDERS_PER_SECOND: &str = "orders_per_second";
@@ -88,39 +85,29 @@ mod with_network {
     where
         S: MexcSigner,
     {
-        pub fn new(signer: S, testnet: bool, proxy: Option<Proxy>) -> Self {
-            let (api_base, stream_base) = if testnet {
-                (
-                    Url::parse(API_BASE_TESTNET).unwrap(),
-                    Url::parse(STREAM_BASE_TESTNET).unwrap(),
-                )
-            } else {
-                (
+        pub fn new(signer: S, proxy: Option<Proxy>) -> Self {
+            let (api_base, stream_base) = (
                     Url::parse(API_BASE).unwrap(),
                     Url::parse(STREAM_BASE).unwrap(),
-                )
-            };
+                );
             SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
         }
 
         /// Reads config from env vars with names like:
-        /// "CCX_MEXC_API_KEY", "CCX_MEXC_API_SECRET", and "CCX_MEXC_API_TESTNET"
+        /// "CCX_MEXC_API_KEY", "CCX_MEXC_API_SECRET"
         pub fn from_env() -> SpotApi<ApiCred> {
-            let testnet = Config::<S>::env_var("TESTNET").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
             SpotApi::new(
                 ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
-                testnet,
                 proxy,
             )
         }
 
         /// Reads config from env vars with names like:
-        /// "${prefix}_KEY", "${prefix}_SECRET", and "${prefix}_TESTNET"
+        /// "${prefix}_KEY", "${prefix}_SECRET"
         pub fn from_env_with_prefix(prefix: &str) -> SpotApi<ApiCred> {
-            let testnet = env_var_with_prefix(prefix, "TESTNET").as_deref() == Some("1");
             let proxy = Proxy::from_env_with_prefix(prefix);
-            SpotApi::new(ApiCred::from_env_with_prefix(prefix), testnet, proxy)
+            SpotApi::new(ApiCred::from_env_with_prefix(prefix), proxy)
         }
 
         pub fn with_config(config: Config<S>) -> Self {

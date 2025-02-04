@@ -162,7 +162,7 @@ where
     pub fn auth_header(mut self) -> MexcResult<Self> {
         self.request = self
             .request
-            .append_header(("X-MBX-APIKEY", self.api_client.inner.config.api_key()));
+            .append_header(("X-MEXC-APIKEY", self.api_client.inner.config.api_key()));
         Ok(self)
     }
 
