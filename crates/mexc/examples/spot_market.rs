@@ -1,11 +1,11 @@
-use ccx_binance::api::spot::OrderBookLimit;
-use ccx_binance::api::spot::SpotApi;
+use ccx_mexc::api::spot::OrderBookLimit;
+use ccx_mexc::api::spot::SpotApi;
 #[allow(unused_imports)]
-use ccx_binance::client::ApiCred;
-use ccx_binance::BinanceResult;
+use ccx_mexc::client::ApiCred;
+use ccx_mexc::BinanceResult;
 #[allow(unused_imports)]
-use ccx_binance::ChartInterval;
-use ccx_binance_examples_util::*;
+use ccx_mexc::ChartInterval;
+use ccx_mexc_examples_util::*;
 
 const SYMBOL: &str = "BNBBTC";
 

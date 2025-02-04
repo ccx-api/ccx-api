@@ -1,15 +1,15 @@
 use core::fmt;
 use std::collections::BTreeMap;
 
-use ccx_binance::api::spot::OrderBookLimit;
-use ccx_binance::util::OrderBook;
-use ccx_binance::util::OrderBookUpdater;
-use ccx_binance::ws_stream::UpstreamWebsocketMessage;
-use ccx_binance::ws_stream::WsEvent;
-use ccx_binance::ws_stream::WsStream;
-use ccx_binance::ApiCred;
-use ccx_binance::BinanceError;
-use ccx_binance::SpotApi;
+use ccx_mexc::api::spot::OrderBookLimit;
+use ccx_mexc::util::OrderBook;
+use ccx_mexc::util::OrderBookUpdater;
+use ccx_mexc::ws_stream::UpstreamWebsocketMessage;
+use ccx_mexc::ws_stream::WsEvent;
+use ccx_mexc::ws_stream::WsStream;
+use ccx_mexc::ApiCred;
+use ccx_mexc::BinanceError;
+use ccx_mexc::SpotApi;
 use console::Style;
 use console::Term;
 use futures::stream;
@@ -20,7 +20,7 @@ use smart_string::DisplayExt;
 use smart_string::SmartString;
 use string_cache::DefaultAtom as Atom;
 use string_cache::DefaultAtom;
-// use ccx_binance_examples_util::*;
+// use ccx_mexc_examples_util::*;
 
 enum X {
     Snapshot(OrderBook),

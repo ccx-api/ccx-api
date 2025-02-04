@@ -5,7 +5,7 @@ use url::Url;
 
 use crate::client::BinanceSigner;
 
-pub static CCX_BINANCE_API_PREFIX: &str = "CCX_BINANCE_API";
+pub static CCX_MEXC_API_PREFIX: &str = "CCX_MEXC_API";
 
 /// API config.
 #[derive(Clone)]
@@ -30,7 +30,7 @@ where
     }
 
     pub fn env_var(postfix: &str) -> Option<String> {
-        env_var_with_prefix(CCX_BINANCE_API_PREFIX, postfix)
+        env_var_with_prefix(CCX_MEXC_API_PREFIX, postfix)
     }
 
     pub(crate) fn api_key(&self) -> &str {

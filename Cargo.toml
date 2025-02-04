@@ -17,6 +17,8 @@ members = [
     "crates/gatepay",
     "crates/kraken",
     "crates/kraken/examples/util",
+    "crates/mexc",
+    "crates/mexc/examples/util",
     "crates/ccx-api-lib",
 ]
 

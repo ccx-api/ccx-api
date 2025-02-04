@@ -1,7 +1,7 @@
-use ccx_binance::api::um::UmApi;
-use ccx_binance::ApiCred;
-use ccx_binance::BinanceResult;
-use ccx_binance_examples_util::*;
+use ccx_mexc::api::um::UmApi;
+use ccx_mexc::ApiCred;
+use ccx_mexc::BinanceResult;
+use ccx_mexc_examples_util::*;
 
 #[actix_rt::main]
 async fn main() {

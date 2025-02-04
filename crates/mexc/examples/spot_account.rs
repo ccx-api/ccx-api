@@ -1,15 +1,15 @@
-// use ccx_binance::api::spot::NewOrder;
-use ccx_binance::api::spot::NewOrderResult;
-use ccx_binance::api::spot::OrderResponseType;
-use ccx_binance::api::spot::OrderSide;
-use ccx_binance::api::spot::OrderType;
-use ccx_binance::client::Task;
-use ccx_binance::ApiCred;
-use ccx_binance::BinanceResult;
-use ccx_binance::Decimal;
-use ccx_binance::SpotApi;
-use ccx_binance::TimeWindow;
-use ccx_binance_examples_util::d;
+// use ccx_mexc::api::spot::NewOrder;
+use ccx_mexc::api::spot::NewOrderResult;
+use ccx_mexc::api::spot::OrderResponseType;
+use ccx_mexc::api::spot::OrderSide;
+use ccx_mexc::api::spot::OrderType;
+use ccx_mexc::client::Task;
+use ccx_mexc::ApiCred;
+use ccx_mexc::BinanceResult;
+use ccx_mexc::Decimal;
+use ccx_mexc::SpotApi;
+use ccx_mexc::TimeWindow;
+use ccx_mexc_examples_util::d;
 
 const BTCBUSD: &str = "BTCBUSD";
 // const EURBUSD: &str = "EURBUSD";

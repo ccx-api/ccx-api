@@ -12,7 +12,7 @@ use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBuilder;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
-use crate::client::CCX_BINANCE_API_PREFIX;
+use crate::client::CCX_MEXC_API_PREFIX;
 use crate::error::*;
 
 mod market_data;
@@ -76,12 +76,12 @@ mod with_network {
         }
 
         /// Reads config from env vars with names like:
-        /// "CCX_BINANCE_API_KEY", "CCX_BINANCE_API_SECRET", and "CCX_BINANCE_API_TESTNET"
+        /// "CCX_MEXC_API_KEY", "CCX_MEXC_API_SECRET", and "CCX_MEXC_API_TESTNET"
         pub fn from_env() -> UmApi<ApiCred> {
             let testnet = Config::<S>::env_var("TESTNET").as_deref() == Some("1");
-            let proxy = Proxy::from_env_with_prefix(CCX_BINANCE_API_PREFIX);
+            let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
             UmApi::new(
-                ApiCred::from_env_with_prefix(CCX_BINANCE_API_PREFIX),
+                ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
                 testnet,
                 proxy,
             )

@@ -1,8 +1,8 @@
-use ccx_binance::api::spot::SpotApi;
-use ccx_binance::ApiCred;
-use ccx_binance::BinanceResult;
-use ccx_binance::TimeWindow;
-use ccx_binance_examples_util::*;
+use ccx_mexc::api::spot::SpotApi;
+use ccx_mexc::ApiCred;
+use ccx_mexc::BinanceResult;
+use ccx_mexc::TimeWindow;
+use ccx_mexc_examples_util::*;
 
 #[actix_rt::main]
 async fn main() {

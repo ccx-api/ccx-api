@@ -1,7 +1,7 @@
 use std::fmt;
 
-use ccx_binance::BinanceResult;
-use ccx_binance::Decimal;
+use ccx_mexc::BinanceResult;
+use ccx_mexc::Decimal;
 
 pub fn print_res<T: fmt::Debug>(res: BinanceResult<T>) -> BinanceResult<T> {
     match &res {
