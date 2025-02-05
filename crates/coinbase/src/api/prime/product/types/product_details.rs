@@ -25,7 +25,7 @@ pub struct ProductDetails {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -45,12 +45,12 @@ mod tests {
           }"#;
         let sample = ProductDetails {
             id: "BTC-USD".into(),
-            base_increment: d("1"),
-            quote_increment: d("1"),
-            base_min_size: d("100"),
-            quote_min_size: d("100"),
-            base_max_size: d("1000"),
-            quote_max_size: d("1000"),
+            base_increment: dec!(1),
+            quote_increment: dec!(1),
+            base_min_size: dec!(100),
+            quote_min_size: dec!(100),
+            base_max_size: dec!(1000),
+            quote_max_size: dec!(1000),
             permissions: vec!["string".to_string()],
         };
         let product_details: ProductDetails = serde_json::from_str(json).unwrap();

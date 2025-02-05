@@ -22,7 +22,7 @@ pub struct AssetDetails {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -38,7 +38,7 @@ mod tests {
         let sample = AssetDetails {
             name: "Bitcoin".into(),
             symbol: "BTC".into(),
-            decimal_precision: d("8"),
+            decimal_precision: dec!(8),
             trading_supported: true,
             explorer_url: Some("https://live.blockcypher.com/btc/".into()),
         };

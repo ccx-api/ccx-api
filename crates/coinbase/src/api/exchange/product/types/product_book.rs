@@ -53,7 +53,7 @@ pub struct ProductBookAuction {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -79,13 +79,13 @@ mod tests {
         }"#;
         let sample = ProductBook {
             asks: vec![ProductBookItem {
-                price: d("6251.52"),
-                size: d("2"),
+                price: dec!(6251.52),
+                size: dec!(2),
                 num_orders: 1,
             }],
             bids: vec![ProductBookItem {
-                price: d("6247.58"),
-                size: d("6.3578146"),
+                price: dec!(6247.58),
+                size: dec!(6.3578146),
                 num_orders: 2,
             }],
             // sequence: 13051505638.0,

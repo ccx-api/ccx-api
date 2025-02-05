@@ -46,7 +46,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -71,16 +71,16 @@ mod tests {
             AccountPortfolioWalletBalanceResponse {
                 balance: AccountPortfolioWalletBalance {
                     symbol: "BTC".into(),
-                    amount: d("109.42"),
-                    holds: d("2"),
-                    bonded_amount: Some(d("109.42")),
-                    reserved_amount: Some(d("109.42")),
-                    unbonding_amount: Some(d("109.42")),
-                    unvested_amount: Some(d("109.42")),
-                    pending_rewards_amount: Some(d("109.42")),
-                    past_rewards_amount: Some(d("109.42")),
-                    bondable_amount: Some(d("109.42")),
-                    withdrawable_amount: Some(d("109.42")),
+                    amount: dec!(109.42),
+                    holds: dec!(2),
+                    bonded_amount: Some(dec!(109.42)),
+                    reserved_amount: Some(dec!(109.42)),
+                    unbonding_amount: Some(dec!(109.42)),
+                    unvested_amount: Some(dec!(109.42)),
+                    pending_rewards_amount: Some(dec!(109.42)),
+                    past_rewards_amount: Some(dec!(109.42)),
+                    bondable_amount: Some(dec!(109.42)),
+                    withdrawable_amount: Some(dec!(109.42)),
                     fiat_amount: None,
                 },
             };

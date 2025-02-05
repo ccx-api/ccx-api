@@ -60,7 +60,7 @@ pub struct Item {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -120,7 +120,7 @@ mod tests {
     //         symbol: Atom::from("BTC"),
     //         created_at: DtCoinbasePrime::from("2021-05-31T11:59:59Z"),
     //         completed_at: DtCoinbasePrime::from("2021-05-31T12:09:31Z"),
-    //         amount: Decimal::from(100),
+    //         amount: dec!(100),
     //         transfer_from: TransactionTransfer {
     //             r#type: "string".to_string(),
     //             value: Uuid::parse_str("0bf7bf1e-bafa-4d7e-9312-fa0bf3b63f27").unwrap(),
@@ -135,14 +135,14 @@ mod tests {
     //         transaction_id: "A1B2C3D4".to_string(),
     //         destination_symbol: Atom::from("USD"),
     //         estimated_network_fees: TransactionEstimatedNetworkFees {
-    //             lower_bound: Decimal::from(1.99),
-    //             upper_bound: Decimal::from(2.99),
+    //             lower_bound: dec!(1.99),
+    //             upper_bound: dec!(2.99),
     //         },
     //         network: "ethereum-mainnet".to_string(),
     //         estimated_asset_changes: vec![EstimatedAssetChange {
     //             r#type: "string".to_string(),
     //             symbol: Atom::from("ETH"),
-    //             amount: Decimal::from(100),
+    //             amount: dec!(100),
     //             collection: Collection {
     //                 name: "string".to_string(),
     //             },
@@ -197,7 +197,7 @@ mod tests {
             symbol: Atom::from("USDT"),
             created_at: DtCoinbasePrime::parse_from_str("2024-01-23T12:34:56.123Z").unwrap(),
             completed_at: Some(DtCoinbasePrime::parse_from_str("2024-01-23T12:37:12Z").unwrap()),
-            amount: d("-10"),
+            amount: dec!(-10),
             transfer_from: TransactionTransfer {
                 r#type: "WALLET".into(),
                 value: "12345678-0000-0000-0000-000000000000".to_string(),
@@ -206,7 +206,7 @@ mod tests {
                 r#type: "ADDRESS".into(),
                 value: "0x1234567812345678123456781234567812345678".to_string(),
             },
-            fees: d("0"),
+            fees: dec!(0),
             fee_symbol: Atom::from("ETH"),
             blockchain_ids: vec![
                 "0x1234567812345678123456781234567812345678123456781234567812345678".to_string(),
@@ -261,7 +261,7 @@ mod tests {
             symbol: Atom::from("USDT"),
             created_at: DtCoinbasePrime::parse_from_str("2024-01-23T12:34:56.123Z").unwrap(),
             completed_at: None,
-            amount: d("-10"),
+            amount: dec!(-10),
             transfer_from: TransactionTransfer {
                 r#type: "WALLET".into(),
                 value: "12345678-0000-0000-0000-000000000000".to_string(),
@@ -270,7 +270,7 @@ mod tests {
                 r#type: "ADDRESS".into(),
                 value: "0x1234567812345678123456781234567812345678".to_string(),
             },
-            fees: d("0"),
+            fees: dec!(0),
             fee_symbol: Atom::from("ETH"),
             blockchain_ids: vec![],
             transaction_id: "A1B2C3D4".to_string(),

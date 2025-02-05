@@ -101,7 +101,7 @@ pub struct VaultBalances {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -166,8 +166,8 @@ mod tests {
             balances: vec![
                 CurrencyBalance {
                     symbol: Atom::from("usd"),
-                    amount: d("0.0032324125"),
-                    holds: d("0"),
+                    amount: dec!(0.0032324125),
+                    holds: dec!(0),
                     bonded_amount: None,
                     reserved_amount: None,
                     unbonding_amount: None,
@@ -175,13 +175,13 @@ mod tests {
                     pending_rewards_amount: None,
                     past_rewards_amount: None,
                     bondable_amount: None,
-                    withdrawable_amount: d("0.0032324125"),
-                    fiat_amount: d("0"),
+                    withdrawable_amount: dec!(0.0032324125),
+                    fiat_amount: dec!(0),
                 },
                 CurrencyBalance {
                     symbol: Atom::from("usdt"),
-                    amount: d("5309.4992533441396509"),
-                    holds: d("0"),
+                    amount: dec!(5309.4992533441396509),
+                    holds: dec!(0),
                     bonded_amount: None,
                     reserved_amount: None,
                     unbonding_amount: None,
@@ -189,13 +189,13 @@ mod tests {
                     pending_rewards_amount: None,
                     past_rewards_amount: None,
                     bondable_amount: None,
-                    withdrawable_amount: d("5309.4992533441396509"),
-                    fiat_amount: d("5309.21"),
+                    withdrawable_amount: dec!(5309.4992533441396509),
+                    fiat_amount: dec!(5309.21),
                 },
                 CurrencyBalance {
                     symbol: Atom::from("usdc"),
-                    amount: d("0.18021"),
-                    holds: d("0"),
+                    amount: dec!(0.18021),
+                    holds: dec!(0),
                     bonded_amount: None,
                     reserved_amount: None,
                     unbonding_amount: None,
@@ -203,18 +203,18 @@ mod tests {
                     pending_rewards_amount: None,
                     past_rewards_amount: None,
                     bondable_amount: None,
-                    withdrawable_amount: d("0.18021"),
-                    fiat_amount: d("0.18"),
+                    withdrawable_amount: dec!(0.18021),
+                    fiat_amount: dec!(0.18),
                 },
             ],
             r#type: BalanceType::TradingBalances,
             trading_balances: TradingBalances {
-                total: d("5309.39"),
-                holds: d("0"),
+                total: dec!(5309.39),
+                holds: dec!(0),
             },
             vault_balances: VaultBalances {
-                total: d("0.00"),
-                holds: d("0"),
+                total: dec!(0.00),
+                holds: dec!(0),
             },
         };
 

@@ -1,5 +1,6 @@
 pub use rust_decimal;
 pub use rust_decimal::Decimal;
+pub use rust_decimal_macros::dec;
 pub use string_cache;
 pub use string_cache::DefaultAtom as Atom;
 
@@ -9,6 +10,8 @@ mod client;
 mod connector;
 mod cred;
 mod env;
+#[cfg(feature = "with_env_logger")]
+pub mod env_logger_util;
 mod error;
 mod proxy;
 mod rate_limiter;

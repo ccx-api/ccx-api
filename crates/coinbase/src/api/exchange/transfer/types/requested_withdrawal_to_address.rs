@@ -23,7 +23,7 @@ pub struct RequestedWithdrawal {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -39,11 +39,11 @@ mod tests {
         }"#;
         let sample = RequestedWithdrawal {
             id: Uuid::parse_str("12345678-0000-0000-0000-000000000000").unwrap(),
-            amount: d("3.00000000"),
+            amount: dec!(3.00000000),
             currency: Atom::from("USDT"),
             payout_at: None,
-            fee: Some(d("2.278178")),
-            subtotal: Some(d("0.721822")),
+            fee: Some(dec!(2.278178)),
+            subtotal: Some(dec!(0.721822)),
             network: Some("ethereum".to_string()),
         };
         let withdrawal: RequestedWithdrawal = serde_json::from_str(json).unwrap();
@@ -59,7 +59,7 @@ mod tests {
         }"#;
         let sample = RequestedWithdrawal {
             id: Uuid::parse_str("12345678-0000-0000-0000-000000000000").unwrap(),
-            amount: d("10.00000000"),
+            amount: dec!(10.00000000),
             currency: Atom::from("USDT"),
             payout_at: None,
             fee: None,

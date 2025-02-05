@@ -59,7 +59,7 @@ pub struct AccountPortfolioOrder {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -102,7 +102,7 @@ mod tests {
             side: PortfolioOrderSide::Sell,
             client_order_id: "8af9d1c1-0000-0000-0000-000000000000".to_string(),
             r#type: PortfolioOrderType::Market,
-            base_quantity: Some(d("10.1")),
+            base_quantity: Some(dec!(10.1)),
             quote_value: None,
             limit_price: None,
             start_time: None,
@@ -110,10 +110,10 @@ mod tests {
             status: PortfolioOrderStatus::Filled,
             time_in_force: PortfolioOrderTimeInForce::ImmediateOrCancel,
             created_at: DtCoinbasePrime::parse_from_str("2022-11-22T11:33:44.857992Z").unwrap(),
-            filled_quantity: d("10.1"),
-            filled_value: d("10.101515"),
-            average_filled_price: d("1.00015"),
-            commission: d("0.0252537875"),
+            filled_quantity: dec!(10.1),
+            filled_value: dec!(10.101515),
+            average_filled_price: dec!(1.00015),
+            commission: dec!(0.0252537875),
             exchange_fee: None,
             historical_pov: None,
             liquidity: None,
@@ -159,17 +159,17 @@ mod tests {
             client_order_id: "12345678-1234-5678-abcd-000000000001".to_string(),
             r#type: PortfolioOrderType::Market,
             base_quantity: None,
-            quote_value: Some(d("5")),
+            quote_value: Some(dec!(5)),
             limit_price: None,
             start_time: None,
             expiry_time: None,
             status: PortfolioOrderStatus::Filled,
             time_in_force: PortfolioOrderTimeInForce::ImmediateOrCancel,
             created_at: DtCoinbasePrime::parse_from_str("2024-03-26T17:51:55.469280Z").unwrap(),
-            filled_quantity: d("0.0000711050557919"),
-            filled_value: d("4.9875311720698254"),
-            average_filled_price: d("70143.1300000187153077"),
-            commission: d("0.0124688279301746"),
+            filled_quantity: dec!(0.0000711050557919),
+            filled_value: dec!(4.9875311720698254),
+            average_filled_price: dec!(70143.1300000187153077),
+            commission: dec!(0.0124688279301746),
             exchange_fee: None,
             historical_pov: None,
             liquidity: None,

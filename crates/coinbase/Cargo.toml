@@ -60,6 +60,6 @@ ccx-api-lib = { path = "../ccx-api-lib" }
 [dev-dependencies]
 env_logger = "0.11"
 dotenv = "0.15"
-ccx-coinbase-examples-util = { path = "examples/util" }
+ccx-api-lib = { path = "../ccx-api-lib", features = ["with_env_logger"] }
 enum-iterator = "2.0.0"
 serde_plain = "1"

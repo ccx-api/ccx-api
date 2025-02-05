@@ -17,6 +17,11 @@ with_network = [
     "tokio-socks",
     "webpki-roots",
 ]
+with_env_logger = [
+    "chrono",
+    "env_logger",
+    "log",
+]
 
 [dependencies]
 actix-http = { version = "3", optional = true }
@@ -25,7 +30,11 @@ actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 awc = { version = "3", features = ["rustls"], optional = true }
 base64 = "0.21"
+chrono = { version = "0.4", optional = true }
+env_logger = { version = "0.11", optional = true }
+log = { version = "0.4", optional = true }
 rust_decimal = "1"
+rust_decimal_macros = "1"
 rustls = { version = "0.20", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

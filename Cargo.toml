@@ -11,7 +11,6 @@ members = [
     "crates/binance-pay",
     "crates/bitstamp",
     "crates/coinbase",
-    "crates/coinbase/examples/util",
     "crates/finery-markets",
     "crates/finery-markets/examples/util",
     "crates/gate",

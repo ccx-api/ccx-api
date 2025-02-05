@@ -29,7 +29,7 @@ pub struct Transfer {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -71,11 +71,11 @@ mod tests {
             processed_at: Some(
                 DtCoinbaseEx::parse_from_str("2024-04-26 01:23:45.123456+00").unwrap(),
             ),
-            amount: d("123456.15000000"),
+            amount: dec!(123456.15000000),
             details: TransferDetails {
-                fee: Some(d("1.234567")),
+                fee: Some(dec!(1.234567)),
                 network: Some("ethereum".to_string()),
-                subtotal: Some(d("123456.123456")),
+                subtotal: Some(dec!(123456.123456)),
                 sent_to_address: Some("0x1324576813245768132457681324576813245768".to_string()),
                 coinbase_account_id: Some(
                     Uuid::parse_str("12345678-0000-0000-0000-000000000000").unwrap(),
@@ -125,7 +125,7 @@ mod tests {
             ),
             canceled_at: None,
             processed_at: None,
-            amount: d("10.00000000"),
+            amount: dec!(10.00000000),
             details: TransferDetails {
                 fee: None,
                 network: None,
@@ -178,11 +178,11 @@ mod tests {
             completed_at: None,
             canceled_at: None,
             processed_at: None,
-            amount: d("10.00000000"),
+            amount: dec!(10.00000000),
             details: TransferDetails {
-                fee: Some(d("9.268372")),
+                fee: Some(dec!(9.268372)),
                 network: Some("ethereum".to_string()),
-                subtotal: Some(d("0.731628")),
+                subtotal: Some(dec!(0.731628)),
                 sent_to_address: Some("0x1324576813245768132457681324576813245768".to_string()),
                 coinbase_account_id: Some(
                     Uuid::parse_str("12345678-0000-0000-0000-000000000000").unwrap(),

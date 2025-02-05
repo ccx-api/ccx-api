@@ -24,7 +24,7 @@ pub struct BlockchainAddress {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -93,7 +93,7 @@ mod tests {
             activity_id: "12345678-0000-0000-0000-000000000000".parse().unwrap(),
             approval_url: "https://prime.coinbase.com/portfolio/12345678-0000-0000-0000-000000000000/activity/12345678-0000-0000-0000-000000000000".into(),
             symbol: "USDT".into(),
-            amount: d("10"),
+            amount: dec!(10),
             fee: None,
             destination_type: "External Address".into(),
             source_type: "USDT Trading Balance".into(),

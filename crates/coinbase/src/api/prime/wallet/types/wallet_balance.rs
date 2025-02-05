@@ -39,7 +39,7 @@ pub struct AccountPortfolioWalletBalance {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -60,16 +60,16 @@ mod tests {
         }"#;
         let expected: AccountPortfolioWalletBalance = AccountPortfolioWalletBalance {
             symbol: "BTC".into(),
-            amount: d("109.42"),
-            holds: d("2"),
-            bonded_amount: Some(d("109.42")),
-            reserved_amount: Some(d("109.42")),
-            unbonding_amount: Some(d("109.42")),
-            unvested_amount: Some(d("109.42")),
-            pending_rewards_amount: Some(d("109.42")),
-            past_rewards_amount: Some(d("109.42")),
-            bondable_amount: Some(d("109.42")),
-            withdrawable_amount: Some(d("109.42")),
+            amount: dec!(109.42),
+            holds: dec!(2),
+            bonded_amount: Some(dec!(109.42)),
+            reserved_amount: Some(dec!(109.42)),
+            unbonding_amount: Some(dec!(109.42)),
+            unvested_amount: Some(dec!(109.42)),
+            pending_rewards_amount: Some(dec!(109.42)),
+            past_rewards_amount: Some(dec!(109.42)),
+            bondable_amount: Some(dec!(109.42)),
+            withdrawable_amount: Some(dec!(109.42)),
             fiat_amount: None,
         };
         let deserialized: AccountPortfolioWalletBalance = serde_json::from_str(json).unwrap();
@@ -94,8 +94,8 @@ mod tests {
         }"#;
         let expected: AccountPortfolioWalletBalance = AccountPortfolioWalletBalance {
             symbol: "USDT".into(),
-            amount: d("5309.4992533441396509"),
-            holds: d("0"),
+            amount: dec!(5309.4992533441396509),
+            holds: dec!(0),
             bonded_amount: None,
             reserved_amount: None,
             unbonding_amount: None,
@@ -103,7 +103,7 @@ mod tests {
             pending_rewards_amount: None,
             past_rewards_amount: None,
             bondable_amount: None,
-            withdrawable_amount: Some(d("5309.4992533441396509")),
+            withdrawable_amount: Some(dec!(5309.4992533441396509)),
             fiat_amount: None,
         };
         let deserialized: AccountPortfolioWalletBalance = serde_json::from_str(json).unwrap();

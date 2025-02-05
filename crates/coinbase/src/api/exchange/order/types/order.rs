@@ -67,7 +67,7 @@ pub struct Order {
 
 #[cfg(test)]
 mod tests {
-    use ccx_coinbase_examples_util::d;
+    use ccx_api_lib::dec;
 
     use super::*;
 
@@ -97,8 +97,8 @@ mod tests {
             product_id: "USDT-EUR".into(),
             profile_id: None,
             side: OrderSide::Buy,
-            funds: Some(d("0.999955")),
-            specified_funds: Some(d("1")),
+            funds: Some(dec!(0.999955)),
+            specified_funds: Some(dec!(1)),
             r#type: OrderType::Market,
             time_in_force: None,
             expire_time: None,
@@ -107,9 +107,9 @@ mod tests {
             done_at: None,
             done_reason: None,
             reject_reason: None,
-            fill_fees: d("0"),
-            filled_size: d("0"),
-            executed_value: d("0"),
+            fill_fees: dec!(0),
+            filled_size: dec!(0),
+            executed_value: dec!(0),
             status: OrderStatus::Pending,
             settled: false,
             stop: None,
@@ -152,8 +152,8 @@ mod tests {
             product_id: "USDT-EUR".into(),
             profile_id: Some(Uuid::parse_str("817a34ca-a8cc-44e9-b6c8-e9627123d0cb").unwrap()),
             side: OrderSide::Buy,
-            funds: Some(d("0.9999550000000000")),
-            specified_funds: Some(d("1.0000000000000000")),
+            funds: Some(dec!(0.9999550000000000)),
+            specified_funds: Some(dec!(1.0000000000000000)),
             r#type: OrderType::Market,
             time_in_force: None,
             expire_time: None,
@@ -162,9 +162,9 @@ mod tests {
             done_at: Some(DtCoinbasePrime::parse_from_str("2024-04-04T14:48:48.330796Z").unwrap()),
             done_reason: Some("filled".into()),
             reject_reason: None,
-            fill_fees: d("0.0000447819840000"),
-            filled_size: d("1.08000000"),
-            executed_value: d("0.9951552000000000"),
+            fill_fees: dec!(0.0000447819840000),
+            filled_size: dec!(1.08000000),
+            executed_value: dec!(0.9951552000000000),
             status: OrderStatus::Done,
             settled: true,
             stop: None,
