@@ -12,38 +12,14 @@ use crate::client::CCX_MEXC_API_PREFIX;
 use crate::error::*;
 
 mod account;
-mod broker;
-mod margin;
 mod market_data;
 mod user_data_stream;
-// TODO mod error;
-// TODO mod savings;
-// TODO mod mining;
-mod futures;
-// TODO mod blvt;
-// TODO mod bswap;
-mod clearjunction;
-mod subaccount;
-pub mod util;
 mod wallet;
-mod websocket_market;
 
 pub use self::account::*;
-pub use self::broker::*;
-// TODO pub use self::error::*;
-// TODO pub use self::savings::*;
-// TODO pub use self::mining::*;
-// TODO pub use self::blvt::*;
-// TODO pub use self::bswap::*;
-#[cfg(feature = "experimental")]
-pub use self::clearjunction::*;
-pub use self::futures::*;
-pub use self::margin::*;
 pub use self::market_data::*;
-pub use self::subaccount::*;
 pub use self::user_data_stream::*;
 pub use self::wallet::*;
-pub use self::websocket_market::*;
 use crate::client::MexcSigner;
 
 pub const API_BASE: &str = "https://api.mexc.com/";
