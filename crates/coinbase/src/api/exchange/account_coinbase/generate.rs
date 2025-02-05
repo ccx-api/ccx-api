@@ -22,9 +22,9 @@ where
     ///
     /// Generates a one-time crypto address for depositing crypto.
     ///
-    ///     Note: You can generate an address for crypto deposits.
-    ///     See the [Coinbase Accounts](https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getcoinbaseaccounts/)
-    ///     section for information on how to retrieve your coinbase account ID.
+    /// > Note: You can generate an address for crypto deposits.
+    /// > See the [Coinbase Accounts](https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getcoinbaseaccounts/)
+    /// > section for information on how to retrieve your coinbase account ID.
     ///
     /// ## API Key Permissions
     ///

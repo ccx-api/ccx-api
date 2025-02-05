@@ -14,9 +14,9 @@ where
     ///
     /// Get a list of trading accounts from the profile of the API key.
     ///
-    ///     Note: Your trading accounts are separate from your Coinbase accounts.
-    ///     See [Deposit from Coinbase account](https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount/)
-    ///     for documentation on how to deposit funds to begin trading.
+    /// > Note: Your trading accounts are separate from your Coinbase accounts.
+    /// > See [Deposit from Coinbase account](https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount/)
+    /// > for documentation on how to deposit funds to begin trading.
     ///
     /// ## API Key Permissions
     ///
