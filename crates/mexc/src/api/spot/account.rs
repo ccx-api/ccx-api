@@ -26,24 +26,15 @@ pub enum OrderSide {
 }
 
 /// More information on how the order types definitions can be found here:
-/// [Types of Orders](https://www.mexc.com/en/support/articles/360033779452)
+/// [Types of Orders](https://mexcdevelop.github.io/apidocs/spot_v3_en/#enum-definitions)
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
-#[repr(u8)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum OrderType {
-    #[serde(rename = "LIMIT")]
-    Limit = 1,
-    #[serde(rename = "MARKET")]
-    Market = 2,
-    #[serde(rename = "STOP_LOSS")]
-    StopLoss = 4,
-    #[serde(rename = "STOP_LOSS_LIMIT")]
-    StopLossLimit = 8,
-    #[serde(rename = "TAKE_PROFIT")]
-    TakeProfit = 16,
-    #[serde(rename = "TAKE_PROFIT_LIMIT")]
-    TakeProfitLimit = 32,
-    #[serde(rename = "LIMIT_MAKER")]
-    LimitMaker = 64,
+    Limit,
+    Market,
+    LimitMaker,
+    ImmediateOrCancel,
+    FillOrKill,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
@@ -451,43 +442,14 @@ mod with_network {
                         ))?
                     }
                 }
-                OrderType::StopLoss => {
-                    if quantity.is_none() || stop_price.is_none() {
-                        Err(ApiError::mandatory_field_omitted("quantity, stop_price"))?
-                    }
-                }
-                OrderType::StopLossLimit => {
-                    if time_in_force.is_none()
-                        || quantity.is_none()
-                        || price.is_none()
-                        || stop_price.is_none()
-                    {
-                        Err(ApiError::mandatory_field_omitted(
-                            "time_in_force, quantity, price, stop_price",
-                        ))?
-                    }
-                }
-                OrderType::TakeProfit => {
-                    if quantity.is_none() || stop_price.is_none() {
-                        Err(ApiError::mandatory_field_omitted("quantity, stop_price"))?
-                    }
-                }
-                OrderType::TakeProfitLimit => {
-                    if time_in_force.is_none()
-                        || quantity.is_none()
-                        || price.is_none()
-                        || stop_price.is_none()
-                    {
-                        Err(ApiError::mandatory_field_omitted(
-                            "time_in_force, quantity, price, stop_price",
-                        ))?
-                    }
-                }
                 OrderType::LimitMaker => {
                     if quantity.is_none() || price.is_none() {
                         Err(ApiError::mandatory_field_omitted("quantity, price"))?
                     }
                 }
+                // TODO: figure out if there is a need for check for following types
+                OrderType::ImmediateOrCancel => {},
+                OrderType::FillOrKill => {},
             };
             let request = self
                 .client

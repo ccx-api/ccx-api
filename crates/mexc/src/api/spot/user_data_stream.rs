@@ -2,7 +2,7 @@ use super::prelude::*;
 use super::RL_WEIGHT_PER_MINUTE;
 use crate::client::Task;
 
-pub const V1_USER_DATA_STREAM: &str = "/api/v1/userDataStream";
+pub const V1_USER_DATA_STREAM: &str = "/api/v3/userDataStream";
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]

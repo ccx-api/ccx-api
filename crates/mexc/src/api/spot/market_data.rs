@@ -3,6 +3,8 @@ use serde::de::Deserializer;
 use serde::de::{self};
 use serde::ser::Serialize;
 use serde::ser::Serializer;
+use serde_repr::Deserialize_repr;
+use serde_repr::Serialize_repr;
 
 use super::prelude::*;
 use super::OrderType;
@@ -86,31 +88,38 @@ pub struct Symbol {
     pub base_commission_precision: u16,
     pub quote_commission_precision: u16,
     pub order_types: Vec<OrderType>,
-    pub iceberg_allowed: bool,
-    pub oco_allowed: bool,
-    pub quote_order_qty_market_allowed: bool,
     pub is_spot_trading_allowed: bool,
     pub is_margin_trading_allowed: bool,
-    pub filters: Vec<Filter>,
+    pub quote_amount_precision: Atom,
+    pub base_size_precision: Atom,
     pub permissions: Vec<SymbolPermission>,
+    pub filters: Vec<Filter>,
+    pub max_quote_amount: String,
+    pub maker_commission: Atom,
+    pub taker_commission: Atom,
+    pub quote_amount_precision_market: Atom,
+    pub maxQuoteAmountMarket: String,
+    pub full_name: Atom,
+    pub trade_side_type: TradeSideType,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum SymbolStatus {
-    #[serde(rename = "PRE_TRADING")]
-    PreTrading,
-    #[serde(rename = "TRADING")]
-    Trading,
-    #[serde(rename = "POST_TRADING")]
-    PostTrading,
-    #[serde(rename = "END_OF_DAY")]
-    EndOfDay,
-    #[serde(rename = "HALT")]
-    Halt,
-    #[serde(rename = "AUCTION_MATCH")]
-    AuctionMatch,
-    #[serde(rename = "BREAK")]
-    Break,
+    #[serde(rename = "1")]
+    Online,
+    #[serde(rename = "2")]
+    Pause,
+    #[serde(rename = "3")]
+    Offline,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone, Copy, Eq, PartialEq, Hash)]
+#[repr(u8)]
+pub enum TradeSideType {
+    All = 1,
+    BuyOrderOnly = 2,
+    SellOrderOnly = 3,
+    Close = 4,
 }
 
 /// Filters define trading rules on a symbol or an exchange. Filters come in two forms:
@@ -342,66 +351,10 @@ pub struct TrailingDeltaFilter {
     pub max_trailing_below_delta: Decimal,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SymbolPermission {
     Spot,
-    Margin,
-    Leveraged,
-    TradeGroup(u16),
-}
-
-impl Serialize for SymbolPermission {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match self {
-            SymbolPermission::Spot => s.serialize_str("SPOT"),
-            SymbolPermission::Margin => s.serialize_str("MARGIN"),
-            SymbolPermission::Leveraged => s.serialize_str("LEVERAGED"),
-            SymbolPermission::TradeGroup(group_num) => {
-                let group_num = format!("TRD_GRP_{:0>4}", group_num);
-                s.serialize_str(&group_num)
-            }
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for SymbolPermission {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        match &*s {
-            "SPOT" => Ok(Self::Spot),
-            "MARGIN" => Ok(Self::Margin),
-            "LEVERAGED" => Ok(Self::Leveraged),
-            trade_group if trade_group.contains("TRD_GRP") => {
-                // Format: TRD_GRP_0001
-                let group_num = trade_group.trim_start_matches("TRD_GRP_");
-                let group_num = group_num.parse::<u16>().map_err(de::Error::custom)?;
-                Ok(Self::TradeGroup(group_num))
-            }
-            _ => Err(de::Error::custom(format!("invalid type: {}", s))),
-        }
-    }
-}
-
-// FIXME clarify: the documentation is ambiguous; only these values are listed as valid,
-//       but below it has a caution about value 0.
-//       [https://github.com/mexc-exchange/mexc-official-api-docs/blob/master/rest-api.md#order-book]
-//       If 0 is valid, add it and specify its weight.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum OrderBookLimit {
-    N5 = 5,
-    N10 = 10,
-    N20 = 20,
-    N50 = 50,
-    N100 = 100,
-    N500 = 500,
-    N1000 = 1000,
-    N5000 = 5000,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -415,32 +368,41 @@ pub struct SpotOrderBook {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Trade {
-    pub id: u64,
+    // TODO: I saw only null values for the id so far...
+    // pub id: Option<u64>,
     pub price: Decimal,
     pub qty: Decimal,
     pub quote_qty: Decimal,
     pub time: u64,
     pub is_buyer_maker: bool,
     pub is_best_match: bool,
+    pub trade_type: TradeType,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum TradeType {
+    BID,
+    ASK,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AggTrade {
+    // TODO: I saw only null values for the id so far...
     /// Aggregate tradeId.
     #[serde(rename = "a")]
-    pub id: u64,
+    pub id: Option<u64>,
+    /// First tradeId.
+    #[serde(rename = "f")]
+    pub first_trade_id: Option<u64>,
+    /// Last tradeId.
+    #[serde(rename = "l")]
+    pub last_trade_id: Option<u64>,
     /// Price.
     #[serde(rename = "p")]
     pub price: Decimal,
     /// Quantity.
     #[serde(rename = "q")]
     pub qty: Decimal,
-    /// First tradeId.
-    #[serde(rename = "f")]
-    pub first_trade_id: u64,
-    /// Last tradeId.
-    #[serde(rename = "l")]
-    pub last_trade_id: u64,
     /// Timestamp.
     #[serde(rename = "T")]
     pub time: u64,
@@ -452,8 +414,7 @@ pub struct AggTrade {
     pub is_best_match: bool,
 }
 
-// FIXME serialize as a tuple
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Kline {
     pub open_time: u64,
     pub open: Decimal,
@@ -463,10 +424,89 @@ pub struct Kline {
     pub volume: Decimal,
     pub close_time: u64,
     pub quote_asset_volume: Decimal,
-    pub number_of_trades: u64,
-    pub taker_buy_base_asset_volume: Decimal,
-    pub taker_buy_quote_asset_volume: Decimal,
-    pub ignore: Decimal,
+}
+
+impl Serialize for Kline {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::SerializeSeq;
+
+        let mut seq = serializer.serialize_seq(Some(8))?;
+        seq.serialize_element(&self.open_time)?;
+        seq.serialize_element(&self.open)?;
+        seq.serialize_element(&self.high)?;
+        seq.serialize_element(&self.low)?;
+        seq.serialize_element(&self.close)?;
+        seq.serialize_element(&self.volume)?;
+        seq.serialize_element(&self.close_time)?;
+        seq.serialize_element(&self.quote_asset_volume)?;
+        seq.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for Kline {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::SeqAccess;
+        use serde::de::Visitor;
+        use std::fmt;
+
+        struct KlineVisitor;
+
+        impl<'de> Visitor<'de> for KlineVisitor {
+            type Value = Kline;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a sequence of 8 elements")
+            }
+
+            fn visit_seq<V>(self, mut seq: V) -> Result<Kline, V::Error>
+            where
+                V: SeqAccess<'de>,
+            {
+                let open_time = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(0, &self))?;
+                let open = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+                let high = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(2, &self))?;
+                let low = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(3, &self))?;
+                let close = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(4, &self))?;
+                let volume = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(5, &self))?;
+                let close_time = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(6, &self))?;
+                let quote_asset_volume = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(7, &self))?;
+                Ok(Kline {
+                    open_time,
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume,
+                    close_time,
+                    quote_asset_volume,
+                })
+            }
+        }
+
+        deserializer.deserialize_seq(KlineVisitor)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash)]
@@ -481,27 +521,22 @@ pub struct TickerStats {
     pub symbol: Atom,
     pub price_change: Decimal,
     pub price_change_percent: Decimal,
-    pub weighted_avg_price: Decimal,
     pub prev_close_price: Decimal,
     pub last_price: Decimal,
-    pub last_qty: Decimal,
     pub bid_price: Decimal,
+    pub bid_qty: Decimal,
     pub ask_price: Decimal,
+    pub ask_qty: Decimal,
     pub open_price: Decimal,
     pub high_price: Decimal,
     pub low_price: Decimal,
-    pub volume: Decimal,
+    pub volume: String,
     pub quote_volume: Decimal,
     pub open_time: u64,
     pub close_time: u64,
-    /// First trade id.
-    // FIXME Option<u64> when value is -1
-    pub first_id: i64,
-    /// Last trade id.
-    // FIXME Option<u64> when value is -1
-    pub last_id: i64,
-    /// Trade count.
-    pub count: u64,
+    // TODO: this is always null
+    // /// Trade count.
+    // pub count: Option<u64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
@@ -514,38 +549,10 @@ pub struct PriceTicker {
 #[serde(rename_all = "camelCase")]
 pub struct BookTicker {
     pub symbol: Atom,
-    pub bid_price: Decimal,
-    pub bid_qty: Decimal,
-    pub ask_price: Decimal,
-    pub ask_qty: Decimal,
-}
-
-impl OrderBookLimit {
-    pub fn weight(self) -> u32 {
-        use OrderBookLimit as OBL;
-
-        match self {
-            OBL::N5 | OBL::N10 | OBL::N20 | OBL::N50 | OBL::N100 => 1,
-            OBL::N500 => 5,
-            OBL::N1000 => 10,
-            OBL::N5000 => 50,
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        use OrderBookLimit as OBL;
-
-        match self {
-            OBL::N5 => "5",
-            OBL::N10 => "10",
-            OBL::N20 => "20",
-            OBL::N50 => "50",
-            OBL::N100 => "100",
-            OBL::N500 => "500",
-            OBL::N1000 => "1000",
-            OBL::N5000 => "5000",
-        }
-    }
+    pub bid_price: Option<Decimal>,
+    pub bid_qty: Option<Decimal>,
+    pub ask_price: Option<Decimal>,
+    pub ask_qty: Option<Decimal>,
 }
 
 impl From<SpotOrderBook> for OrderBook {
@@ -595,44 +602,34 @@ mod with_network {
 
         /// Current exchange trading rules and symbol information.
         ///
-        /// Weight: 1
+        /// Weight: 10
         pub fn exchange_info(&self) -> MexcResult<Task<ExchangeInformation>> {
             Ok(self
                 .rate_limiter
                 .task(self.client.get(API_V3_EXCHANGE_INFO)?)
-                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .cost(RL_WEIGHT_PER_MINUTE, 10)
                 .send())
         }
 
         /// Order book.
         ///
-        /// Weight: Adjusted based on the limit:
+        /// Weight: 1
         ///
-        /// Limit | Weight
-        /// | ---- | ---- |
-        /// 5, 10, 20, 50, 100 | 1
-        /// 500 | 5
-        /// 1000 | 10
-        /// 5000 | 50
-        ///
-        /// The default `limit` value is `N100`.
+        /// The default `limit` value is `100`.
         pub fn depth<SM: AsRef<str>>(
             &self,
             symbol: SM,
-            limit: impl Into<Option<OrderBookLimit>>,
+            limit: Option<u16>,
         ) -> MexcResult<Task<SpotOrderBook>> {
-            let limit: Option<OrderBookLimit> = limit.into();
-            let weight = limit.as_ref().map(|f| f.weight()).unwrap_or(1);
-
             Ok(self
                 .rate_limiter
                 .task(
                     self.client
                         .get(API_V3_DEPTH)?
                         .query_arg("symbol", symbol.as_ref())?
-                        .try_query_arg("limit", &limit.map(OrderBookLimit::as_str))?,
+                        .try_query_arg("limit", &limit)?,
                 )
-                .cost(RL_WEIGHT_PER_MINUTE, weight)
+                .cost(RL_WEIGHT_PER_MINUTE, 1)
                 .send())
         }
 
@@ -640,7 +637,7 @@ mod with_network {
         ///
         /// Get recent trades.
         ///
-        /// Weight: 1
+        /// Weight: 5
         ///
         /// Parameters:
         /// * `symbol`
@@ -660,7 +657,7 @@ mod with_network {
                         .query_arg("symbol", symbol.as_ref())?
                         .try_query_arg("limit", &limit)?,
                 )
-                .cost(RL_WEIGHT_PER_MINUTE, 1)
+                .cost(RL_WEIGHT_PER_MINUTE, 5)
                 .send())
         }
 
@@ -672,7 +669,6 @@ mod with_network {
         ///
         /// Parameters:
         /// * `symbol`
-        /// * `from_id` - trade id to fetch from. Default gets most recent trades.
         /// * `limit` - default 500; max 1000.
         ///
         /// Data Source: Database
@@ -680,7 +676,6 @@ mod with_network {
             &self,
             symbol: SM,
             limit: Option<usize>,
-            from_id: Option<u64>,
         ) -> MexcResult<Task<Vec<Trade>>> {
             Ok(self
                 .rate_limiter
@@ -689,7 +684,6 @@ mod with_network {
                         .get(API_V3_HISTORICAL_TRADES)?
                         .auth_header()?
                         .query_arg("symbol", symbol.as_ref())?
-                        .try_query_arg("fromId", &from_id)?
                         .try_query_arg("limit", &limit)?,
                 )
                 .cost(RL_WEIGHT_PER_MINUTE, 5)
@@ -705,7 +699,6 @@ mod with_network {
         ///
         /// Parameters:
         /// * `symbol`
-        /// * `from_id` - id to get aggregate trades from INCLUSIVE.
         /// * `start_time` - Timestamp in ms to get aggregate trades from INCLUSIVE.
         /// * `end_time` - timestamp in ms to get aggregate trades until INCLUSIVE.
         /// * `limit` - default 500; max 1000.
@@ -720,7 +713,6 @@ mod with_network {
         pub fn agg_trades<SM: AsRef<str>>(
             &self,
             symbol: SM,
-            from_id: Option<u64>,
             start_time: Option<u64>,
             end_time: Option<u64>,
             limit: Option<usize>,
@@ -731,7 +723,6 @@ mod with_network {
                     self.client
                         .get(API_V3_AGG_TRADES)?
                         .query_arg("symbol", symbol.as_ref())?
-                        .try_query_arg("fromId", &from_id)?
                         .try_query_arg("startTime", &start_time)?
                         .try_query_arg("endTime", &end_time)?
                         .try_query_arg("limit", &limit)?,

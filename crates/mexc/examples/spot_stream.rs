@@ -1,7 +1,6 @@
 use core::fmt;
 use std::collections::BTreeMap;
 
-use ccx_mexc::api::spot::OrderBookLimit;
 use ccx_mexc::util::OrderBook;
 use ccx_mexc::util::OrderBookUpdater;
 use ccx_mexc::ws_stream::UpstreamWebsocketMessage;
@@ -42,148 +41,146 @@ async fn main() {
 
     let mexc_spot = SpotApi::<ApiCred>::from_env();
 
-    let res = async move {
-        let (sink, stream) = mexc_spot.ws().await?.split();
-        println!("Connected");
+    let res =
+        async move {
+            let (sink, stream) = mexc_spot.ws().await?.split();
+            println!("Connected");
 
-        let symbol = "BTCUSDT";
+            let symbol = "BTCUSDT";
 
-        let subscribe_list = [symbol]
-            .into_iter()
-            .map(|v| (v.to_lowercase(), WsStream::Depth100ms).into())
-            .collect();
+            let subscribe_list = [symbol]
+                .into_iter()
+                .map(|v| (v.to_lowercase(), WsStream::Depth100ms).into())
+                .collect();
 
-        sink.subscribe_list(subscribe_list).await.unwrap();
-        println!("Subscribed");
+            sink.subscribe_list(subscribe_list).await.unwrap();
+            println!("Subscribed");
 
-        let mut updater = OrderBookUpdater::new();
+            let mut updater = OrderBookUpdater::new();
 
-        let snapshot = Box::pin(
-            mexc_spot
-                .depth(symbol, OrderBookLimit::N1000)?
-                .into_stream()
-                .map(move |r| match r {
+            let snapshot = Box::pin(mexc_spot.depth(symbol, Some(1000))?.into_stream().map(
+                move |r| match r {
                     Ok(book) => X::Snapshot(book.into()),
                     Err(e) => X::SnapshotErr(e),
-                }),
-        );
+                },
+            ));
 
-        let mut stream = Box::pin(stream.filter_map(move |e| async move {
-            match e {
-                UpstreamWebsocketMessage::Event(e) => Some(X::Event(e)),
-                UpstreamWebsocketMessage::Response(e) => {
-                    println!("{:?}", e);
-                    None
-                }
-            }
-        }));
-        let mut stream = stream::select(&mut stream, snapshot);
-
-        while let Some(e) = stream.next().await {
-            match e {
-                X::Event(e) => {
-                    if let WsEvent::OrderBookDiff(diff) = e {
-                        updater.push_diff(diff).unwrap();
+            let mut stream = Box::pin(stream.filter_map(move |e| async move {
+                match e {
+                    UpstreamWebsocketMessage::Event(e) => Some(X::Event(e)),
+                    UpstreamWebsocketMessage::Response(e) => {
+                        println!("{:?}", e);
+                        None
                     }
                 }
-                X::Snapshot(snapshot) => {
-                    updater.init(snapshot).unwrap();
+            }));
+            let mut stream = stream::select(&mut stream, snapshot);
+
+            while let Some(e) = stream.next().await {
+                match e {
+                    X::Event(e) => {
+                        if let WsEvent::OrderBookDiff(diff) = e {
+                            updater.push_diff(diff).unwrap();
+                        }
+                    }
+                    X::Snapshot(snapshot) => {
+                        updater.init(snapshot).unwrap();
+                    }
+                    X::SnapshotErr(e) => {
+                        log::error!("SnapshotErr: {:?}", e);
+                        break;
+                    }
                 }
-                X::SnapshotErr(e) => {
-                    log::error!("SnapshotErr: {:?}", e);
-                    break;
-                }
-            }
-            match updater.state() {
-                None => {}
-                Some(book) => {
-                    for _ in 0..5 {
+                match updater.state() {
+                    None => {}
+                    Some(book) => {
+                        for _ in 0..5 {
+                            term.clear_line()?;
+                            term.write_line("")?;
+                        }
+
+                        term.clear_line()?;
+                        term.write_line(&format!(
+                            "                 {:^20}",
+                            symbol_style.apply_to(symbol)
+                        ))?;
+
                         term.clear_line()?;
                         term.write_line("")?;
-                    }
 
-                    term.clear_line()?;
-                    term.write_line(&format!(
-                        "                 {:^20}",
-                        symbol_style.apply_to(symbol)
-                    ))?;
+                        let (a, b) = book.ask_avg().unwrap_or_default();
 
-                    term.clear_line()?;
-                    term.write_line("")?;
-
-                    let (a, b) = book.ask_avg().unwrap_or_default();
-
-                    term.clear_line()?;
-                    term.write_line(&format!(
-                        "{}",
-                        main_style.apply_to(&format!(
-                            "ask avg.: {} :: {}",
-                            NiceNum(&ask_style, a, 6),
-                            NiceNum(&ask_style, b, 6),
-                        )),
-                    ))?;
-
-                    term.clear_line()?;
-                    term.write_line("")?;
-
-                    let len = book.asks().len();
-                    let begin = len - len.min(10);
-
-                    for (&p, &v) in book.asks().iter().rev().skip(begin) {
                         term.clear_line()?;
                         term.write_line(&format!(
-                            "          {} :: {}",
-                            NiceNum(&ask_style, p, 6),
-                            NiceNum(&ask_style, v, 6),
+                            "{}",
+                            main_style.apply_to(&format!(
+                                "ask avg.: {} :: {}",
+                                NiceNum(&ask_style, a, 6),
+                                NiceNum(&ask_style, b, 6),
+                            )),
                         ))?;
-                    }
 
-                    term.clear_line()?;
-                    term.write_line("")?;
+                        term.clear_line()?;
+                        term.write_line("")?;
 
-                    term.clear_line()?;
-                    // term.write_line(&format!("spread: {}", book.spread()))?;
-                    term.write_line(&format!(
-                        "{}",
-                        main_style.apply_to(&format!(
-                            "spread:   {}",
-                            NiceNum(&num_style, book.spread(), 6),
-                        ))
-                    ))?;
+                        let len = book.asks().len();
+                        let begin = len - len.min(10);
 
-                    term.clear_line()?;
-                    term.write_line("")?;
+                        for (&p, &v) in book.asks().iter().rev().skip(begin) {
+                            term.clear_line()?;
+                            term.write_line(&format!(
+                                "          {} :: {}",
+                                NiceNum(&ask_style, p, 6),
+                                NiceNum(&ask_style, v, 6),
+                            ))?;
+                        }
 
-                    for (&p, &v) in book.bids().iter().rev().take(10) {
+                        term.clear_line()?;
+                        term.write_line("")?;
+
+                        term.clear_line()?;
+                        // term.write_line(&format!("spread: {}", book.spread()))?;
+                        term.write_line(&format!(
+                            "{}",
+                            main_style.apply_to(&format!(
+                                "spread:   {}",
+                                NiceNum(&num_style, book.spread(), 6),
+                            ))
+                        ))?;
+
+                        term.clear_line()?;
+                        term.write_line("")?;
+
+                        for (&p, &v) in book.bids().iter().rev().take(10) {
+                            term.clear_line()?;
+                            term.write_line(&format!(
+                                "          {} :: {}",
+                                NiceNum(&bid_style, p, 6),
+                                NiceNum(&bid_style, v, 6),
+                            ))?;
+                        }
+
+                        let (a, b) = book.bid_avg().unwrap_or_default();
+
+                        term.clear_line()?;
+                        term.write_line("")?;
+
                         term.clear_line()?;
                         term.write_line(&format!(
-                            "          {} :: {}",
-                            NiceNum(&bid_style, p, 6),
-                            NiceNum(&bid_style, v, 6),
+                            "{}",
+                            main_style.apply_to(&format!(
+                                "bid avg.: {} :: {}",
+                                NiceNum(&bid_style, a, 6),
+                                NiceNum(&bid_style, b, 6),
+                            )),
                         ))?;
+
+                        term.move_cursor_up(34)?;
                     }
-
-                    let (a, b) = book.bid_avg().unwrap_or_default();
-
-                    term.clear_line()?;
-                    term.write_line("")?;
-
-                    term.clear_line()?;
-                    term.write_line(&format!(
-                        "{}",
-                        main_style.apply_to(&format!(
-                            "bid avg.: {} :: {}",
-                            NiceNum(&bid_style, a, 6),
-                            NiceNum(&bid_style, b, 6),
-                        )),
-                    ))?;
-
-                    term.move_cursor_up(34)?;
                 }
             }
-        }
-        Ok::<(), MexcError>(())
-    };
+            Ok::<(), MexcError>(())
+        };
     println!("Execution stopped with: {:?}", res.await);
 }
 

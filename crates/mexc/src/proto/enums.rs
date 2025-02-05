@@ -5,30 +5,18 @@ use serde::Serialize;
 pub enum ChartInterval {
     #[serde(rename = "1m")]
     Minute1,
-    #[serde(rename = "3m")]
-    Minute3,
     #[serde(rename = "5m")]
     Minute5,
     #[serde(rename = "15m")]
     Minute15,
     #[serde(rename = "30m")]
     Minute30,
-    #[serde(rename = "1h")]
-    Hour1,
-    #[serde(rename = "2h")]
-    Hour2,
+    #[serde(rename = "60m")]
+    Minute60,
     #[serde(rename = "4h")]
     Hour4,
-    #[serde(rename = "6h")]
-    Hour6,
-    #[serde(rename = "8h")]
-    Hour8,
-    #[serde(rename = "12h")]
-    Hour12,
     #[serde(rename = "1d")]
     Day1,
-    #[serde(rename = "3d")]
-    Day3,
     #[serde(rename = "1w")]
     Week1,
     #[serde(rename = "1M")]
