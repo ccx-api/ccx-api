@@ -1,18 +1,18 @@
-// use ccx_mexc::api::spot::NewOrder;
-use ccx_mexc::api::spot::NewOrderResult;
-use ccx_mexc::api::spot::OrderResponseType;
+use ccx_mexc::api::spot::NewOrder;
 use ccx_mexc::api::spot::OrderSide;
 use ccx_mexc::api::spot::OrderType;
 use ccx_mexc::client::Task;
 use ccx_mexc::ApiCred;
-use ccx_mexc::MexcResult;
 use ccx_mexc::Decimal;
+use ccx_mexc::MexcResult;
 use ccx_mexc::SpotApi;
 use ccx_mexc::TimeWindow;
 use ccx_mexc_examples_util::d;
+use ccx_mexc_examples_util::print_res;
 
-const BTCBUSD: &str = "BTCBUSD";
-// const EURBUSD: &str = "EURBUSD";
+// prevent some operations that could affect balance
+const ENABLE_BALANCE_OPERATION: bool = false;
+const SYMBOL: &str = "MXUSDT";
 
 #[actix_rt::main]
 async fn main() {
@@ -25,79 +25,61 @@ async fn main_() -> MexcResult<()> {
 
     let mexc = SpotApi::<ApiCred>::from_env();
 
-    // let book = print_res(mexc.ticker_book(BTCBUSD).await)?;
-    // let time = print_res(mexc.time().await)?;
+    print_res(mexc.account(TimeWindow::now())?.await)?;
+    print_res(
+        mexc.my_trades(SYMBOL, None, None, Some(10), TimeWindow::now())?
+            .await,
+    )?;
 
-    // print_res(mexc.account(TimeWindow::now()).await)?;
-    // print_res(mexc.my_trades(BTCBUSD, None, None, None, Some(10), TimeWindow::now()).await)?;
-    // print_res(mexc.my_trades(EURBUSD, None, None, None, Some(10), TimeWindow::now()).await)?;
+    print_res(
+        mexc.all_orders(SYMBOL, None, None, Some(10), TimeWindow::now())?
+            .await,
+    )?;
+    print_res(mexc.open_orders(SYMBOL, TimeWindow::now())?.await)?;
 
-    // print_res(mexc.all_orders(SYMBOL, None, None, None, Some(10), TimeWindow::now()).await)?;
-    // print_res(mexc.open_orders(Some(SYMBOL), TimeWindow::now()).await)?;
-    // print_res(mexc.open_orders(Some(SYMBOL), TimeWindow::now()).await)?;
-    // print_res(mexc.open_orders(None::<&str>, TimeWindow::now()).await)?;
+    if ENABLE_BALANCE_OPERATION {
+        let _ = limit_order(
+            &mexc,
+            SYMBOL,
+            OrderSide::Buy,
+            d("440"),
+            Quantity::Base(d("1")),
+        )?
+        .await;
 
-    // print_res(
-    //     mexc
-    //         .cancel_all_orders(
-    //             SYMBOL,
-    //             TimeWindow::now(),
-    //         )
-    //         .await,
-    // )?;
+        let _ = market_order(&mexc, SYMBOL, OrderSide::Sell, Quantity::Quote(d("22")))?.await;
 
-    // limit_order(
-    //     &mexc,
-    //     BTCBUSD,
-    //     OrderSide::Buy,
-    //     d("44000"),
-    //     Quantity::Base(d("0.0005")),
-    // )?
-    // .await?;
-    //
-    // limit_order(
-    //     &mexc,
-    //     BTCBUSD,
-    //     OrderSide::Buy,
-    //     d("43000"),
-    //     Quantity::Base(d("0.0005")),
-    // )?
-    // .await?;
-    //
-    // market_order(&mexc, BTCBUSD, OrderSide::Sell, Quantity::Quote(d("22")))?.await?;
+        print_res(mexc.open_orders(SYMBOL, TimeWindow::now())?.await)?;
+        print_res(mexc.cancel_all_orders(SYMBOL, TimeWindow::now())?.await)?;
+        print_res(
+            mexc.all_orders(SYMBOL, None, None, None, TimeWindow::now())?
+                .await,
+        )?;
 
-    // market_order(
-    //     &mexc,
-    //     EURBUSD,
-    //     OrderSide::Buy,
-    //     Quantity::Base(d("20")),
-    // )
-    // .await?;
+        let order = market_order(&mexc, SYMBOL, OrderSide::Buy, Quantity::Base(d("20")))?.await?;
 
-    // let order = order.as_result().unwrap();
+        print_res(
+            mexc.cancel_order(
+                &order.symbol,
+                Some(order.order_id.clone()),
+                None::<&str>,
+                None::<&str>,
+                TimeWindow::now(),
+            )?
+            .await,
+        )?;
 
-    // print_res(
-    //     mexc
-    //         .cancel_order(
-    //             &order.symbol,
-    //             Some(order.order_id),
-    //             None::<&str>,
-    //             None::<&str>,
-    //             TimeWindow::now(),
-    //         )
-    //         .await,
-    // )?;
+        print_res(
+            mexc.get_order(
+                &order.symbol,
+                Some(order.order_id),
+                None::<&str>,
+                TimeWindow::now(),
+            )?
+            .await,
+        )?;
+    }
 
-    // print_res(
-    //     mexc
-    //         .get_order(
-    //             &order.symbol,
-    //             Some(order.order_id),
-    //             None::<&str>,
-    //             TimeWindow::now(),
-    //         )
-    //         .await,
-    // );
     Ok(())
 }
 
@@ -107,25 +89,18 @@ fn limit_order(
     side: OrderSide,
     price: Decimal,
     quantity: Quantity,
-) -> MexcResult<Task<NewOrderResult>> {
+) -> MexcResult<Task<NewOrder>> {
     let (quantity, quote_quantity) = quantity.to_arg();
-    let task = mexc
-        .create_order(
-            symbol,
-            side,
-            OrderType::LimitMaker,
-            None,
-            quantity,
-            quote_quantity,
-            None,
-            Some(price),
-            None,
-            None::<&str>,
-            Some(OrderResponseType::Result),
-            TimeWindow::now(),
-        )?
-        .as_result()
-        .unwrap();
+    let task = mexc.create_order(
+        symbol,
+        side,
+        OrderType::Limit,
+        quantity,
+        quote_quantity,
+        Some(price),
+        None::<&str>,
+        TimeWindow::now(),
+    )?;
     Ok(task)
 }
 
@@ -134,25 +109,18 @@ fn market_order(
     symbol: &str,
     side: OrderSide,
     quantity: Quantity,
-) -> MexcResult<Task<NewOrderResult>> {
+) -> MexcResult<Task<NewOrder>> {
     let (quantity, quote_quantity) = quantity.to_arg();
-    let task = mexc
-        .create_order(
-            symbol,
-            side,
-            OrderType::Market,
-            None,
-            quantity,
-            quote_quantity,
-            None,
-            None,
-            None,
-            None::<&str>,
-            Some(OrderResponseType::Result),
-            TimeWindow::now(),
-        )?
-        .as_result()
-        .unwrap();
+    let task = mexc.create_order(
+        symbol,
+        side,
+        OrderType::Market,
+        quantity,
+        quote_quantity,
+        None,
+        None::<&str>,
+        TimeWindow::now(),
+    )?;
     Ok(task)
 }
 
