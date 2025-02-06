@@ -203,10 +203,7 @@ impl std::ops::Deref for WebsocketStream {
 }
 
 impl WebsocketStreamTx {
-    pub async fn subscribe_one(
-        &self,
-        subscription: impl Into<WsSubscription>,
-    ) -> MexcResult<()> {
+    pub async fn subscribe_one(&self, subscription: impl Into<WsSubscription>) -> MexcResult<()> {
         let cmd = WsCommand::Subscribe1([subscription.into()]);
         self.addr
             .send(M(cmd))

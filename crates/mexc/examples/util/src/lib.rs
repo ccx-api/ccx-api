@@ -1,7 +1,7 @@
 use std::fmt;
 
-use ccx_mexc::MexcResult;
 use ccx_mexc::Decimal;
+use ccx_mexc::MexcResult;
 
 pub fn print_res<T: fmt::Debug>(res: MexcResult<T>) -> MexcResult<T> {
     match &res {

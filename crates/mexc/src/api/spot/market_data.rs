@@ -451,9 +451,10 @@ impl<'de> Deserialize<'de> for Kline {
     where
         D: Deserializer<'de>,
     {
+        use std::fmt;
+
         use serde::de::SeqAccess;
         use serde::de::Visitor;
-        use std::fmt;
 
         struct KlineVisitor;
 

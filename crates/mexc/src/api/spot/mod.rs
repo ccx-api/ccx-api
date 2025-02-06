@@ -63,9 +63,9 @@ mod with_network {
     {
         pub fn new(signer: S, proxy: Option<Proxy>) -> Self {
             let (api_base, stream_base) = (
-                    Url::parse(API_BASE).unwrap(),
-                    Url::parse(STREAM_BASE).unwrap(),
-                );
+                Url::parse(API_BASE).unwrap(),
+                Url::parse(STREAM_BASE).unwrap(),
+            );
             SpotApi::with_config(Config::new(signer, api_base, stream_base, proxy))
         }
 
@@ -73,10 +73,7 @@ mod with_network {
         /// "CCX_MEXC_API_KEY", "CCX_MEXC_API_SECRET"
         pub fn from_env() -> SpotApi<ApiCred> {
             let proxy = Proxy::from_env_with_prefix(CCX_MEXC_API_PREFIX);
-            SpotApi::new(
-                ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX),
-                proxy,
-            )
+            SpotApi::new(ApiCred::from_env_with_prefix(CCX_MEXC_API_PREFIX), proxy)
         }
 
         /// Reads config from env vars with names like:

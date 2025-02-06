@@ -362,7 +362,6 @@ mod with_network {
         /// Send in a new order.
         ///
         /// Weight: 2
-        ///
         #[allow(clippy::too_many_arguments)]
         pub fn create_order(
             &self,
