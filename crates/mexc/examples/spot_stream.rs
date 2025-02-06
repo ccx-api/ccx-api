@@ -1,5 +1,4 @@
 use core::fmt;
-use std::collections::BTreeMap;
 
 use ccx_mexc::util::OrderBook;
 use ccx_mexc::util::OrderBookUpdater;
@@ -17,9 +16,6 @@ use futures::StreamExt;
 use rust_decimal::Decimal;
 use smart_string::DisplayExt;
 use smart_string::SmartString;
-use string_cache::DefaultAtom as Atom;
-use string_cache::DefaultAtom;
-// use ccx_mexc_examples_util::*;
 
 enum X {
     Snapshot(OrderBook),
