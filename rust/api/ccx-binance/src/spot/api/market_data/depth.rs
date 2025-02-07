@@ -71,6 +71,12 @@ impl GetOrderBook {
     }
 }
 
+impl OrderBookRow {
+    pub fn into_tuple(self) -> (Decimal, Decimal) {
+        (self.price, self.qty)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use rust_decimal_macros::dec;

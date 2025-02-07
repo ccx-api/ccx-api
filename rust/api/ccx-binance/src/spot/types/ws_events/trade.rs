@@ -4,7 +4,7 @@ use smart_string::SmartString;
 use crate::spot::types::timestamp::BinanceTimestamp;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize)]
-pub struct Trade {
+pub struct TradeEvent {
     /// Event time.
     #[serde(rename = "E")]
     pub event_time: BinanceTimestamp,
@@ -47,7 +47,7 @@ mod tests {
             "m": true,
             "M": true
         }"#;
-        let expected = Trade {
+        let expected = TradeEvent {
             event_time: BinanceTimestamp::from_epoch_millis(1672515782136).unwrap(),
             symbol: SmartString::from("BNBBTC"),
             trade_id: 12345,
@@ -56,7 +56,7 @@ mod tests {
             trade_time: BinanceTimestamp::from_epoch_millis(1672515782136).unwrap(),
             is_buyer_market_maker: true,
         };
-        let actual = serde_json::from_str::<Trade>(json).unwrap();
+        let actual = serde_json::from_str::<TradeEvent>(json).unwrap();
         assert_eq!(actual, expected);
     }
 }

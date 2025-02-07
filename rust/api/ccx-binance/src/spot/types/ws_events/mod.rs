@@ -1,8 +1,10 @@
 mod agg_trade;
+mod depth;
 mod kline;
 mod trade;
 
 pub use agg_trade::*;
+pub use depth::*;
 pub use kline::*;
 use serde::Deserialize;
 use serde::Serialize;
