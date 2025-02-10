@@ -6,32 +6,21 @@ authors.workspace = true
 
 [workspace]
 members = [
-    "crates/binance",
-    "crates/binance/examples/util",
-    "crates/binance-pay",
-    "crates/bitstamp",
-    "crates/coinbase",
-    "crates/finery-markets",
-    "crates/finery-markets/examples/util",
-    "crates/gate",
-    "crates/gatepay",
-    "crates/kraken",
-    "crates/kraken/examples/util",
-    "crates/ccx-api-lib",
+    "crates/*",
 ]
 
 [workspace.package]
-version = "0.5.1"
-authors = ["CCX-API Library developers <irbis.labs@gmail.com>"]
+version = "0.6.0-dev.0"
+authors = ["CCX-API Library developers <ccx-api@irbis-labs.com>"]
 edition = "2021"
 
+[features]
+default = []
+full = ["binance"]
+binance = ["ccx-binance"]
 
 [dependencies]
-ccx-binance = { path = "crates/binance" }
-ccx-binance-pay = { path = "crates/binance-pay" }
-ccx-bitstamp = { path = "crates/bitstamp" }
-ccx-coinbase = { path = "crates/coinbase" }
-ccx-finery-markets = { path = "crates/finery-markets" }
-ccx-gate = { path = "crates/gate" }
-ccx-gatepay = { path = "crates/gatepay" }
-ccx-kraken = { path = "crates/kraken" }
+ccx-binance = { path = "crates/ccx-binance", optional = true }
+
+[profile.dev.package."*"]
+opt-level = 3

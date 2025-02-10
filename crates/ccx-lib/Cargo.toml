@@ -1,0 +1,17 @@
+[package]
+name = "ccx-lib"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[features]
+default = []
+console_formatter = ["console"]
+
+[dependencies]
+console = { version = "0.15", optional = true }
+rust_decimal = "1"
+#serde = { version = "1.0", features = ["derive"] }
+smart-string = "0.1"
+#reqwest = { version = "0.12", features = ["json"] }
+#url = "2"
