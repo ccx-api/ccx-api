@@ -1,7 +1,10 @@
-**/*.iml
-**/.DS_Store
-**/.idea/
-**/.vscode/
-**/.zed/
+.DS_Store
+
+.vscode
+.idea
+.zed
+**/*.rs.bk
 
 **/.env
+
+/target
