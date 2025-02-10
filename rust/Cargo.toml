@@ -1,0 +1,22 @@
+[package]
+name = "ccx"
+version = "0.6.0-dev.0"
+authors = ["CCX-API Library developers <ccx-api@irbis-labs.com>"]
+edition = "2021"
+
+[workspace]
+members = [
+    "api/ccx-binance",
+    "api/ccx-lib",
+]
+
+[features]
+default = []
+full = ["binance"]
+binance = ["ccx-binance"]
+
+[dependencies]
+ccx-binance = { path = "api/ccx-binance", optional = true }
+
+[profile.dev.package."*"]
+opt-level = 3
