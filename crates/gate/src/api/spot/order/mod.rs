@@ -104,8 +104,10 @@ pub struct Order {
     /// Amount traded to fill (read-only).
     pub filled_amount: Option<Decimal>,
 
+    /// Total filled in base currency (read-only).
+    pub fill_price: Option<Decimal>,
+
     /// Total filled in quote currency (read-only).
-    #[serde(alias = "fill_price")]
     pub filled_total: Option<Decimal>,
 
     /// Average fill price (read-only).
