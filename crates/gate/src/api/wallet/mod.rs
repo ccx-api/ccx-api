@@ -1,8 +1,10 @@
 mod balances;
+mod deposit_address;
 mod transfer;
 mod withdrawal_history;
 
 pub use balances::*;
+pub use deposit_address::*;
 use ref_cast::RefCast;
 pub use transfer::*;
 pub use withdrawal_history::*;
