@@ -16,13 +16,11 @@ use soketto::handshake::Client;
 use soketto::handshake::ServerResponse;
 use soketto::Data;
 use soketto::Incoming;
-use tokio::net::lookup_host;
 use tokio::net::TcpStream;
 use tokio_rustls::rustls::pki_types::ServerName;
 use tokio_rustls::rustls::ClientConfig;
 use tokio_rustls::rustls::RootCertStore;
 use tokio_rustls::TlsConnector;
-use tokio_util::compat::Compat;
 use tokio_util::compat::TokioAsyncReadCompatExt;
 use url::Url;
 
@@ -113,7 +111,7 @@ impl WebSocketClient {
             let dnsname = ServerName::try_from(host.to_string()).unwrap();
 
             let stream = TcpStream::connect(host_addr.as_str()).await?;
-            let mut stream = connector.connect(dnsname, stream).await?;
+            let stream = connector.connect(dnsname, stream).await?;
 
             // let socket = {
             //     let mut last_error = None;
@@ -148,7 +146,7 @@ impl WebSocketClient {
             println!("requesting {host}, {resource}");
             let mut client = Client::new(stream.compat(), &host, &resource);
 
-            let (sender, mut receiver) = match client.handshake().await? {
+            let (sender, receiver) = match client.handshake().await? {
                 ServerResponse::Accepted { .. } => client.into_builder().finish(),
                 ServerResponse::Redirect {
                     status_code,

@@ -140,8 +140,7 @@ impl fmt::Display for StreamName {
                 f.write_str(symbol)?;
                 f.write_str("@depth")?;
                 if let Some(levels) = levels {
-                    use std::fmt::Write;
-                    write!(f, "{}", levels).map_err(serde::ser::Error::custom)?;
+                    write!(f, "{}", levels)?;
                 }
                 match update_speed {
                     DepthUpdateSpeed::Ms100 => f.write_str("@100ms")?,
@@ -158,7 +157,7 @@ impl Serialize for StreamName {
     where
         S: serde::Serializer,
     {
-        let mut name: SmartString<254> = self.to_fmt();
+        let name: SmartString<254> = self.to_fmt();
         name.serialize(serializer)
     }
 }

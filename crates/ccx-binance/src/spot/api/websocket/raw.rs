@@ -1,4 +1,3 @@
-use std::future::Future;
 use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::Context;
@@ -32,7 +31,7 @@ where
     T: serde::de::DeserializeOwned,
 {
     pub async fn connect(
-        mut stream_base: Url,
+        stream_base: Url,
         stream_name: StreamName,
     ) -> Result<Self, WebSocketConnectError> {
         let name: SmartString<62> = stream_name.to_fmt();
