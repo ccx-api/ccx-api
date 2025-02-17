@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -22,10 +23,18 @@ pub enum BinanceSpotError {
     Connection(#[from] reqwest::Error),
     #[error("Authentication error")]
     Authentication,
+    #[error("Failed to sign: {0}")]
+    Sign(Cow<'static, str>),
     #[error("Decoding error: {0}")]
     Decoding(#[from] serde_json::Error),
     #[error("Other error: {0}")]
     Other(#[from] BinanceSpotErrorResponse),
+}
+
+impl BinanceSpotError {
+    pub fn sign(msg: impl Into<Cow<'static, str>>) -> Self {
+        BinanceSpotError::Sign(msg.into())
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
