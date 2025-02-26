@@ -238,6 +238,7 @@ mod tests {
             status: OrderStatus::Closed,
             left: Some(dec!(0)),
             filled_amount: Some(dec!(0.001)),
+            fill_price: Some(dec!(63.4693)),
             filled_total: Some(dec!(63.4693)),
             avg_deal_price: Some(dec!(63.4693)),
             fee: Some(dec!(0.00000022)),

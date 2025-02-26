@@ -47,6 +47,7 @@ pub struct Currency {
     /// Whether currency's trading is disabled
     pub trade_disabled: bool,
     /// Fixed fee rate. Only for fixed rate currencies, not valid for normal currencies
+    #[serde(default, with = "crate::util::maybe_str")]
     pub fixed_rate: Option<Decimal>,
     /// Chain of currency
     pub chain: SmartString,
@@ -95,14 +96,15 @@ mod tests {
     #[test]
     fn deserialize_currency() {
         let json = r#"{
-     "currency": "GT",
-     "delisted": false,
-     "withdraw_disabled": false,
-     "withdraw_delayed": false,
-     "deposit_disabled": false,
-     "trade_disabled": false,
-     "chain": "GT"
-  }"#;
+            "currency": "GT",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "chain": "GT"
+        }"#;
+
         let expected = Currency {
             currency: "GT".into(),
             delisted: false,
