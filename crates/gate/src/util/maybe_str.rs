@@ -59,6 +59,18 @@ where
         fn visit_map<A: serde::de::MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
             T::deserialize(serde::de::value::MapAccessDeserializer::new(map)).map(Some)
         }
+
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+            where
+                E: Error, {
+            self.visit_none()
+        }
+
+        fn visit_none<E>(self) -> Result<Self::Value, E>
+            where
+                E: Error, {
+            Ok(None)
+        }
     }
 
     deserializer.deserialize_any(StringOrT(None))
@@ -71,6 +83,12 @@ mod tests {
 
     #[derive(Debug, Serialize, Deserialize, PartialEq)]
     struct StrExample {
+        #[serde(with = "maybe_str")]
+        pub value: Option<String>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize, PartialEq)]
+    struct NullStrExample {
         #[serde(with = "maybe_str")]
         pub value: Option<String>,
     }
@@ -113,6 +131,18 @@ mod tests {
         assert_eq!(serialized, r#"{"value":""}"#);
 
         let deserialized: StrExample = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, example);
+    }
+
+    #[test]
+    fn test_null_string() {
+        let example = NullStrExample { value: None };
+
+        // Serialization matches behaviour of empty_string example.
+        let serialized = serde_json::to_string(&example).unwrap();
+        assert_eq!(serialized, r#"{"value":""}"#);
+
+        let deserialized: NullStrExample = serde_json::from_str(r#"{"value":null}"#).unwrap();
         assert_eq!(deserialized, example);
     }
 

@@ -47,7 +47,7 @@ pub struct Currency {
     /// Whether currency's trading is disabled
     pub trade_disabled: bool,
     /// Fixed fee rate. Only for fixed rate currencies, not valid for normal currencies
-    #[serde(with = "crate::util::maybe_str")]
+    #[serde(default, with = "crate::util::maybe_str")]
     pub fixed_rate: Option<Decimal>,
     /// Chain of currency
     pub chain: SmartString,
