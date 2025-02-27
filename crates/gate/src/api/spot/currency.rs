@@ -50,7 +50,8 @@ pub struct Currency {
     #[serde(default, with = "crate::util::maybe_str")]
     pub fixed_rate: Option<Decimal>,
     /// Chain of currency
-    pub chain: SmartString,
+    #[serde(default)]
+    pub chain: Option<SmartString>,
 }
 
 #[cfg(feature = "with_network")]
