@@ -51,7 +51,7 @@ pub struct Currency {
     pub fixed_rate: Option<Decimal>,
     /// Chain of currency
     #[serde(default)]
-    pub chain: SmartString,
+    pub chain: Option<SmartString>,
 }
 
 #[cfg(feature = "with_network")]
