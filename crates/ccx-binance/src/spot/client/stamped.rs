@@ -2,9 +2,9 @@ use std::future::Future;
 
 use serde::Serialize;
 
-use crate::spot::client::signed::SignedRequest;
 use crate::spot::client::BinanceSpotSigner;
 use crate::spot::client::TimeWindow;
+use crate::spot::client::signed::SignedRequest;
 use crate::spot::error::BinanceSpotError;
 use crate::spot::proto::BinanceSpotSigned;
 

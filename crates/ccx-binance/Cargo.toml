@@ -9,9 +9,10 @@ default = []
 debug_communication = []
 
 [dependencies]
-ccx-lib = { path = "../ccx-lib", features = ["console_formatter"] }
+ccx-lib = { path = "../ccx-lib", features = ["console_formatter", "websocket"] }
 
 chrono = "0.4"
+derive_more.workspace = true
 futures = "0.3"
 hmac = "0.12"
 http = "1"
@@ -27,14 +28,11 @@ soketto = "0.8"
 strum = { version = "0.26", features = ["derive"] }
 thiserror = "2"
 tokio = { version = "1", default-features = false, features = ["macros"] }
-tokio-rustls = "0.26"
 tokio-util = { version = "0.7", features = ["time", "compat"] }
 url = "2"
 url-macro = "0.1"
 form_urlencoded = "1.2.1"
 uuid = { version = "1.10.0", features = ["v4"] }
-webpki = "0.22"
-webpki-roots = "0.26"
 
 [dev-dependencies]
 dotenvy = "0.15"

@@ -22,7 +22,6 @@ pub use stamped::Stamped;
 pub use time_window::TimeWindow;
 
 pub use self::websocket::WebSocketClient;
-pub use self::websocket::WebSocketConnectError;
 use crate::spot::api::websocket::WebSocketBuilder;
 use crate::spot::meta::BinanceSpotMeta;
 use crate::spot::meta::BinanceSpotResponseMeta;
