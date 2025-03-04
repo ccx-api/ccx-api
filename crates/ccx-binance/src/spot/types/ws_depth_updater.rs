@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
-use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
+use rust_decimal::prelude::Zero;
 
 use crate::spot::api::OrderBook;
 use crate::spot::api::OrderBookRow;

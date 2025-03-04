@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 
 use smart_string::SmartString;
 
-use crate::spot::client::handle_response;
 use crate::spot::client::BinanceSpotClient;
+use crate::spot::client::handle_response;
 use crate::spot::error::BinanceSpotSendError;
 use crate::spot::meta::BinanceSpotResponseMeta;
 use crate::spot::proto::BinanceSpotReadyToSend;

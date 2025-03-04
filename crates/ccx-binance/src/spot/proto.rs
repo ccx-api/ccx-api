@@ -1,7 +1,7 @@
 use std::future::Future;
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use crate::spot::client::BinanceSpotClient;
 use crate::spot::client::BinanceSpotSigner;

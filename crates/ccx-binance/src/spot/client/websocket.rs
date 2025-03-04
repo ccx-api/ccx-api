@@ -1,27 +1,15 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::future::Future;
 use std::mem;
-use std::sync::Arc;
 
-use futures::channel::mpsc as fmpsc;
-use futures::channel::oneshot;
+use ccx_lib::websocket::{WebSocketConnectError, websocket_builder};
 use futures::SinkExt;
 use futures::StreamExt;
-use serde::Deserialize;
-use serde::Serialize;
-use smart_string::DisplayExt;
-use smart_string::PascalString;
-use soketto::handshake::Client;
-use soketto::handshake::ServerResponse;
+use futures::channel::mpsc as fmpsc;
+use futures::channel::oneshot;
+use serde::{Deserialize, Serialize};
 use soketto::Data;
 use soketto::Incoming;
-use tokio::net::TcpStream;
-use tokio_rustls::rustls::pki_types::ServerName;
-use tokio_rustls::rustls::ClientConfig;
-use tokio_rustls::rustls::RootCertStore;
-use tokio_rustls::TlsConnector;
-use tokio_util::compat::TokioAsyncReadCompatExt;
 use url::Url;
 
 use crate::spot::types::ws_requests::IgnorePayload;
@@ -57,118 +45,19 @@ pub enum StreamCommand<'a> {
     Unsubscribe(Cow<'a, [StreamName]>),
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum WebSocketConnectError {
-    #[error("Missing hostname")]
-    MissingHostname,
-    #[error("Missing port")]
-    MissingPort,
-    #[error("Bad hostname")]
-    BadHostname,
-    #[error("Bad url")]
-    BadUrl(#[from] url::ParseError),
-    #[error("IO error {0}")]
-    Io(#[from] std::io::Error),
-    #[error("Handshake error {0}")]
-    Handshake(#[from] soketto::handshake::Error),
-    #[error("Redirected to {location} with status code {status_code}")]
-    Redirect { status_code: u16, location: String },
-    #[error("Rejected with status code {status_code}")]
-    Rejected { status_code: u16 },
-}
-
 impl WebSocketClient {
-    pub fn connect(
+    pub async fn connect(
         stream_url: Url,
-    ) -> impl Future<Output = Result<(Self, fmpsc::Receiver<Vec<u8>>), WebSocketConnectError>> {
-        async move {
-            println!("Establishing connection to {stream_url}");
+    ) -> Result<(Self, fmpsc::Receiver<Vec<u8>>), WebSocketConnectError> {
+        let builder = websocket_builder(&stream_url).await?;
+        let (sender, receiver) = builder.finish();
+        let (cmd_tx, cmd_rx) = fmpsc::channel(4);
+        let (stream_tx, stream_rx) = fmpsc::channel(4);
+        tokio::spawn(async move {
+            upstream_loop(sender, receiver, cmd_rx, stream_tx).await;
+        });
 
-            let host = stream_url
-                .host_str()
-                .ok_or(WebSocketConnectError::MissingHostname)?;
-            let port = stream_url
-                .port()
-                .or_else(|| match stream_url.scheme() {
-                    "ws" => Some(80),
-                    "wss" => Some(443),
-                    _ => None,
-                })
-                .ok_or(WebSocketConnectError::MissingPort)?;
-
-            let host_addr: PascalString<255> = format_args!("{host}:{port}")
-                .try_to_fmt()
-                .map_err(|_| WebSocketConnectError::BadHostname)?;
-
-            // println!("resolving {host_addr}");
-
-            let mut root_cert_store = RootCertStore::empty();
-            root_cert_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
-            let config = ClientConfig::builder()
-                .with_root_certificates(root_cert_store)
-                .with_no_client_auth();
-            let connector = TlsConnector::from(Arc::new(config));
-            let dnsname = ServerName::try_from(host.to_string()).unwrap();
-
-            let stream = TcpStream::connect(host_addr.as_str()).await?;
-            let stream = connector.connect(dnsname, stream).await?;
-
-            // let socket = {
-            //     let mut last_error = None;
-            //     let mut addrs = lookup_host(&*host_addr).await?;
-            //     loop {
-            //         if let Some(addr) = addrs.next() {
-            //             match TcpStream::connect(addr).await {
-            //                 Ok(socket) => {
-            //                     println!("connected to addr {}", addr);
-            //                     break socket;
-            //                 }
-            //                 Err(e) => {
-            //                     println!("connect to addr {} failed: {}", addr, e);
-            //                     last_error = Some(e)
-            //                 }
-            //             }
-            //         } else {
-            //             Err(last_error.take().unwrap_or_else(|| {
-            //                 std::io::Error::new(
-            //                     std::io::ErrorKind::AddrNotAvailable,
-            //                     "no addresses to connect to",
-            //                 )
-            //             }))?
-            //         }
-            //     }
-            // };
-            let resource = match stream_url.query() {
-                Some(q) => format!("{}?{}", stream_url.path(), q),
-                None => stream_url.path().to_owned(),
-            };
-
-            println!("requesting {host}, {resource}");
-            let mut client = Client::new(stream.compat(), &host, &resource);
-
-            let (sender, receiver) = match client.handshake().await? {
-                ServerResponse::Accepted { .. } => client.into_builder().finish(),
-                ServerResponse::Redirect {
-                    status_code,
-                    location,
-                } => {
-                    return Err(WebSocketConnectError::Redirect {
-                        status_code,
-                        location,
-                    });
-                }
-                ServerResponse::Rejected { status_code } => {
-                    return Err(WebSocketConnectError::Rejected { status_code });
-                }
-            };
-            let (cmd_tx, cmd_rx) = fmpsc::channel(4);
-            let (stream_tx, stream_rx) = fmpsc::channel(4);
-            tokio::spawn(async move {
-                upstream_loop(sender, receiver, cmd_rx, stream_tx).await;
-            });
-
-            Ok((Self { cmd_tx }, stream_rx))
-        }
+        Ok((Self { cmd_tx }, stream_rx))
     }
 }
 

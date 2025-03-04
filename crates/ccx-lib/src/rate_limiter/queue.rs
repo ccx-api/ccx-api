@@ -1,19 +1,19 @@
 use std::collections::VecDeque;
 
-use crate::spot::rate_limiter::types::Task;
+use super::types::Task;
 
-pub struct Queue {
-    deq: VecDeque<Task>,
+pub struct Queue<RateLimitType: 'static> {
+    deq: VecDeque<Task<RateLimitType>>,
 }
 
-impl Queue {
+impl<RateLimitType: 'static> Queue<RateLimitType> {
     pub(crate) fn new() -> Self {
         let inner = VecDeque::new();
         Self { deq: inner }
     }
 
-    // TODO optimize
-    pub(crate) fn add(&mut self, msg: Task) {
+    // TODO: optimize
+    pub(crate) fn add(&mut self, msg: Task<RateLimitType>) {
         let priority = msg.priority;
         self.deq.push_back(msg);
 
@@ -28,11 +28,11 @@ impl Queue {
         self.deq.is_empty()
     }
 
-    pub(crate) fn pop(&mut self) -> Option<Task> {
+    pub(crate) fn pop(&mut self) -> Option<Task<RateLimitType>> {
         self.deq.pop_front()
     }
 
-    pub(crate) fn first(&self) -> Option<&Task> {
+    pub(crate) fn first(&self) -> Option<&Task<RateLimitType>> {
         self.deq.front()
     }
 }

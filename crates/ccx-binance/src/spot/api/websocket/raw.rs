@@ -3,15 +3,15 @@ use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
 
-use futures::channel::mpsc as fmpsc;
+use ccx_lib::websocket::WebSocketConnectError;
 use futures::Stream;
 use futures::StreamExt;
+use futures::channel::mpsc as fmpsc;
 use smart_string::DisplayExt;
 use smart_string::SmartString;
 use url::Url;
 
 use crate::spot::client::WebSocketClient;
-use crate::spot::client::WebSocketConnectError;
 use crate::spot::types::ws_stream_name::StreamName;
 
 pub struct RawWebSocket<T> {

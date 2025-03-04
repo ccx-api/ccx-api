@@ -1,6 +1,6 @@
-use std::borrow::Cow;
 use serde::Deserialize;
 use serde::Serialize;
+use std::borrow::Cow;
 
 use crate::spot::meta::BinanceSpotMeta;
 
