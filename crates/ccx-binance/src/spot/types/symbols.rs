@@ -1,8 +1,8 @@
-use serde::de;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
+use serde::de;
 use smart_string::DisplayExt;
 use smart_string::SmartString;
 

@@ -1,25 +1,29 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::time::Duration;
 
-use futures::channel::mpsc;
 use futures::StreamExt;
-use strum::IntoEnumIterator;
+use futures::channel::mpsc;
 use tokio::select;
-use tokio::time::interval;
 use tokio::time::Instant;
 use tokio::time::MissedTickBehavior;
+use tokio::time::interval;
 
-use crate::spot::rate_limiter::queue::Queue;
-use crate::spot::rate_limiter::types::RateLimiterMessage;
-use crate::spot::rate_limiter::types::TaskCosts;
-use crate::spot::types::rate_limits::RateLimitType;
+use crate::rate_limiter::queue::Queue;
+use crate::rate_limiter::types::RateLimiterMessage;
+use crate::rate_limiter::types::TaskCosts;
 
-pub struct RateLimiterActor {
-    buckets: HashMap<RateLimitType, Vec<RateLimiterBucket>>,
-    queue: Queue,
+pub struct RateLimiterActor<RateLimitType, BucketInit>
+where
+    RateLimitType: 'static,
+{
+    buckets: HashMap<&'static RateLimitType, Vec<RateLimiterBucket>>,
+    bucket_init: BucketInit,
+    queue: Queue<RateLimitType>,
 }
 
-pub(crate) struct RateLimiterBucket {
+#[derive(Debug)]
+pub struct RateLimiterBucket {
     /// Time interval for the limit to be applied.
     interval: Duration,
     /// The limit of the bucket.
@@ -31,8 +35,7 @@ pub(crate) struct RateLimiterBucket {
 }
 
 impl RateLimiterBucket {
-    fn new_now(interval_seconds: u64, limit: u32) -> Self {
-        let interval = Duration::from_secs(interval_seconds);
+    pub fn new_now(interval: Duration, limit: u32) -> Self {
         Self {
             interval,
             limit,
@@ -64,45 +67,23 @@ impl RateLimiterBucket {
     }
 }
 
-impl RateLimiterActor {
-    pub fn new_clean() -> Self {
-        let queue = Queue::new();
-        let buckets = RateLimitType::iter().map(|typ| (typ, Vec::new())).collect();
-
-        Self { buckets, queue }
-    }
-
-    pub fn new_prepared() -> Self {
-        const SECOND: u64 = 1;
-        const MINUTE: u64 = 60 * SECOND;
-        const HOUR: u64 = 60 * MINUTE;
-        const DAY: u64 = 24 * HOUR;
-
-        fn buckets<B: FromIterator<RateLimiterBucket>>(
-            list: impl IntoIterator<Item = (u64, u32)>,
-        ) -> B {
-            list.into_iter()
-                .map(|(interval, limit)| RateLimiterBucket::new_now(interval, limit))
-                .collect()
+impl<RateLimitType, BucketInit> RateLimiterActor<RateLimitType, BucketInit>
+where
+    RateLimitType: Eq + Hash + std::fmt::Debug,
+    BucketInit: Fn(&RateLimitType) -> Vec<RateLimiterBucket>,
+{
+    pub fn with_bucket_initializer(bucket_init: BucketInit) -> Self {
+        Self {
+            buckets: Default::default(),
+            queue: Queue::new(),
+            bucket_init,
         }
-
-        let mut this = Self::new_clean();
-
-        this.buckets.extend([
-            (RateLimitType::RequestWeight, buckets([(1 * MINUTE, 6_000)])),
-            (
-                RateLimitType::Orders,
-                buckets([(10 * SECOND, 100), (1 * DAY, 200_000)]),
-            ),
-            (RateLimitType::RawRequests, buckets([(5 * MINUTE, 61_000)])),
-        ]);
-
-        this
     }
 
-    pub async fn run(mut self, mut rx: mpsc::Receiver<RateLimiterMessage>) {
-        enum Event {
-            TaskMessage(Option<RateLimiterMessage>),
+    #[tracing::instrument(skip_all)]
+    pub async fn run(mut self, mut rx: mpsc::Receiver<RateLimiterMessage<RateLimitType>>) {
+        enum Event<RL: 'static> {
+            TaskMessage(Option<RateLimiterMessage<RL>>),
             CheckExpired(Instant),
         }
 
@@ -120,6 +101,7 @@ impl RateLimiterActor {
 
             match event {
                 Event::CheckExpired(now) => {
+                    tracing::trace!("check expired");
                     current_now = now;
 
                     let has_expired = self.reset_expired_buckets(now);
@@ -153,13 +135,18 @@ impl RateLimiterActor {
                 Event::TaskMessage(Some(message)) => {
                     match message {
                         RateLimiterMessage::Enqueue(task) => {
+                            tracing::trace!(?task, "new task");
+                            self.check_or_insert_bucket(task.costs);
+
                             // tracing::debug!("RateLimiter: enqueue task");
                             let limit_reached = self.check_limits(task.costs, current_now);
 
-                            if let Some(_delay) = limit_reached {
+                            if let Some(delay) = limit_reached {
+                                tracing::debug!(?delay, ?task, "Delay task for later execution");
                                 // Если лимит превышен, то добавляем сообщение в очередь.
                                 self.queue.add(task);
                             } else {
+                                tracing::trace!(?task, "Execute task immediately");
                                 // Если лимит не превышен, то обрабатываем сообщение.
                                 self.handle_costs(task.costs);
                                 let _ = task.tx.send(());
@@ -169,7 +156,7 @@ impl RateLimiterActor {
                 }
                 Event::TaskMessage(None) => {
                     // Очередь сообщений закрыта (все отправители удалены), завершаем обработку.
-                    // tracing::debug!("RateLimiter: stop queue handler (all senders are dropped)");
+                    tracing::debug!("RateLimiter: stop queue handler (all senders are dropped)");
                     break;
                 }
             }
@@ -186,15 +173,30 @@ impl RateLimiterActor {
         has_expired
     }
 
+    fn check_or_insert_bucket(&mut self, costs: TaskCosts<RateLimitType>) {
+        for (typ, _cost) in costs {
+            self.buckets.entry(typ).or_insert_with(|| {
+                let bucket = (self.bucket_init)(typ);
+                tracing::trace!(?typ, ?bucket, "Create new bucket");
+
+                bucket
+            });
+        }
+    }
+
     /// Возвращает время, через которое можно будет обработать следующее сообщение, или `None`,
     /// если обработка сообщения возможна сразу.
-    fn check_limits(&self, costs: TaskCosts, now: Instant) -> Option<Duration> {
+    fn check_limits(&self, costs: TaskCosts<RateLimitType>, now: Instant) -> Option<Duration> {
         // Проверяем, не превышен ли лимит в каком-либо из бакетов.
         let mut limit_reached = None;
         for (typ, cost) in costs {
             // Safety: `buckets` is initialized in `new` with all possible
             // `RateLimitType` values.
-            let buckets = self.buckets.get(typ).unwrap();
+            let Some(buckets) = self.buckets.get(typ) else {
+                tracing::warn!(?typ, "Specified bucket is not found");
+
+                return None;
+            };
             for bucket in buckets {
                 if bucket.amount + *cost > bucket.limit {
                     let new_timeout = bucket.get_timeout(now);
@@ -207,10 +209,13 @@ impl RateLimiterActor {
         limit_reached
     }
 
-    fn handle_costs(&mut self, costs: TaskCosts) {
+    fn handle_costs(&mut self, costs: TaskCosts<RateLimitType>) {
         for (typ, cost) in costs {
-            // Safety: `buckets` is initialized in `new` with all possible `RateLimitType` values.
-            let buckets = self.buckets.get_mut(typ).unwrap();
+            let Some(buckets) = self.buckets.get_mut(typ) else {
+                tracing::warn!(?typ, "Specified bucket is not found");
+
+                return;
+            };
             for bucket in buckets {
                 bucket.amount += cost;
             }

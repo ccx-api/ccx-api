@@ -10,15 +10,29 @@ members = ["crates/*"]
 [workspace.package]
 version = "0.6.0-dev.0"
 authors = ["CCX-API Library developers <ccx-api@irbis-labs.com>"]
-edition = "2021"
+edition = "2024"
+
+[workspace.dependencies]
+anyhow = "1.0"
+bon = "3.3"
+derive_more = { version = "2.0", features = ["full"] }
+serde = "1.0"
+serde_json = "1.0"
+serde_urlencoded = "0.7"
+reqwest = "0.12"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2.5"
 
 [features]
 default = []
-full = ["binance"]
-binance = ["ccx-binance"]
+full = ["binance", "gate"]
+binance = ["dep:ccx-binance"]
+gate = ["dep:ccx-gate"]
 
 [dependencies]
 ccx-binance = { path = "crates/ccx-binance", optional = true }
+ccx-gate = { path = "crates/ccx-gate", optional = true }
 
 [profile.dev.package."*"]
 opt-level = 3

@@ -2,11 +2,11 @@ mod multiplexed;
 mod raw;
 mod subscribe;
 
+use ccx_lib::websocket::WebSocketConnectError;
 use smart_string::SmartString;
 
 pub use self::raw::RawWebSocket;
 use crate::spot::client::BinanceSpotClient;
-use crate::spot::client::WebSocketConnectError;
 use crate::spot::types::ws_events::DepthUpdateEvent;
 use crate::spot::types::ws_events::TradeEvent;
 use crate::spot::types::ws_stream_name::DepthUpdateSpeed;

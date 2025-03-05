@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use hmac::digest::InvalidLength;
 use hmac::Hmac;
 use hmac::Mac;
+use hmac::digest::InvalidLength;
 use sha2::Sha256;
 
 use crate::spot::client::signer::BinanceSpotSigner;
