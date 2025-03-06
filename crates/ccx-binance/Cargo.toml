@@ -6,11 +6,11 @@ authors.workspace = true
 
 [features]
 default = []
-debug_communication = []
 
 [dependencies]
 ccx-lib = { path = "../ccx-lib", features = ["console_formatter", "websocket"] }
 
+bon.workspace = true
 chrono = "0.4"
 derive_more.workspace = true
 futures = "0.3"
@@ -21,12 +21,14 @@ rust_decimal = "1"
 rust_decimal_macros = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.128"
+serde_repr.workspace = true
 serde_urlencoded = "0.7.1"
 sha2 = "0.10"
 smart-string = "0.1"
 soketto = "0.8"
 strum = { version = "0.26", features = ["derive"] }
 thiserror = "2"
+tracing.workspace = true
 tokio = { version = "1", default-features = false, features = ["macros"] }
 tokio-util = { version = "0.7", features = ["time", "compat"] }
 url = "2"
@@ -38,3 +40,4 @@ uuid = { version = "1.10.0", features = ["v4"] }
 dotenvy = "0.15"
 envconfig = "0.11"
 tokio = { version = "1", features = ["full"] }
+tracing-subscriber.workspace = true

@@ -9,13 +9,17 @@ pub enum Error<ApiError: CcxApiError> {
     Api(ApiError),
     Sign(SignError),
     #[display("Failed to serialize data to urlencoded: {_0}")]
-    UrlEncoding(serde_urlencoded::ser::Error),
+    Serialize(serde_urlencoded::ser::Error),
+    #[display("Failed to deserialize data from urlencoded: {_0}")]
+    Deserialize(serde_urlencoded::de::Error),
     #[display("Failed to serialize/deserialize data: {_0}")]
     JsonConversion(serde_json::Error),
     #[display("Request error: {_0}")]
     Request(reqwest::Error),
     #[display("Failed to parse url")]
     UrlParse(url::ParseError),
+    #[display("Failed to format argument: {_0}")]
+    Format(std::fmt::Error),
 }
 
 pub trait CcxApiError: std::error::Error + Send + Sync {}
