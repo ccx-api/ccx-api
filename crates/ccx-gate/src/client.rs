@@ -37,7 +37,7 @@ impl GateClient {
     }
 
     #[tracing::instrument(skip_all, fields(method = %method))]
-    pub fn request(&self, method: http::Method, url: impl IntoUrl) -> RequestBuilder {
+    pub(crate) fn request(&self, method: http::Method, url: impl IntoUrl) -> RequestBuilder {
         self.inner.client.request(method, url)
     }
 

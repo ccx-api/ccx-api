@@ -294,6 +294,7 @@ dependencies = [
 name = "ccx-binance"
 version = "0.6.0-dev.0"
 dependencies = [
+ "bon",
  "ccx-lib",
  "chrono",
  "derive_more",
@@ -308,6 +309,7 @@ dependencies = [
  "rust_decimal_macros",
  "serde",
  "serde_json",
+ "serde_repr",
  "serde_urlencoded",
  "sha2",
  "smart-string",
@@ -316,6 +318,8 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-util",
+ "tracing",
+ "tracing-subscriber",
  "url",
  "url-macro",
  "uuid",

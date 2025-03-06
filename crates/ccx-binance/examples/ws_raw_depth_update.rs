@@ -1,6 +1,6 @@
-use ccx_binance::spot::prelude::*;
-use ccx_binance::spot::types::ws_depth_updater::OrderBookSync;
-use ccx_binance::spot::types::ws_stream_name::DepthUpdateSpeed;
+use ccx_binance::prelude::*;
+use ccx_binance::types::ws_depth_updater::OrderBookSync;
+use ccx_binance::types::ws_stream_name::DepthUpdateSpeed;
 use ccx_lib::console::Style;
 use ccx_lib::console::Term;
 use ccx_lib::nice_num::NiceNum;
@@ -17,8 +17,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let spot_client = {
         let client = reqwest::Client::new();
-        let config = spot::config::production();
-        BinanceSpotClient::new(client, config)
+        let config = config::production();
+        BinanceClient::new(client, config)
     };
     let rate_limiter = RateLimiter::spawn();
 
@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .raw_depth_update("adausdt".into(), None, DepthUpdateSpeed::Ms100)
         .await?;
 
-    let order_book = spot::api::GetOrderBook::new("ADAUSDT".into())
+    let order_book = spot::GetOrderBook::new("ADAUSDT".into())
         .with_limit(5000)
         .throttle(&rate_limiter)
         .await?
