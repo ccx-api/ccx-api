@@ -11,7 +11,6 @@ if [ -z "${EXAMPLE_BIN}" ]; then
 fi
 
 cargo build \
-  --example "${EXAMPLE_BIN}" \
-#  --features="debug_communication" \
+  --example "${EXAMPLE_BIN}"
 
 "../../target/debug/examples/${EXAMPLE_BIN}"
