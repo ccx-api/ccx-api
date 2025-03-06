@@ -1,14 +1,13 @@
-use ccx_binance::spot::prelude::*;
+use ccx_binance::prelude::*;
 use futures::StreamExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spot_client = {
         let client = reqwest::Client::new();
-        let config = spot::config::production();
-        BinanceSpotClient::new(client, config)
+        let config = config::production();
+        BinanceClient::new(client, config)
     };
-    let rate_limiter = RateLimiter::spawn();
 
     let mut raw_stream = spot_client.websocket().raw_trade("adausdt".into()).await?;
     while let Some(trade) = raw_stream.next().await {
