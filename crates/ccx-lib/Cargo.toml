@@ -6,12 +6,29 @@ authors.workspace = true
 
 [features]
 default = []
-console_formatter = ["console"]
+console_formatter = ["dep:console"]
+websocket = [
+    "dep:soketto",
+    "dep:tokio",
+    "dep:tokio-rustls",
+    "dep:webpki-roots",
+    "dep:tokio-util"
+]
 
 [dependencies]
+anyhow.workspace = true
 console = { version = "0.15", optional = true }
+derive_more.workspace = true
+futures = "0.3"
 rust_decimal = "1"
-#serde = { version = "1.0", features = ["derive"] }
+soketto = { version = "0.8", optional = true }
 smart-string = "0.1"
-#reqwest = { version = "0.12", features = ["json"] }
-#url = "2"
+serde_json.workspace = true
+serde_urlencoded.workspace = true
+reqwest.workspace = true
+tokio = { version = "1", default-features = false, features = ["net"], optional = true }
+tokio-rustls = { version = "0.26", optional = true }
+tokio-util = { version = "0.7", features = ["compat"], optional = true }
+tracing.workspace = true
+url.workspace = true
+webpki-roots = { version = "0.26", optional = true }
