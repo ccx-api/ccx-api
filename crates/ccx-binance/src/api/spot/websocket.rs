@@ -1,5 +1,4 @@
 mod raw;
-mod subscribe;
 
 use ccx_lib::websocket::WebSocketConnectError;
 use smart_string::SmartString;

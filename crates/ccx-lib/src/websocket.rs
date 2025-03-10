@@ -66,6 +66,7 @@ pub async fn websocket_builder(
     let dnsname = ServerName::try_from(host.to_string()).unwrap();
 
     let stream = TcpStream::connect(host_addr.as_str()).await?;
+    // FIXME: doesn't work with bare ws here
     let stream = connector.connect(dnsname, stream).await?;
 
     let resource = match stream_url.query() {

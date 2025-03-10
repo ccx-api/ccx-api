@@ -1,0 +1,76 @@
+use ccx_mexc::prelude::*;
+use envconfig::Envconfig;
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+
+#[derive(Debug, Envconfig)]
+struct EnvConfig {
+    #[envconfig(from = "EXAMPLE_MEXC_KEY_NAME", default = "default")]
+    key_name: String,
+    #[envconfig(from = "EXAMPLE_MEXC_API_KEY")]
+    api_key: String,
+    #[envconfig(from = "EXAMPLE_MEXC_API_SECRET")]
+    api_secret: String,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let _ = dotenvy::dotenv();
+
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer().pretty())
+        .with(
+            EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_err| "info,ccx_mexc=debug,ccx_lib=trace".into()),
+        )
+        .init();
+
+    let credential = {
+        let config = match EnvConfig::init_from_env() {
+            Ok(config) => config,
+            Err(err) => {
+                tracing::error!("{err}");
+                std::process::exit(1);
+            }
+        };
+        MexcCredential::new(
+            config.key_name,
+            config.api_key,
+            config.api_secret.as_bytes(),
+        )?
+    };
+
+    let client = {
+        let client = reqwest::Client::new();
+        let config = config::production();
+        MexcClient::new(client, config)
+    };
+    let rate_limiter = RateLimiter::spawn();
+
+    let test_order = spot::CreateOrder::new_market(
+        "BNBUSDT".into(),
+        spot::MarketSide::Buy,
+        5.into(),
+        spot::QuantitySide::Quote,
+    )
+    .test()
+    .throttle(&rate_limiter)
+    .await?
+    .sign_now_and_send(&credential, &client)
+    .await?
+    .into_payload();
+
+    dbg!(test_order);
+
+    let all_orders = spot::GetAllOrders::new("BNBUSDT".into())
+        .throttle(&rate_limiter)
+        .await?
+        .sign_now_and_send(&credential, &client)
+        .await?
+        .into_payload();
+
+    dbg!(all_orders);
+
+    Ok(())
+}
