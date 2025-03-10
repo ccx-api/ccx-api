@@ -75,8 +75,14 @@ impl WebSocketClient {
                                 }
                             },
                             Err(reason) => {
-                                tracing::warn!("error receiving message: {:?}", reason);
-                                continue;
+                                if matches!(&reason, soketto::connection::Error::UnexpectedOpCode(_)) {
+                                    tracing::warn!("error receiving message: {:?}", reason);
+
+                                    continue;
+                                } else {
+                                    tracing::warn!("error receiving message: {:?}", reason);
+                                    break;
+                                }
                             }
                         }
                     }

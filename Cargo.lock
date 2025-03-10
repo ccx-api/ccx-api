@@ -288,6 +288,7 @@ version = "0.6.0-dev.0"
 dependencies = [
  "ccx-binance",
  "ccx-gate",
+ "ccx-mexc",
 ]
 
 [[package]]
@@ -387,6 +388,42 @@ dependencies = [
  "tracing",
  "url",
  "webpki-roots",
+]
+
+[[package]]
+name = "ccx-mexc"
+version = "0.6.0-dev.0"
+dependencies = [
+ "bon",
+ "ccx-lib",
+ "chrono",
+ "derive_more",
+ "dotenvy",
+ "envconfig",
+ "form_urlencoded",
+ "futures",
+ "hmac",
+ "http",
+ "reqwest",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "serde_urlencoded",
+ "sha2",
+ "smallvec",
+ "smart-string",
+ "soketto",
+ "strum",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "url-macro",
+ "uuid",
 ]
 
 [[package]]
