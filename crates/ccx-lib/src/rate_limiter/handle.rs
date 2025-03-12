@@ -17,7 +17,7 @@ pub struct RateLimiter<RateLimitType: 'static> {
 
 impl<RateLimitType> RateLimiter<RateLimitType>
 where
-    RateLimitType: std::fmt::Debug + Hash + Eq + 'static,
+    RateLimitType: std::fmt::Debug + Hash + Eq + Copy + 'static,
     RateLimitType: Send + Sync,
 {
     pub fn spawn<BucketInit>(bucket_init: BucketInit) -> Self

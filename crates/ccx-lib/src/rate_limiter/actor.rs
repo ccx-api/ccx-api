@@ -11,13 +11,14 @@ use tokio::time::interval;
 
 use crate::rate_limiter::queue::Queue;
 use crate::rate_limiter::types::RateLimiterMessage;
-use crate::rate_limiter::types::TaskCosts;
+
+use super::types::TaskCostsRef;
 
 pub struct RateLimiterActor<RateLimitType, BucketInit>
 where
-    RateLimitType: 'static,
+    RateLimitType: Copy + 'static,
 {
-    buckets: HashMap<&'static RateLimitType, Vec<RateLimiterBucket>>,
+    buckets: HashMap<RateLimitType, Vec<RateLimiterBucket>>,
     bucket_init: BucketInit,
     queue: Queue<RateLimitType>,
 }
@@ -69,7 +70,7 @@ impl RateLimiterBucket {
 
 impl<RateLimitType, BucketInit> RateLimiterActor<RateLimitType, BucketInit>
 where
-    RateLimitType: Eq + Hash + std::fmt::Debug,
+    RateLimitType: Eq + Hash + std::fmt::Debug + Copy,
     BucketInit: Fn(&RateLimitType) -> Vec<RateLimiterBucket>,
 {
     pub fn with_bucket_initializer(bucket_init: BucketInit) -> Self {
@@ -114,7 +115,7 @@ where
                                 break;
                             };
 
-                            let limit_reached = self.check_limits(task.costs, now);
+                            let limit_reached = self.check_limits(&task.costs, now);
 
                             if let Some(_delay) = limit_reached {
                                 // Если лимит превышен, то оставляем очередь в покое.
@@ -122,11 +123,11 @@ where
                                 // добавятся новые задачи.
                                 break;
                             } else {
+                                let task = self.queue.pop().unwrap();
                                 // Если лимит не превышен, то обрабатываем сообщение.
-                                self.handle_costs(task.costs);
+                                self.handle_costs(&task.costs);
                                 // Safety: task points to the first element of the queue,
                                 //  so pop is guaranteed to return Some.
-                                let task = self.queue.pop().unwrap();
                                 let _ = task.tx.send(());
                             }
                         }
@@ -136,10 +137,10 @@ where
                     match message {
                         RateLimiterMessage::Enqueue(task) => {
                             tracing::trace!(?task, "new task");
-                            self.check_or_insert_bucket(task.costs);
+                            self.check_or_insert_bucket(&task.costs);
 
                             // tracing::debug!("RateLimiter: enqueue task");
-                            let limit_reached = self.check_limits(task.costs, current_now);
+                            let limit_reached = self.check_limits(&task.costs, current_now);
 
                             if let Some(delay) = limit_reached {
                                 tracing::debug!(?delay, ?task, "Delay task for later execution");
@@ -148,7 +149,7 @@ where
                             } else {
                                 tracing::trace!(?task, "Execute task immediately");
                                 // Если лимит не превышен, то обрабатываем сообщение.
-                                self.handle_costs(task.costs);
+                                self.handle_costs(&task.costs);
                                 let _ = task.tx.send(());
                             }
                         }
@@ -173,9 +174,9 @@ where
         has_expired
     }
 
-    fn check_or_insert_bucket(&mut self, costs: TaskCosts<RateLimitType>) {
+    fn check_or_insert_bucket(&mut self, costs: TaskCostsRef<'_, RateLimitType>) {
         for (typ, _cost) in costs {
-            self.buckets.entry(typ).or_insert_with(|| {
+            self.buckets.entry(*typ).or_insert_with(|| {
                 let bucket = (self.bucket_init)(typ);
                 tracing::trace!(?typ, ?bucket, "Create new bucket");
 
@@ -186,7 +187,11 @@ where
 
     /// Возвращает время, через которое можно будет обработать следующее сообщение, или `None`,
     /// если обработка сообщения возможна сразу.
-    fn check_limits(&self, costs: TaskCosts<RateLimitType>, now: Instant) -> Option<Duration> {
+    fn check_limits<'a>(
+        &self,
+        costs: TaskCostsRef<'a, RateLimitType>,
+        now: Instant,
+    ) -> Option<Duration> {
         // Проверяем, не превышен ли лимит в каком-либо из бакетов.
         let mut limit_reached = None;
         for (typ, cost) in costs {
@@ -209,7 +214,7 @@ where
         limit_reached
     }
 
-    fn handle_costs(&mut self, costs: TaskCosts<RateLimitType>) {
+    fn handle_costs<'a>(&mut self, costs: TaskCostsRef<'a, RateLimitType>) {
         for (typ, cost) in costs {
             let Some(buckets) = self.buckets.get_mut(typ) else {
                 tracing::warn!(?typ, "Specified bucket is not found");

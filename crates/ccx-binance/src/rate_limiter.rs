@@ -22,6 +22,7 @@ pub struct RateLimiter(ccx_lib::rate_limiter::RateLimiter<RateLimitType>);
 impl RateLimiter {
     pub fn spawn() -> Self {
         Self(ccx_lib::rate_limiter::RateLimiter::<RateLimitType>::spawn(
+            // based on the response from /api/v3/exchangeInfo
             |rate_limit_type| match rate_limit_type {
                 RateLimitType::RequestWeight => buckets([(1 * MINUTE, 6_000)]),
                 RateLimitType::Orders => buckets([(10 * SECOND, 100), (1 * DAY, 200_000)]),

@@ -7,3 +7,4 @@ mod types;
 pub use actor::RateLimiterBucket;
 pub use error::RateLimiterError;
 pub use handle::RateLimiter;
+pub use types::TaskCosts;

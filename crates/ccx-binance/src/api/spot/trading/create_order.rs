@@ -21,7 +21,10 @@ impl Request for CreateOrderAck {
     type Response = NewOrderAck;
     const HTTP_METHOD: http::Method = http::Method::POST;
     const ENDPOINT: &'static str = "/api/v3/order";
-    const COSTS: &'static [(RateLimitType, u32)] = &[(RateLimitType::RequestWeight, 1)];
+    const COSTS: &'static [(RateLimitType, u32)] = &[
+        (RateLimitType::RequestWeight, 1),
+        (RateLimitType::Orders, 1),
+    ];
 }
 
 impl SignedRequest for CreateOrderAck {}
@@ -34,7 +37,10 @@ impl Request for CreateOrderResult {
     type Response = NewOrderResult;
     const HTTP_METHOD: http::Method = http::Method::POST;
     const ENDPOINT: &'static str = "/api/v3/order";
-    const COSTS: &'static [(RateLimitType, u32)] = &[(RateLimitType::RequestWeight, 1)];
+    const COSTS: &'static [(RateLimitType, u32)] = &[
+        (RateLimitType::RequestWeight, 1),
+        (RateLimitType::Orders, 1),
+    ];
 }
 
 impl SignedRequest for CreateOrderResult {}
@@ -47,7 +53,10 @@ impl Request for CreateOrderFull {
     type Response = NewOrderFull;
     const HTTP_METHOD: http::Method = http::Method::POST;
     const ENDPOINT: &'static str = "/api/v3/order";
-    const COSTS: &'static [(RateLimitType, u32)] = &[(RateLimitType::RequestWeight, 1)];
+    const COSTS: &'static [(RateLimitType, u32)] = &[
+        (RateLimitType::RequestWeight, 1),
+        (RateLimitType::Orders, 1),
+    ];
 }
 
 impl SignedRequest for CreateOrderFull {}

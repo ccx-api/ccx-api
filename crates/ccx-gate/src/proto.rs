@@ -48,7 +48,7 @@ pub trait Request: Serialize + Send + Sync {
             // (like currency_pairs for different pairs)
             // but that will require dynamic allocations that
             // is currently not implemented by the base rate_limiter
-            rate_limiter.enqueue(0, self.costs()).await?;
+            rate_limiter.enqueue(0, self.costs().into()).await?;
             Ok(self)
         }
     }

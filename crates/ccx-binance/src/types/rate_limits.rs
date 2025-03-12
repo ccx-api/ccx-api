@@ -14,6 +14,8 @@ pub struct RateLimit {
 pub enum RateLimitType {
     #[serde(rename = "REQUEST_WEIGHT")]
     RequestWeight,
+    // TODO: for now we only use it when creating order without tracking
+    // if the order is fulfilled (when it's fulfilled the number of available requests increases)
     #[serde(rename = "ORDERS")]
     Orders,
     #[serde(rename = "RAW_REQUESTS")]
