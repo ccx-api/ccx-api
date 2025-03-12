@@ -1,6 +1,8 @@
+use ccx_lib::rate_limiter::TaskCosts;
 use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
+use smallvec::smallvec;
 use smart_string::SmartString;
 
 use crate::proto::PublicRequest;
@@ -13,6 +15,17 @@ impl Request for GetOrderBook {
     const HTTP_METHOD: http::Method = http::Method::GET;
     const ENDPOINT: &'static str = "/api/v3/depth";
     const COSTS: &'static [(RateLimitType, u32)] = &[(RateLimitType::RequestWeight, 250)];
+
+    fn costs(&self) -> TaskCosts<RateLimitType> {
+        let weight = match self.limit {
+            Some(101..=500) => 25,
+            Some(501..=1000) => 50,
+            Some(1001..=5000) => 250,
+            _ => 5,
+        };
+
+        smallvec![(RateLimitType::RequestWeight, weight)]
+    }
 }
 
 impl PublicRequest for GetOrderBook {}

@@ -24,6 +24,7 @@ serde_json = "1.0.128"
 serde_repr.workspace = true
 serde_urlencoded = "0.7.1"
 sha2 = "0.10"
+smallvec.workspace = true
 smart-string = "0.1"
 soketto = "0.8"
 strum = { version = "0.26", features = ["derive"] }

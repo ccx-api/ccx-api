@@ -1,5 +1,6 @@
 use std::future::Future;
 
+use ccx_lib::rate_limiter::TaskCosts;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
@@ -23,8 +24,8 @@ pub trait Request: Serialize {
     /// Rate limiter bucket type and score for this request.
     const COSTS: &'static [(RateLimitType, u32)];
 
-    fn costs(&self) -> &'static [(RateLimitType, u32)] {
-        Self::COSTS
+    fn costs(&self) -> TaskCosts<RateLimitType> {
+        Self::COSTS.into()
     }
 
     fn throttle(
@@ -36,7 +37,12 @@ pub trait Request: Serialize {
     {
         let mut rate_limiter = rate_limiter.clone();
         async move {
-            rate_limiter.enqueue(0, Self::COSTS).await?;
+            let mut costs = self.costs();
+            // increment counter by 1 for every request here
+            // instead of defining the same cost for every request
+            // definition
+            costs.push((RateLimitType::RawRequests, 1));
+            rate_limiter.enqueue(0, costs).await?;
             Ok(self)
         }
     }
