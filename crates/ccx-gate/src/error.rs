@@ -1,5 +1,5 @@
 use crate::api::error::GateApiError;
-use crate::client::meta::{GateErrorWithMeta, GateResponseWithMeta};
+pub use crate::client::meta::{GateErrorWithMeta, GateResponseWithMeta};
 
 impl ccx_lib::CcxApiError for GateApiError {}
 

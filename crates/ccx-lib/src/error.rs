@@ -1,3 +1,5 @@
+use crate::rate_limiter::RateLimiterError;
+
 #[derive(Debug, derive_more::From, derive_more::Display)]
 #[from(forward)]
 #[display("Failed to sign request: {_0}")]
@@ -20,6 +22,8 @@ pub enum Error<ApiError: CcxApiError> {
     UrlParse(url::ParseError),
     #[display("Failed to format argument: {_0}")]
     Format(std::fmt::Error),
+    #[display("RequestLimiter error: {_0}")]
+    RateLimiter(RateLimiterError),
 }
 
 pub trait CcxApiError: std::error::Error + Send + Sync {}

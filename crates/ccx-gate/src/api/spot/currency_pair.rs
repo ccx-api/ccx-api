@@ -75,13 +75,13 @@ impl PublicRequest for CurrencyPair {}
 pub struct CurrencyPairResponse {
     /// Currency pair identifier.
     #[serde(default, with = "crate::util::maybe_str")]
-    pub id: Option<SmartString>,
+    pub id: Option<SmartString<15>>,
     /// Base currency of the pair.
     #[serde(default, with = "crate::util::maybe_str")]
-    pub base: Option<SmartString>,
+    pub base: Option<SmartString<15>>,
     /// Quote currency of the pair.
     #[serde(default, with = "crate::util::maybe_str")]
-    pub quote: Option<SmartString>,
+    pub quote: Option<SmartString<15>>,
     /// Trading fee associated with the currency pair.
     #[serde(default, with = "crate::util::maybe_str")]
     pub fee: Option<Decimal>,
