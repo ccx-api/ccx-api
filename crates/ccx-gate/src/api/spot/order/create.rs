@@ -18,48 +18,49 @@ use super::Order;
 #[derive(Debug, Serialize, Deserialize, Clone, Builder)]
 #[cfg_attr(test, derive(PartialEq))]
 #[builder(on(SmartString<15>, into))]
+#[non_exhaustive]
 pub struct CreateOrder {
     /// Currency pair (e.g., BTC_USDT).
-    currency_pair: SmartString<15>,
+    pub currency_pair: SmartString<15>,
 
     /// Account type (e.g., spot, margin, unified, cross_margin). Defaults to `spot`
-    account: Option<AccountType>,
+    pub account: Option<AccountType>,
 
     /// Order side (buy or sell).
-    side: OrderSide,
+    pub side: OrderSide,
 
     /// The amount of the order. For limit orders, it refers to the base currency.
-    amount: Decimal,
+    pub amount: Decimal,
 
     /// The price of the order. Required for limit orders. Optional.
     // TODO: price is required when using Limit order type (by default). Improve usage on type level
-    price: Option<Decimal>,
+    pub price: Option<Decimal>,
 
     /// Time in force for the order (e.g., gtc, ioc, poc, fok). Optional.
     time_in_force: Option<TimeInForce>,
 
     /// The amount to display for iceberg orders. Null or 0 for normal orders. Optional.
-    iceberg: Option<Decimal>,
+    pub iceberg: Option<Decimal>,
 
     /// Enables automatic borrowing if the balance is insufficient. Used in margin or cross margin accounts. Optional.
-    auto_borrow: Option<bool>,
+    pub auto_borrow: Option<bool>,
 
     /// Enables or disables automatic repayment for auto-borrowed loans in cross margin orders. Optional.
-    auto_repay: Option<bool>,
+    pub auto_repay: Option<bool>,
 
     /// Self-trading prevention action. Determines the strategy for preventing self-trades. Optional.
     #[serde(rename = "stp_act")]
-    stp_action: Option<StpAction>,
+    pub stp_action: Option<StpAction>,
 
     /// Processing mode. Specifies the response detail level. Defaults to `FULL`.
-    action_mode: Option<ActionMode>,
+    pub action_mode: Option<ActionMode>,
 
     /// User-defined information. If provided, must follow specific formatting rules. Optional.
-    text: Option<SmartString<30>>,
+    pub text: Option<SmartString<30>>,
 
     /// Order type (limit or market). Optional.
     #[serde(rename = "type")]
-    order_type: Option<OrderType>,
+    pub order_type: Option<OrderType>,
 }
 
 impl CreateOrder {
