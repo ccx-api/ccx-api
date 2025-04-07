@@ -69,7 +69,7 @@ where
         let is_json = resp
             .headers()
             .get(http::header::CONTENT_TYPE)
-            .map(|c| c == &"application/json")
+            .map(|c| c.as_bytes().starts_with(b"application/json"))
             .unwrap_or_default();
         let full = resp.bytes().await?;
 
