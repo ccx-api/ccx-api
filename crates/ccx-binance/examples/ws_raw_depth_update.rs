@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut raw_stream = spot_client
         .websocket()
-        .raw_depth_update("adausdt".into(), None, DepthUpdateSpeed::Ms100)
+        .raw_depth_update("ADAUSDT", DepthUpdateSpeed::Ms100)
         .await?;
 
     let order_book = spot::GetOrderBook::new("ADAUSDT".into())
@@ -32,9 +32,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .throttle(&rate_limiter)
         .await?
         .send(&spot_client)
-        .await?;
+        .await?
+        .into_payload();
 
-    let mut order_book = OrderBookSync::new(order_book.payload);
+    let mut order_book = OrderBookSync::new(order_book);
 
     while let Some(depth_update) = raw_stream.next().await {
         let depth_update = depth_update?;
@@ -46,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         //     depth_update.first_update_id,
         //     depth_update.last_update_id,
         // );
-        order_book.update(&depth_update);
+        order_book.update(&depth_update)?;
 
         let bids = order_book.bids();
         let asks = order_book.asks();

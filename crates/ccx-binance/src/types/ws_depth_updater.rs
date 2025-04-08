@@ -7,6 +7,12 @@ use crate::api::spot::OrderBook;
 use crate::api::spot::OrderBookRow;
 use crate::types::ws_events::DepthUpdateEvent;
 
+#[derive(Debug, derive_more::Display, derive_more::Error)]
+pub enum OrderBookSyncError {
+    #[display("Order book is missing updates")]
+    MissingUpdate,
+}
+
 pub struct OrderBookSync {
     last_update_id: i64,
     bids: BTreeMap<Decimal, Decimal>,
@@ -34,17 +40,19 @@ impl OrderBookSync {
         }
     }
 
-    pub fn update(&mut self, update_event: &DepthUpdateEvent) {
+    pub fn update(&mut self, update_event: &DepthUpdateEvent) -> Result<(), OrderBookSyncError> {
         if update_event.last_update_id < self.last_update_id {
             // Ignore the event
-            return;
+            return Ok(());
         }
         if update_event.first_update_id > self.last_update_id + 1 {
-            panic!("Order book is missing updates");
+            return Err(OrderBookSyncError::MissingUpdate);
         }
         update_book(&mut self.bids, &update_event.bids);
         update_book(&mut self.asks, &update_event.asks);
         self.last_update_id = update_event.last_update_id;
+
+        Ok(())
     }
 
     pub fn last_update_id(&self) -> i64 {
@@ -140,6 +148,54 @@ impl OrderBookSync {
                 break;
             }
         }
+        Fill {
+            base_value,
+            quote_value,
+            exhausted,
+        }
+    }
+
+    pub fn ask_quote_depth(&self, quote_qty_limit: Decimal) -> Fill {
+        let mut base_value = Decimal::zero();
+        let mut quote_value = Decimal::zero();
+        let mut exhausted = true;
+
+        for (&price, &qty) in self.asks.iter() {
+            let diff = quote_qty_limit - quote_value;
+            let amount = (diff / price).min(qty);
+            base_value += amount;
+            quote_value += amount * price;
+
+            if quote_value >= quote_qty_limit {
+                exhausted = false;
+                break;
+            }
+        }
+
+        Fill {
+            base_value,
+            quote_value,
+            exhausted,
+        }
+    }
+
+    pub fn bid_quote_depth(&self, quote_qty_limit: Decimal) -> Fill {
+        let mut base_value = Decimal::zero();
+        let mut quote_value = Decimal::zero();
+        let mut exhausted = true;
+
+        for (&price, &qty) in self.bids.iter().rev() {
+            let diff = quote_qty_limit - quote_value;
+            let amount = (diff / price).min(qty);
+            base_value += amount;
+            quote_value += amount * price;
+
+            if quote_value >= quote_qty_limit {
+                exhausted = false;
+                break;
+            }
+        }
+
         Fill {
             base_value,
             quote_value,

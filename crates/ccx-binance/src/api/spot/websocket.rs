@@ -30,14 +30,15 @@ impl WebSocketBuilder {
 
     pub async fn raw_depth_update(
         &self,
-        symbol: SmartString,
-        levels: Option<u16>,
+        symbol: &str,
         update_speed: DepthUpdateSpeed,
     ) -> Result<RawWebSocket<DepthUpdateEvent>, WebSocketConnectError> {
         let stream_url = self.client.config().raw_stream_base.clone();
         let stream_name = StreamName::BookDepth {
-            symbol,
-            levels,
+            symbol: symbol.to_lowercase().into(),
+            // TODO: with levels the output format is too different to without level
+            // and that should be covered by another method probably
+            levels: None,
             update_speed,
         };
         RawWebSocket::connect(stream_url, stream_name).await
