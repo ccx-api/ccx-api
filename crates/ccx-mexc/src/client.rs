@@ -56,7 +56,7 @@ impl MexcClient {
     // TODO: websocket API is not implemented yet
     // The implementation will require to integrate protobuf definitions
     // for the mexc binary messages
-    // see [docs]()
+    // see [docs](https://mexcdevelop.github.io/apidocs/spot_v3_en/#websocket-market-streams)
     // pub fn websocket(&self) -> WebSocketBuilder {
     //     WebSocketBuilder::new(self.clone())
     // }
