@@ -41,7 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         GateClient::new(client, config)
     };
 
-    let order_book = spot::OrderBook::currency_pair("ETH_BTC")
+    let order_book = spot::OrderBook::builder()
+        .currency_pair("ETH_BTC")
+        .build()
         .send(&client)
         .await?
         .into_payload();

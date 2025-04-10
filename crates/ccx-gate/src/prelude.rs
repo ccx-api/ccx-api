@@ -9,4 +9,5 @@ pub use crate::config;
 pub use crate::error::*;
 pub use crate::proto::*;
 pub use crate::rate_limiter::RateLimiter;
+pub use crate::types::currency_pair::CurrencyPair;
 pub use crate::types::timestamp::Timestamp;

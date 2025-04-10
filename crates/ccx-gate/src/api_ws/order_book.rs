@@ -1,15 +1,18 @@
+use ccx_lib::order_book::PriceAndAmount;
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde::Serialize;
 use serde::Serializer;
 use serde::ser::SerializeSeq;
-use smart_string::SmartString;
+use smallvec::SmallVec;
 
-use crate::api::spot::PriceAndAmount;
+use crate::api::spot::OrderBookResponse;
+use crate::types::currency_pair::CurrencyPair;
 
 /// Order book WebSocket request payload
 #[derive(Debug, Clone)]
 pub struct OrderBookRequest {
-    pub pair: SmartString<12>,
+    pub pair: CurrencyPair,
     pub level: Level,
     pub interval: Interval,
 }
@@ -69,11 +72,24 @@ pub struct OrderBookSnapshot {
 
     /// Currency pair.
     #[serde(rename = "s")]
-    pub currency_pair: SmartString<12>,
+    pub currency_pair: CurrencyPair,
 
     /// Top level bids in the current snapshot, sorted by price from high to low.
-    pub bids: Vec<PriceAndAmount>,
+    pub asks: SmallVec<[PriceAndAmount; 1]>,
 
     /// Top level asks in the current snapshot, sorted by price from low to high.
-    pub asks: Vec<PriceAndAmount>,
+    pub bids: SmallVec<[PriceAndAmount; 1]>,
+}
+
+impl From<OrderBookSnapshot> for OrderBookResponse {
+    fn from(value: OrderBookSnapshot) -> Self {
+        Self {
+            id: Some(value.last_update_id),
+            current: Utc::now(),
+            update: DateTime::from_timestamp_millis(value.update_time_ms)
+                .expect("Failed to convert timestamp"),
+            asks: value.asks,
+            bids: value.bids,
+        }
+    }
 }

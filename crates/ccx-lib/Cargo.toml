@@ -21,12 +21,14 @@ console = { version = "0.15", optional = true }
 derive_more.workspace = true
 futures = "0.3"
 rust_decimal = "1"
+rust_decimal_macros = "1"
 soketto = { version = "0.8", optional = true }
 smart-string = "0.1"
 serde_json.workspace = true
 serde_urlencoded.workspace = true
 smallvec.workspace = true
 reqwest.workspace = true
+serde.workspace = true
 tokio = { version = "1", default-features = false, features = ["net"], optional = true }
 tokio-rustls = { version = "0.26", optional = true }
 tokio-util = { version = "0.7", features = ["compat"], optional = true }

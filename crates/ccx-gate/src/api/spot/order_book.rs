@@ -1,18 +1,18 @@
 use bon::Builder;
+use ccx_lib::order_book::PriceAndAmount;
 use chrono::DateTime;
 use chrono::Utc;
 use rust_decimal::Decimal;
 use serde::Deserialize;
-use serde::Deserializer;
 use serde::Serialize;
 use serde_with::TimestampMilliSeconds;
 use serde_with::formats::Flexible;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
 use smallvec::SmallVec;
-use smart_string::SmartString;
 
 use crate::proto::{PublicRequest, Request, Response};
+use crate::types::currency_pair::CurrencyPair;
 
 /// Retrieve order book
 ///
@@ -22,20 +22,15 @@ use crate::proto::{PublicRequest, Request, Response};
 /// See [SpotOrderBookRequest]
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Default, Builder)]
+#[builder(on(CurrencyPair, into))]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct OrderBook {
-    currency_pair: SmartString,
+    currency_pair: CurrencyPair,
     /// Order depth. 0 means no aggregation is applied. default to 0
     #[serde(rename = "interval")]
     order_depth: Option<Decimal>,
     limit: Option<u32>,
     with_id: Option<bool>,
-}
-
-impl OrderBook {
-    pub fn currency_pair(currency_pair: impl Into<SmartString>) -> Self {
-        Self::builder().currency_pair(currency_pair.into()).build()
-    }
 }
 
 impl Request for OrderBook {
@@ -54,7 +49,7 @@ pub struct OrderBookResponse {
     /// Order book ID, which is updated whenever the order book is changed.
     ///
     /// Valid only when with_id is set to true
-    pub id: Option<SmartString>,
+    pub id: Option<i64>,
     /// The timestamp of the response data being generated (in milliseconds)
     #[serde_as(as = "TimestampMilliSeconds<i64, Flexible>")]
     pub current: DateTime<Utc>,
@@ -69,23 +64,15 @@ pub struct OrderBookResponse {
 
 impl Response for OrderBookResponse {}
 
-/// Order price and amount (volume)
-#[derive(Debug, Clone, Default, PartialEq)]
-pub struct PriceAndAmount {
-    pub price: Decimal,
-    pub amount: Decimal,
-}
-
-impl<'de> Deserialize<'de> for PriceAndAmount {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let [price, amount] = <[Decimal; 2]>::deserialize(deserializer)?;
-        Ok(Self { price, amount })
+impl ccx_lib::order_book::OrderBook for OrderBookResponse {
+    fn asks(&self) -> impl ExactSizeIterator<Item = PriceAndAmount> {
+        // the right order should be provided by the api
+        self.asks.iter().copied()
     }
-}
 
-impl From<(Decimal, Decimal)> for PriceAndAmount {
-    fn from((price, amount): (Decimal, Decimal)) -> Self {
-        Self { price, amount }
+    fn bids(&self) -> impl ExactSizeIterator<Item = PriceAndAmount> {
+        // the right order should be provided by the api
+        self.bids.iter().copied()
     }
 }
 

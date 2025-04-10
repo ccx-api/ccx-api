@@ -218,14 +218,16 @@ mod tests {
                     (dec!(19076.23), dec!(0.00011808)).into(),
                     (dec!(19073.9), dec!(0.105)).into(),
                     (dec!(19068.83), dec!(0.1009)).into(),
-                ],
+                ]
+                .into(),
                 asks: vec![
                     (dec!(19080.24), dec!(0.1638)).into(),
                     (dec!(19080.91), dec!(0.1366)).into(),
                     (dec!(19080.92), dec!(0.01)).into(),
                     (dec!(19081.29), dec!(0.01)).into(),
                     (dec!(19083.8), dec!(0.097)).into(),
-                ],
+                ]
+                .into(),
             }))),
         );
         let jd = &mut serde_json::Deserializer::from_str(json);
