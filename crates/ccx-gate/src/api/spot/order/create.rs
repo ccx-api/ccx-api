@@ -6,6 +6,7 @@ use serde_with::skip_serializing_none;
 use smart_string::SmartString;
 
 use crate::proto::{Request, SignedRequest};
+use crate::types::currency_pair::CurrencyPair;
 use crate::types::rate_limits::RateLimitType;
 
 use super::Order;
@@ -17,11 +18,11 @@ use super::Order;
 #[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, Clone, Builder)]
 #[cfg_attr(test, derive(PartialEq))]
-#[builder(on(SmartString<15>, into))]
+#[builder(on(CurrencyPair, into))]
 #[non_exhaustive]
 pub struct CreateOrder {
     /// Currency pair (e.g., BTC_USDT).
-    pub currency_pair: SmartString<15>,
+    pub currency_pair: CurrencyPair,
 
     /// Account type (e.g., spot, margin, unified, cross_margin). Defaults to `spot`
     pub account: Option<AccountType>,

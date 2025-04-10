@@ -13,14 +13,14 @@ pub mod public;
 pub mod ready;
 pub mod signer;
 pub mod stamped;
-mod websocket;
+pub mod websocket;
 
 #[derive(Clone)]
 pub struct GateClient {
     inner: Arc<ClientInner>,
 }
 
-pub struct ClientInner {
+pub(crate) struct ClientInner {
     client: reqwest::Client,
     config: ConnectionConfig,
 }

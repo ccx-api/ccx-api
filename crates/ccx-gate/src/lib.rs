@@ -1,6 +1,6 @@
 pub mod api;
 pub mod api_ws;
-mod client;
+pub mod client;
 pub mod config;
 pub mod error;
 pub mod prelude;

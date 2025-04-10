@@ -6,9 +6,9 @@ use serde::Serialize;
 use serde_with::TimestampSeconds;
 use serde_with::formats::Flexible;
 use serde_with::serde_as;
-use smart_string::SmartString;
 
 use crate::proto::{PublicRequest, Request, Response};
+use crate::types;
 
 /// List all currency pairs supported by the API.
 ///
@@ -75,13 +75,13 @@ impl PublicRequest for CurrencyPair {}
 pub struct CurrencyPairResponse {
     /// Currency pair identifier.
     #[serde(default, with = "crate::util::maybe_str")]
-    pub id: Option<SmartString<15>>,
+    pub id: Option<types::currency_pair::CurrencyPair>,
     /// Base currency of the pair.
     #[serde(default, with = "crate::util::maybe_str")]
-    pub base: Option<SmartString<15>>,
+    pub base: Option<types::currency_pair::CurrencyPair>,
     /// Quote currency of the pair.
     #[serde(default, with = "crate::util::maybe_str")]
-    pub quote: Option<SmartString<15>>,
+    pub quote: Option<types::currency_pair::CurrencyPair>,
     /// Trading fee associated with the currency pair.
     #[serde(default, with = "crate::util::maybe_str")]
     pub fee: Option<Decimal>,

@@ -4,6 +4,7 @@ use ccx_binance::types::ws_stream_name::DepthUpdateSpeed;
 use ccx_lib::console::Style;
 use ccx_lib::console::Term;
 use ccx_lib::nice_num::NiceNum;
+use ccx_lib::order_book::{OrderBook, PriceAndAmount};
 use futures::StreamExt;
 
 #[tokio::main]
@@ -95,12 +96,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let len = asks.len();
         let begin = len - len.min(20);
 
-        for (&p, &v) in asks.iter().rev().skip(begin) {
+        for PriceAndAmount { price, amount } in asks.skip(begin) {
             term.clear_line()?;
             term.write_line(&format!(
                 "          {} :: {}",
-                NiceNum(&ask_style, p, 8),
-                NiceNum(&ask_style, v, 8),
+                NiceNum(&ask_style, price, 8),
+                NiceNum(&ask_style, amount, 8),
             ))?;
         }
 
@@ -118,12 +119,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         term.clear_line()?;
         term.write_line("")?;
 
-        for (&p, &v) in bids.iter().rev().take(20) {
+        for PriceAndAmount { price, amount } in bids.take(20) {
             term.clear_line()?;
             term.write_line(&format!(
                 "          {} :: {}",
-                NiceNum(&bid_style, p, 8),
-                NiceNum(&bid_style, v, 8),
+                NiceNum(&bid_style, price, 8),
+                NiceNum(&bid_style, amount, 8),
             ))?;
         }
 
