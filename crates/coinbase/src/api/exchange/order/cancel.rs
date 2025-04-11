@@ -58,7 +58,7 @@ where
         order_id: EitherOrderId,
         profile_id: Option<&str>,
         product_id: Option<&str>,
-    ) -> CoinbaseResult<Task<Order>> {
+    ) -> CoinbaseResult<Task<Uuid>> {
         let endpoint = format!("/orders/{order_id}");
         Ok(self
             .rate_limiter
