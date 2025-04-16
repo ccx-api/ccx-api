@@ -6,6 +6,12 @@ use crate::rate_limiter::RateLimiterError;
 pub struct SignError(pub anyhow::Error);
 
 #[derive(Debug, derive_more::From, derive_more::Display)]
+pub enum RequestError {
+    Reqwest(reqwest::Error),
+    Custom(anyhow::Error),
+}
+
+#[derive(Debug, derive_more::From, derive_more::Display)]
 pub enum Error<ApiError: CcxApiError> {
     #[display("Api Error: {_0}")]
     Api(ApiError),
@@ -17,13 +23,19 @@ pub enum Error<ApiError: CcxApiError> {
     #[display("Failed to serialize/deserialize data: {_0}")]
     JsonConversion(serde_json::Error),
     #[display("Request error: {_0}")]
-    Request(reqwest::Error),
+    Request(RequestError),
     #[display("Failed to parse url")]
     UrlParse(url::ParseError),
-    #[display("Failed to format argument: {_0}")]
+    #[display("Failed to format arguments: {_0}")]
     Format(std::fmt::Error),
     #[display("RequestLimiter error: {_0}")]
     RateLimiter(RateLimiterError),
+}
+
+impl<ApiError: CcxApiError> From<reqwest::Error> for Error<ApiError> {
+    fn from(error: reqwest::Error) -> Self {
+        Self::Request(RequestError::Reqwest(error))
+    }
 }
 
 pub trait CcxApiError: std::error::Error + Send + Sync {}
