@@ -32,11 +32,13 @@ full = ["binance", "gate", "mexc"]
 binance = ["dep:ccx-binance"]
 gate = ["dep:ccx-gate"]
 mexc = ["dep:ccx-mexc"]
+kraken = ["dep:ccx-kraken"]
 
 [dependencies]
 ccx-binance = { path = "crates/ccx-binance", optional = true }
 ccx-gate = { path = "crates/ccx-gate", optional = true }
 ccx-mexc = { path = "crates/ccx-mexc", optional = true }
+ccx-kraken = { path = "crates/ccx-kraken", optional = true }
 
 [profile.dev.package."*"]
 opt-level = 3
