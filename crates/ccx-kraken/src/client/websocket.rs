@@ -1,7 +1,7 @@
 use ccx_lib::websocket::{WebSocketConnectError, websocket_builder};
 use futures::channel::mpsc::{self, SendError};
 use futures::{SinkExt, Stream, StreamExt};
-use soketto::{Data, Incoming};
+use soketto::Incoming;
 use tracing::Instrument;
 use url::Url;
 
@@ -50,11 +50,8 @@ impl WebSocketClient {
                     message = receiver.receive(&mut buf) => {
                         match message {
                             Ok(incoming) => match incoming {
-                                Incoming::Data(data) => {
-                                    let count = match data {
-                                        Data::Text(count) | Data::Binary(count) => count,
-                                    };
-                                    tracing::debug!("received {count} bytes");
+                                Incoming::Data(_) => {
+                                    tracing::debug!("Response: {}", String::from_utf8_lossy(&buf));
 
                                     let response: WsResponse = match serde_json::from_slice(&buf) {
                                         Ok(msg) => msg,
