@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use ccx_lib::websocket::WebSocketConnectError;
 use reqwest::{IntoUrl, RequestBuilder};
-// use websocket::WebSocketClient;
+use websocket::WebSocketClient;
 
 use crate::config::ConnectionConfig;
 
@@ -13,7 +13,7 @@ pub mod public;
 pub mod ready;
 pub mod signer;
 pub mod stamped;
-// pub mod websocket;
+pub mod websocket;
 
 #[derive(Clone)]
 pub struct KrakenClient {
@@ -41,7 +41,7 @@ impl KrakenClient {
         self.inner.client.request(method, url)
     }
 
-    // pub async fn websocket(&self) -> Result<WebSocketClient, WebSocketConnectError> {
-    //     WebSocketClient::connect(&self.config().websocket_base).await
-    // }
+    pub async fn websocket(&self) -> Result<WebSocketClient, WebSocketConnectError> {
+        WebSocketClient::connect(&self.config().websocket_public).await
+    }
 }

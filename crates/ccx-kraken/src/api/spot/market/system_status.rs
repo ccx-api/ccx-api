@@ -8,7 +8,7 @@ use crate::proto::{PublicRequest, Request, Response};
 /// * maintenance - The exchange is offline. No new orders or cancellations may be submitted.
 /// * cancel_only - Resting (open) orders can be cancelled but no new orders may be submitted. No trades will occur.
 /// * post_only - Only post-only limit orders can be submitted. Existing orders may still be cancelled. No trades will occur.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Status {
     Online,
