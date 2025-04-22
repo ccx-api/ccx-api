@@ -1,4 +1,5 @@
 use ccx_kraken::prelude::*;
+use ccx_kraken::rate_limiter::Tier;
 use envconfig::Envconfig;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
@@ -34,7 +35,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
         KrakenCredential::new(config.api_key, config.api_secret)
     };
-    let rate_limiter = RateLimiter::spawn();
+    let rate_limiter = RateLimiter::spawn(Tier::default());
 
     let client = {
         let client = reqwest::Client::new();

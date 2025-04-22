@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::proto::{PublicRequest, Request, Response};
+use crate::types::rate_limits::RateLimitType;
 
 /// Current system status.
 ///
@@ -38,6 +39,8 @@ impl Request for SystemStatus {
     const HTTP_METHOD: http::Method = http::Method::GET;
 
     const ENDPOINT: &'static str = "/0/public/SystemStatus";
+
+    const COSTS: &'static RateLimitType = &RateLimitType::Public;
 }
 
 impl PublicRequest for SystemStatus {}

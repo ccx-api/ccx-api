@@ -7,4 +7,3 @@ pub mod prelude;
 pub mod proto;
 pub mod rate_limiter;
 pub mod types;
-mod util;

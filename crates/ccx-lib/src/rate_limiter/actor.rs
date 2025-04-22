@@ -9,69 +9,25 @@ use tokio::time::Instant;
 use tokio::time::MissedTickBehavior;
 use tokio::time::interval;
 
+use super::RateLimiterBucket;
 use crate::rate_limiter::queue::Queue;
 use crate::rate_limiter::types::RateLimiterMessage;
 
 use super::types::TaskCostsRef;
-
 pub struct RateLimiterActor<RateLimitType, BucketInit>
 where
     RateLimitType: Copy + 'static,
 {
-    buckets: HashMap<RateLimitType, Vec<RateLimiterBucket>>,
+    buckets: HashMap<RateLimitType, Vec<Box<dyn RateLimiterBucket>>>,
     bucket_init: BucketInit,
     queue: Queue<RateLimitType>,
 }
 
-#[derive(Debug)]
-pub struct RateLimiterBucket {
-    /// Time interval for the limit to be applied.
-    interval: Duration,
-    /// The limit of the bucket.
-    limit: u32,
-    /// The time when the current interval started.
-    started_at: Instant,
-    /// The amount of requests made in the current interval.
-    amount: u32,
-}
-
-impl RateLimiterBucket {
-    pub fn new_now(interval: Duration, limit: u32) -> Self {
-        Self {
-            interval,
-            limit,
-            started_at: Instant::now(),
-            amount: 0,
-        }
-    }
-
-    fn reset_if_expired(&mut self, now: Instant) -> bool {
-        let elapsed = now.saturating_duration_since(self.started_at);
-        let is_expired = self.interval < elapsed;
-        if is_expired {
-            self.amount = 0;
-        }
-        // Сдвигаем окно, если бакет пустой.
-        if self.is_empty() {
-            self.started_at = now;
-        }
-        is_expired
-    }
-
-    fn is_empty(&self) -> bool {
-        self.amount == 0
-    }
-
-    fn get_timeout(&self, now: Instant) -> Duration {
-        let elapsed = now.saturating_duration_since(self.started_at);
-        self.interval - elapsed
-    }
-}
-
-impl<RateLimitType, BucketInit> RateLimiterActor<RateLimitType, BucketInit>
+impl<RateLimitType, Bucket, BucketInit> RateLimiterActor<RateLimitType, BucketInit>
 where
     RateLimitType: Eq + Hash + std::fmt::Debug + Copy,
-    BucketInit: Fn(&RateLimitType) -> Vec<RateLimiterBucket>,
+    BucketInit: Fn(&RateLimitType) -> Vec<Bucket>,
+    Bucket: Into<Box<dyn RateLimiterBucket>>,
 {
     pub fn with_bucket_initializer(bucket_init: BucketInit) -> Self {
         Self {
@@ -177,7 +133,10 @@ where
     fn check_or_insert_bucket(&mut self, costs: TaskCostsRef<'_, RateLimitType>) {
         for (typ, _cost) in costs {
             self.buckets.entry(*typ).or_insert_with(|| {
-                let bucket = (self.bucket_init)(typ);
+                let bucket = (self.bucket_init)(typ)
+                    .into_iter()
+                    .map(|b| b.into())
+                    .collect();
                 tracing::trace!(?typ, ?bucket, "Create new bucket");
 
                 bucket
@@ -203,7 +162,7 @@ where
                 return None;
             };
             for bucket in buckets {
-                if bucket.amount + *cost > bucket.limit {
+                if !bucket.can_increase_cost(*cost) {
                     let new_timeout = bucket.get_timeout(now);
                     limit_reached = limit_reached
                         .map(|old| new_timeout.max(old))
@@ -222,7 +181,7 @@ where
                 return;
             };
             for bucket in buckets {
-                bucket.amount += cost;
+                bucket.increase(*cost);
             }
         }
     }

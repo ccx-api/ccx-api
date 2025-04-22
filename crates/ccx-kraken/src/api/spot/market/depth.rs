@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::prelude::CurrencyPair;
 use crate::proto::{PublicRequest, Request, Response};
+use crate::types::rate_limits::RateLimitType;
 
 /// Get Depth Information.
 ///
@@ -67,6 +68,8 @@ impl Request for Depth {
     const HTTP_METHOD: http::Method = http::Method::GET;
 
     const ENDPOINT: &'static str = "/0/public/Depth";
+
+    const COSTS: &'static RateLimitType = &RateLimitType::Public;
 }
 
 impl PublicRequest for Depth {}

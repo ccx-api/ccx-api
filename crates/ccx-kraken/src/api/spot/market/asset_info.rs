@@ -8,6 +8,7 @@ use serde_with::serde_as;
 
 use crate::proto::{PublicRequest, Request, Response};
 use crate::types::asset_info::AssetName;
+use crate::types::rate_limits::RateLimitType;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum AssetClass {
@@ -50,6 +51,8 @@ impl Request for AssetInfo {
     const HTTP_METHOD: http::Method = http::Method::GET;
 
     const ENDPOINT: &'static str = "/0/public/Assets";
+
+    const COSTS: &'static RateLimitType = &RateLimitType::Public;
 }
 
 impl PublicRequest for AssetInfo {}

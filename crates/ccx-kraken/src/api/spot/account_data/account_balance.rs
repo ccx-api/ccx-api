@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::proto::{Request, Response, SignedRequest};
 use crate::types::asset_info::AssetName;
+use crate::types::rate_limits::{RateLimitPrivateType, RateLimitType};
 
 /// Get Account Balance.
 ///
@@ -32,6 +33,8 @@ impl Request for AccountBalance {
     const HTTP_METHOD: http::Method = http::Method::POST;
 
     const ENDPOINT: &'static str = "/0/private/Balance";
+
+    const COSTS: &'static RateLimitType = &RateLimitType::Private(RateLimitPrivateType::Normal);
 }
 
 impl SignedRequest for AccountBalance {}
