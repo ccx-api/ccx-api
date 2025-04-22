@@ -10,6 +10,7 @@ use serde_with::serde_as;
 use crate::prelude::CurrencyPair;
 use crate::proto::{PublicRequest, Request, Response};
 use crate::types::asset_info::AssetName;
+use crate::types::rate_limits::RateLimitType;
 
 use super::AssetClass;
 
@@ -104,6 +105,8 @@ impl Request for AssetPairs {
     const HTTP_METHOD: http::Method = http::Method::GET;
 
     const ENDPOINT: &'static str = "/0/public/AssetPairs";
+
+    const COSTS: &'static RateLimitType = &RateLimitType::Public;
 }
 
 impl PublicRequest for AssetPairs {}

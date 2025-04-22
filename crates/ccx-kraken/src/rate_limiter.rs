@@ -1,28 +1,62 @@
 use std::time::Duration;
 
-use super::types::rate_limits::RateLimitType;
+use ccx_lib::rate_limiter::{RateLimiterBucket, RateLimiterBucketToken, RateLimiterBucketWindow};
 
-pub use ccx_lib::rate_limiter::RateLimiterBucket;
-pub use ccx_lib::rate_limiter::RateLimiterError;
+use crate::types::rate_limits::RateLimitType;
 
-fn buckets<B: FromIterator<RateLimiterBucket>>(
-    list: impl IntoIterator<Item = (Duration, u32)>,
-) -> B {
-    list.into_iter()
-        .map(|(interval, limit)| RateLimiterBucket::new_now(interval, limit))
-        .collect()
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Copy)]
+pub enum RateLimitKey {
+    Public,
+    Private,
 }
 
-pub(crate) type RateLimitKey = ();
+impl From<&RateLimitType> for RateLimitKey {
+    fn from(value: &RateLimitType) -> Self {
+        match value {
+            RateLimitType::Public => Self::Public,
+            RateLimitType::Private(_) => Self::Private,
+        }
+    }
+}
+
+#[derive(Default)]
+pub enum Tier {
+    #[default]
+    Starter,
+    Intermediate,
+    Pro,
+}
 
 #[derive(Clone, derive_more::Deref, derive_more::DerefMut)]
 pub struct RateLimiter(ccx_lib::rate_limiter::RateLimiter<RateLimitKey>);
 
-// TODO: refactor this big
 impl RateLimiter {
-    pub fn spawn() -> Self {
+    pub fn spawn(tier: Tier) -> Self {
         Self(ccx_lib::rate_limiter::RateLimiter::<RateLimitKey>::spawn(
-            |_| buckets([(Duration::from_secs(5), 15)]),
+            move |ty| -> Vec<Box<dyn RateLimiterBucket>> {
+                match ty {
+                    // for the public API it's not very clear what's the actual rate limits
+                    RateLimitKey::Public => vec![Box::new(RateLimiterBucketWindow::new_now(
+                        Duration::from_secs(1),
+                        100,
+                    ))],
+                    RateLimitKey::Private => match tier {
+                        // https://docs.kraken.com/api/docs/guides/spot-rest-ratelimits/
+                        Tier::Starter => vec![Box::new(RateLimiterBucketToken::new_now(
+                            Duration::from_secs(3),
+                            15,
+                        ))],
+                        Tier::Intermediate => vec![Box::new(RateLimiterBucketToken::new_now(
+                            Duration::from_secs(2),
+                            20,
+                        ))],
+                        Tier::Pro => vec![Box::new(RateLimiterBucketToken::new_now(
+                            Duration::from_secs(1),
+                            20,
+                        ))],
+                    },
+                }
+            },
         ))
     }
 }

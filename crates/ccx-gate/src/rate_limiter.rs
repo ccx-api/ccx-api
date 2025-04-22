@@ -2,14 +2,14 @@ use std::time::Duration;
 
 use super::types::rate_limits::RateLimitType;
 
-pub use ccx_lib::rate_limiter::RateLimiterBucket;
+pub use ccx_lib::rate_limiter::RateLimiterBucketWindow;
 pub use ccx_lib::rate_limiter::RateLimiterError;
 
-fn buckets<B: FromIterator<RateLimiterBucket>>(
+fn buckets<B: FromIterator<RateLimiterBucketWindow>>(
     list: impl IntoIterator<Item = (Duration, u32)>,
 ) -> B {
     list.into_iter()
-        .map(|(interval, limit)| RateLimiterBucket::new_now(interval, limit))
+        .map(|(interval, limit)| RateLimiterBucketWindow::new_now(interval, limit))
         .collect()
 }
 

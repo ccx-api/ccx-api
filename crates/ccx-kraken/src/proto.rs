@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use ccx_lib::rate_limiter::RateLimiterError;
 use chrono::Utc;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -12,15 +13,14 @@ use crate::client::signer::KrakenSigner;
 use crate::client::stamped::Stamped;
 use crate::error::KrakenResult;
 use crate::prelude::Nonce;
-use crate::rate_limiter::RateLimiterError;
 use crate::rate_limiter::{RateLimitKey, RateLimiter};
-use crate::types::rate_limits::RateLimitType;
+use crate::types::rate_limits::{RateLimitPrivateType, RateLimitType};
 
 pub trait Request: Serialize + Send + Sync {
     type Response: Response;
 
     const HTTP_METHOD: http::Method;
-    /// IMPORTANT: endpoint should define the whole path i.e. starting from /api/v4
+    /// IMPORTANT: endpoint should define the whole path i.e. starting from /0/public/
     const ENDPOINT: &'static str;
 
     fn path(&self) -> Cow<'static, str> {
@@ -28,7 +28,7 @@ pub trait Request: Serialize + Send + Sync {
     }
 
     /// Rate limiter bucket type and score for this request.
-    const COSTS: &'static RateLimitType = &RateLimitType::Normal;
+    const COSTS: &'static RateLimitType = &RateLimitType::Private(RateLimitPrivateType::Normal);
 
     #[tracing::instrument(skip_all)]
     fn throttle(
@@ -40,13 +40,22 @@ pub trait Request: Serialize + Send + Sync {
     {
         let mut rate_limiter = rate_limiter.clone();
         async move {
-            // TODO: based on kraken.io docs the rate limits are applied to the
-            // endpoints separately. Based on testing the limits are created
-            // separately for the same endpoint with different path arguments
-            // (like currency_pairs for different pairs)
-            // but that will require dynamic allocations that
-            // is currently not implemented by the base rate_limiter
-            rate_limiter.enqueue(0, smallvec![((), 1)]).await?;
+            let cost = match Self::COSTS {
+                RateLimitType::Public => 1,
+                RateLimitType::Private(ty) => {
+                    match ty {
+                        RateLimitPrivateType::Normal => 1,
+                        RateLimitPrivateType::History => 2,
+                        // for orders rate limits are more complex actually
+                        // https://docs.kraken.com/api/docs/guides/spot-ratelimits/
+                        RateLimitPrivateType::Order => 1,
+                    }
+                }
+            };
+
+            rate_limiter
+                .enqueue(0, smallvec![(RateLimitKey::from(Self::COSTS), cost)])
+                .await?;
             Ok(self)
         }
     }

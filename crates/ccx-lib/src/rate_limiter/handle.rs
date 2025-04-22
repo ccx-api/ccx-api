@@ -4,7 +4,8 @@ use futures::SinkExt;
 use futures::channel::mpsc;
 use futures::channel::oneshot;
 
-use super::actor::{RateLimiterActor, RateLimiterBucket};
+use super::RateLimiterBucket;
+use super::actor::RateLimiterActor;
 use super::error::RateLimiterError;
 use super::types::RateLimiterMessage;
 use super::types::Task;
@@ -20,10 +21,11 @@ where
     RateLimitType: std::fmt::Debug + Hash + Eq + Copy + 'static,
     RateLimitType: Send + Sync,
 {
-    pub fn spawn<BucketInit>(bucket_init: BucketInit) -> Self
+    pub fn spawn<Bucket, BucketInit>(bucket_init: BucketInit) -> Self
     where
-        BucketInit: Fn(&RateLimitType) -> Vec<RateLimiterBucket>,
+        BucketInit: Fn(&RateLimitType) -> Vec<Bucket>,
         BucketInit: 'static + Send,
+        Bucket: Into<Box<dyn RateLimiterBucket>>,
     {
         let (tx, rx) = mpsc::channel(8);
         let actor = RateLimiterActor::with_bucket_initializer(bucket_init);

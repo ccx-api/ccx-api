@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::proto::{PublicRequest, Request, Response};
+use crate::types::rate_limits::RateLimitType;
 
 /// Get Server Time.
 ///
@@ -22,6 +23,8 @@ impl Request for ServerTime {
     const HTTP_METHOD: http::Method = http::Method::GET;
 
     const ENDPOINT: &'static str = "/0/public/Time";
+
+    const COSTS: &'static RateLimitType = &RateLimitType::Public;
 }
 
 impl PublicRequest for ServerTime {}
