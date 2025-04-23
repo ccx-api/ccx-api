@@ -1,4 +1,4 @@
-use http::{HeaderValue, StatusCode};
+use http::StatusCode;
 
 use crate::api::error::KrakenApiError;
 
@@ -20,8 +20,6 @@ pub struct KrakenErrorWithMeta {
 #[derive(Debug)]
 pub struct KrakenResponseMeta {
     pub http_status: StatusCode,
-    pub trace_id: Option<String>,
-    pub rate_limit: RateLimitMeta,
 }
 
 #[derive(Debug)]
@@ -48,33 +46,11 @@ impl<T> KrakenResponseWithMeta<T> {
     }
 }
 
-fn parse_num(header: Option<&HeaderValue>) -> Option<u32> {
-    header
-        .and_then(|h| h.to_str().ok())
-        .and_then(|h| h.parse().ok())
-}
-
 impl KrakenResponseMeta {
     pub(super) fn from_response(resp: &reqwest::Response) -> Self {
         let http_status = resp.status();
 
-        let trace_id = resp
-            .headers()
-            .get("x-kraken-trace-id")
-            .and_then(|h| h.to_str().ok())
-            .map(ToString::to_string);
-
-        let rate_limit = RateLimitMeta {
-            remain: parse_num(resp.headers().get("x-kraken-ratelimit-requests-remain"))
-                .unwrap_or_default(),
-            limit: parse_num(resp.headers().get("x-kraken-ratelimit-limit")).unwrap_or_default(),
-        };
-
-        KrakenResponseMeta {
-            http_status,
-            trace_id,
-            rate_limit,
-        }
+        KrakenResponseMeta { http_status }
     }
 
     pub fn error(self, error: impl Into<KrakenError>) -> KrakenErrorWithMeta {
