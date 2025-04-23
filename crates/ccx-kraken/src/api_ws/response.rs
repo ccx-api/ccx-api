@@ -215,14 +215,11 @@ mod tests {
 
     use super::Event;
     use crate::api::spot::market::Status;
-    use crate::api_ws::{
-        ChannelResponse, OrderBookSnapshot, OrderBookUpdate, PongResponse, PriceAndQty,
-        StatusUpdate,
-    };
-    // use crate::api_ws::order_book::OrderBookSnapshot;
-    use crate::api_ws::response::EventInner;
     use crate::api_ws::response::WsErr;
     use crate::api_ws::response::WsResponse;
+    use crate::api_ws::{
+        ChannelResponse, OrderBookUpdate, PongResponse, PriceAndQty, StatusUpdate,
+    };
 
     #[test]
     fn deserialize_status() {
