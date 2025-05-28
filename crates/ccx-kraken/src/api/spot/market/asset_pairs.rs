@@ -9,10 +9,8 @@ use serde_with::serde_as;
 
 use crate::prelude::CurrencyPair;
 use crate::proto::{PublicRequest, Request, Response};
-use crate::types::asset_info::AssetName;
+use crate::types::asset_info::{AssetClass, AssetName};
 use crate::types::rate_limits::RateLimitType;
-
-use super::AssetClass;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "snake_case")]

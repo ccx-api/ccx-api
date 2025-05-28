@@ -7,15 +7,8 @@ use serde_with::formats::CommaSeparator;
 use serde_with::serde_as;
 
 use crate::proto::{PublicRequest, Request, Response};
-use crate::types::asset_info::AssetName;
+use crate::types::asset_info::{AssetClass, AssetName};
 use crate::types::rate_limits::RateLimitType;
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
-pub enum AssetClass {
-    #[serde(rename = "currency")]
-    Currency,
-    // TODO other classes ?
-}
 
 #[serde_as]
 #[derive(Serialize, Debug, Builder)]
