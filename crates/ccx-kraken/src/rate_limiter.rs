@@ -19,7 +19,7 @@ impl From<&RateLimitType> for RateLimitKey {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum Tier {
     #[default]
     Starter,
