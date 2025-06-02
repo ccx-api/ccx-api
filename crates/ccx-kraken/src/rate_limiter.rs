@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use ccx_lib::rate_limiter::{RateLimiterBucket, RateLimiterBucketToken, RateLimiterBucketWindow};
+use serde::{Deserialize, Serialize};
 
 use crate::types::rate_limits::RateLimitType;
 
@@ -8,6 +9,7 @@ use crate::types::rate_limits::RateLimitType;
 pub enum RateLimitKey {
     Public,
     Private,
+    Order,
 }
 
 impl From<&RateLimitType> for RateLimitKey {
@@ -15,11 +17,12 @@ impl From<&RateLimitType> for RateLimitKey {
         match value {
             RateLimitType::Public => Self::Public,
             RateLimitType::Private(_) => Self::Private,
+            RateLimitType::Order => Self::Order,
         }
     }
 }
 
-#[derive(Default, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Default, Debug, Hash, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub enum Tier {
     #[default]
     Starter,
@@ -35,7 +38,6 @@ impl RateLimiter {
         Self(ccx_lib::rate_limiter::RateLimiter::<RateLimitKey>::spawn(
             move |ty| -> Vec<Box<dyn RateLimiterBucket>> {
                 match ty {
-                    // for the public API it's not very clear what's the actual rate limits
                     RateLimitKey::Public => vec![Box::new(RateLimiterBucketWindow::new_now(
                         Duration::from_secs(1),
                         100,
@@ -53,6 +55,20 @@ impl RateLimiter {
                         Tier::Pro => vec![Box::new(RateLimiterBucketToken::new_now(
                             Duration::from_secs(1),
                             20,
+                        ))],
+                    },
+                    RateLimitKey::Order => match tier {
+                        Tier::Starter => vec![Box::new(RateLimiterBucketToken::new_now(
+                            Duration::from_secs(60),
+                            60,
+                        ))],
+                        Tier::Intermediate => vec![Box::new(RateLimiterBucketToken::new_now(
+                            Duration::from_secs(60),
+                            140,
+                        ))],
+                        Tier::Pro => vec![Box::new(RateLimiterBucketToken::new_now(
+                            Duration::from_secs(60),
+                            225,
                         ))],
                     },
                 }

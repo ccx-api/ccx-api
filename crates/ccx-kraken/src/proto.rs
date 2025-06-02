@@ -39,18 +39,19 @@ pub trait Request: Serialize + Send + Sync {
         Self: Sized + Send,
     {
         let mut rate_limiter = rate_limiter.clone();
+
         async move {
             let cost = match Self::COSTS {
                 RateLimitType::Public => 1,
-                RateLimitType::Private(ty) => {
-                    match ty {
-                        RateLimitPrivateType::Normal => 1,
-                        RateLimitPrivateType::History => 2,
-                        // for orders rate limits are more complex actually
-                        // https://docs.kraken.com/api/docs/guides/spot-ratelimits/
-                        RateLimitPrivateType::Order => 1,
-                    }
-                }
+                RateLimitType::Private(ty) => match ty {
+                    RateLimitPrivateType::Normal => 1,
+                    RateLimitPrivateType::History => 2,
+                },
+                // TODO: for orders rate limits are more complex
+                // https://docs.kraken.com/api/docs/guides/spot-ratelimits/
+                // at least it should be implemented separately for every
+                // [CurrencyPair] instead of generic counter
+                RateLimitType::Order => 0,
             };
 
             rate_limiter
