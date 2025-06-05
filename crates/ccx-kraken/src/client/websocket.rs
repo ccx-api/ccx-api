@@ -20,7 +20,7 @@ pub enum WebSocketError {
 
 impl WebSocketClient {
     pub async fn connect(stream_url: &Url) -> Result<Self, WebSocketConnectError> {
-        let builder = websocket_builder(stream_url).await?;
+        let builder = websocket_builder().stream_url(stream_url).call().await?;
         let (ws_sender, mut rx_request) = mpsc::channel(4);
         let (mut tx_response, ws_receiver) = mpsc::channel(4);
         tokio::spawn(async move {

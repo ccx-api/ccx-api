@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ))?;
 
         let volume = 1_000_000.into();
-        let fill = order_book.ask_base_depth(volume);
+        let fill = order_book.ask_base_depth(volume)?;
 
         term.clear_line()?;
         term.write_line("")?;
@@ -128,7 +128,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ))?;
         }
 
-        let fill = order_book.bid_base_depth(volume);
+        let fill = order_book.bid_base_depth(volume)?;
 
         term.clear_line()?;
         term.write_line("")?;
