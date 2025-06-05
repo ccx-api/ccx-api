@@ -1,0 +1,40 @@
+[package]
+name = "ccx-bitgo"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[features]
+default = []
+
+[dependencies]
+anyhow.workspace = true
+bon.workspace = true
+ccx-lib = { path = "../ccx-lib", features = ["console_formatter", "websocket"] }
+chrono.workspace = true
+derive_more.workspace = true
+futures.workspace = true
+http.workspace = true
+macro_rules_attribute.workspace = true
+soketto = "0.8"
+reqwest = { version = "0.12", features = ["json"] }
+rust_decimal = "1"
+rust_decimal_macros = "1"
+serde.workspace = true
+serde_json.workspace = true
+serde_urlencoded.workspace = true
+serde_with.workspace = true
+smallvec.workspace = true
+smart-string.workspace = true
+tokio = { version = "1", default-features = false, features = ["macros"] }
+tracing.workspace = true
+url = "2"
+url-macro = "0.1"
+uuid = { version = "1.10", features = ["v4", "serde"] }
+
+[dev-dependencies]
+dotenvy = "0.15"
+envconfig = "0.11"
+tokio = { version = "1", features = ["full"] }
+tracing-subscriber.workspace = true
+similar-asserts.workspace = true

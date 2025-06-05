@@ -49,7 +49,7 @@ impl WebSocketClient {
     pub async fn connect(
         stream_url: Url,
     ) -> Result<(Self, fmpsc::Receiver<Vec<u8>>), WebSocketConnectError> {
-        let builder = websocket_builder(&stream_url).await?;
+        let builder = websocket_builder().stream_url(&stream_url).call().await?;
         let (sender, receiver) = builder.finish();
         let (cmd_tx, cmd_rx) = fmpsc::channel(4);
         let (stream_tx, stream_rx) = fmpsc::channel(4);

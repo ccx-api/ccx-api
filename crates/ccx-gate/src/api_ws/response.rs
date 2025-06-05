@@ -3,7 +3,6 @@ use std::fmt::Display;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::de::Error;
-use serde_json::value::RawValue;
 use serde_repr::Deserialize_repr;
 
 use super::order_book::OrderBookSnapshot;
@@ -41,7 +40,7 @@ impl<'de> Deserialize<'de> for WsResponse {
             #[serde(with = "crate::util::maybe_str", default)]
             event: Option<EventKind>,
             error: Option<WsErr>,
-            result: Option<Box<RawValue>>,
+            result: Option<serde_json::Value>,
         }
 
         #[derive(Deserialize)]
@@ -84,7 +83,7 @@ impl<'de> Deserialize<'de> for WsResponse {
             )),
             (Channel::OrderBook, Some(EventKind::Update)) => {
                 Ok(Event::OrderBook(EventInner::Update(match result {
-                    Ok(json) => Ok(serde_json::from_str(json.get()).map_err(D::Error::custom)?),
+                    Ok(json) => Ok(serde_json::from_value(json).map_err(D::Error::custom)?),
                     Err(err) => Err(err),
                 })))
             }

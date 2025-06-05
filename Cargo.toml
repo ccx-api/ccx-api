@@ -15,14 +15,21 @@ edition = "2024"
 [workspace.dependencies]
 anyhow = "1.0"
 bon = "3.3"
+chrono = "0.4"
 derive_more = { version = "2.0", features = ["full"] }
-serde = "1.0"
-serde_json = "1.0"
+futures = "0.3"
+http = "1"
+macro_rules_attribute = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+# overwrite serde_json with package with better error description
+serde_json = { package = "serde_json_path_to_error", version = "0.1" }
 serde_urlencoded = "0.7"
 serde_plain = "1.0"
 serde_repr = "0.1"
+serde_with = { version = "3.12", features = ["chrono_0_4"] }
 similar-asserts = "1.7"
-smallvec = "1.14"
+smallvec = { version = "1.14", features = ["serde"] }
+smart-string = "0.1"
 reqwest = "0.12"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
