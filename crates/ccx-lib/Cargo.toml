@@ -9,7 +9,6 @@ default = []
 console_formatter = ["dep:console"]
 websocket = [
     "dep:soketto",
-    "dep:tokio",
     "dep:tokio-rustls",
     "dep:webpki-roots",
     "dep:tokio-util"
@@ -29,7 +28,7 @@ serde_urlencoded.workspace = true
 smallvec.workspace = true
 reqwest.workspace = true
 serde.workspace = true
-tokio = { version = "1", default-features = false, features = ["net"], optional = true }
+tokio = { version = "1", default-features = false, features = ["net", "macros"] }
 tokio-rustls = { version = "0.26", optional = true }
 tokio-util = { version = "0.7", features = ["compat"], optional = true }
 tracing.workspace = true
