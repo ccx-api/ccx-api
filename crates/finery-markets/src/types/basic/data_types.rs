@@ -170,3 +170,22 @@ pub enum SettlementFlags {
     /// Fee paid by recipient
     PaidByRecipient = 1,
 }
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ClientType {
+    Maker,
+    Taker,
+    Master,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ClientStatus {
+    /// Connection request has been accepted.
+    Connected,
+    /// You have sent an invitation to connect. But it has not been accepted yet.
+    InviteSent,
+    /// A counterparty has sent an invitation to connect.
+    InvitePending,
+}

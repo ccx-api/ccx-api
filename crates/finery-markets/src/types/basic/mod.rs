@@ -5,6 +5,8 @@ mod settlement_transaction;
 pub use data_types::CancelReason;
 pub use data_types::ClientId;
 pub use data_types::ClientOrderId;
+pub use data_types::ClientStatus;
+pub use data_types::ClientType;
 pub use data_types::DealId;
 pub use data_types::ErrorCode;
 pub use data_types::Flags;
