@@ -507,6 +507,10 @@ pub struct WsPosition {
     pub value: Size,
     #[serde(rename = "counterpartyId")]
     pub counterparty_id: ClientId,
+    #[serde(rename = "maxReachablePosition")]
+    pub max_reachable_position: Size,
+    #[serde(rename = "minReachablePosition")]
+    pub min_reachable_position: Size,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize_tuple, Deserialize_tuple)]
