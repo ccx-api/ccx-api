@@ -40,34 +40,22 @@ pub struct WalletDepositsResponse {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum WalletDepositsStatus {
-    /// Done
-    Done,
-    /// Cancelled
-    Cancel,
-    /// Requesting
-    Request,
-    /// Pending manual approval
-    Manual,
-    /// GateCode operation
-    Bcode,
-    /// Pending confirm after sending
-    Extpend,
-    /// Pending confirm when fail
-    Fail,
-    /// Invalid order
-    Invalid,
-    /// Verifying
-    Verify,
+    /// Recharge review (compliance review)
+    Review,
     /// Processing
-    Proces,
-    /// Pending
     Pend,
-    /// Required manual approval
-    Dmove,
-    /// The order is automatically split due to large amount
-    Splitpend,
+    /// Waiting for funds to be unlocked
+    Done,
+    /// Invalid data
+    Invalid,
+    /// Track the number of confirmations, waiting to add funds to the user (spot)
+    Track,
+    /// Rejected Recharge
+    Blocked,
+    /// Recharge to account, withdrawal is not unlocked
+    DepCredited,
 }
 
 #[cfg(feature = "with_network")]
