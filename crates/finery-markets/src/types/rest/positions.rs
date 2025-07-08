@@ -58,6 +58,16 @@ pub struct Position {
     /// Counterparty Id
     // #[index = 2]
     pub counterparty_id: ClientId,
+    /// 3
+    /// Efx::Size
+    /// Max reachable position
+    // #[index = 3]
+    pub max_reachable_position: Size,
+    /// 4
+    /// Efx::Size
+    /// Min reachable position
+    // #[index = 4]
+    pub min_reachable_position: Size,
 }
 
 impl From<WsPosition> for Position {
@@ -66,6 +76,8 @@ impl From<WsPosition> for Position {
             currency_name: pos.currency_name,
             value: pos.value,
             counterparty_id: pos.counterparty_id,
+            max_reachable_position: pos.max_reachable_position,
+            min_reachable_position: pos.min_reachable_position,
         }
     }
 }
@@ -203,98 +215,53 @@ pub(crate) mod tests {
         "#;
         test_serde_value_type::<PositionsRequest>(json);
 
-        let json = r#"
-        [
-            1016817,
+        let json = r#"[
+            5,
             [
-                [
-                    "USDC",
-                    -215338243034,
-                    87
-                ],
-                [
-                    "ETH",
-                    -901959563,
-                    20
-                ],
-                [
+                [ 
                     "BTC",
-                    -40000000,
-                    306
-                ],
-                [
-                    "BTC",
-                    -641170232,
-                    20
-                ],
-                [
-                    "BTC",
-                    555000925,
-                    87
-                ],
-                [
-                    "BUSD",
-                    -3764597228924,
-                    87
-                ],
-                [
-                    "EUR",
-                    17768194000000,
-                    20
-                ],
-                [
-                    "EUR",
-                    -1865651000000,
-                    87
+                    -10000000,
+                    2,
+                    0,
+                    -10000000
                 ],
                 [
                     "USD",
-                    1620175000000,
-                    306
-                ],
-                [
-                    "USD",
-                    54210000000,
-                    20
-                ],
-                [
-                    "USD",
-                    -15632888000000,
-                    87
-                ],
-                [
-                    "BNB",
-                    -101659305839,
-                    87
+                    100000000000,
+                    2,
+                    100000000000,
+                    0
                 ]
             ],
-            [],
             [
                 [
-                    29578970732,
-                    "BTC",
-                    "",
-                    10000000,
+                    "BTC-USD",
                     0,
-                    1663568623288,
-                    306,
-                    "",
-                    ""
-                ],
+                    0,
+                    0,
+                    1234,
+                    0,
+                    999900000000,
+                    10000000,
+                    8000000,
+                    1558051200000,
+                    0
+                ]
+            ],
+            [
                 [
-                    29576985071,
+                    1229,
                     "BTC",
-                    "",
+                    "USD",
                     10000000,
-                    0,
-                    1663566604421,
-                    306,
-                    "",
+                    100000000000,
+                    1558050900000,
+                    2,
+                    "BTC",
                     ""
                 ]
             ]
-        ]
-        "#;
+        ]"#;
         test_serde_response::<PositionsResponse>(json);
         test_serde_response_err::<PositionsResponse>();
     }
