@@ -85,7 +85,7 @@ where
         if is_json {
             let full = resp.bytes().await?;
 
-            tracing::trace!("Error response: {}", String::from_utf8_lossy(&full));
+            tracing::error!("Error response: {}", String::from_utf8_lossy(&full));
 
             let error: BitGoApiError = serde_json::from_slice(&full)?;
 
