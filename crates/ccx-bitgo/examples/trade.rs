@@ -6,9 +6,12 @@ use rust_decimal_macros::dec;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use url::Url;
 
 #[derive(Debug, Envconfig)]
 struct EnvConfig {
+    #[envconfig(from = "EXAMPLE_BITGO_EXPRESS_URL")]
+    express_url: Url,
     #[envconfig(from = "EXAMPLE_BITGO_API_TOKEN")]
     api_token: String,
     #[envconfig(from = "EXAMPLE_BITGO_ACCOUNT_ID")]
@@ -33,7 +36,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = {
         let client = reqwest::Client::new();
-        let config = config::testing();
+        let config = config::ConnectionConfig::new(config.express_url);
 
         BitGoClient::new(client, config)
     };
@@ -111,11 +114,11 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // considering this is limit order with low-probability chances to be fulfilled
     let new_order = trade::PlaceOrder::builder()
         .account_id(config.account_id.clone())
-        .product("TBTC-TUSD*")
+        .product("TSOL-TUSD*")
         .side(OrderSide::Sell)
         .funding_type(FundingType::Funded)
-        .quantity(dec!(0.000001))
-        .quantity_currency("TBTC")
+        .quantity(dec!(0.00001))
+        .quantity_currency("TSOL")
         .order_type(trade::PlaceOrderType::Limit(
             trade::LimitOrder::builder()
                 .limit_price(dec!(1000000))

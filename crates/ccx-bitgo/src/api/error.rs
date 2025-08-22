@@ -37,12 +37,39 @@ pub struct BitGoGenericApiError {
     /// Human-readable error message
     error: String,
     /// Contains error code
-    #[serde(default = "default_error_name", alias = "name")]
+    #[serde(default = "default_error_name")]
     error_name: String,
+    #[serde(default = "default_error_name")]
+    name: String,
     #[serde(alias = "reqId")]
     request_id: Option<String>,
 }
 
 fn default_error_name() -> String {
     "UnknownError".to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn test_bitgo_express_error() {
+        let json = json!({
+            "error":"session expired",
+            "errorName":"Error",
+            "reqId":"unk-tkrurtbjfowiwu3t8es8",
+            "context":{"errorName":"Error"},
+            "message":"session expired",
+            "name":"ApiResponseError",
+            "bitgoJsVersion":"49.1.0",
+            "bitgoExpressVersion":"14.1.7"
+        });
+
+        let error: BitGoApiError = serde_json::from_value(json).unwrap();
+
+        assert!(matches!(error, BitGoApiError::Generic(_)));
+    }
 }
