@@ -29,6 +29,10 @@ pub enum Filter {
     MaxNumAlgoOrders(MaxNumAlgoOrdersFilter),
     #[serde(rename = "MAX_NUM_ICEBERG_ORDERS")]
     MaxNumIcebergOrders(MaxNumIcebergOrdersFilter),
+    #[serde(rename = "MAX_NUM_ORDER_AMENDS")]
+    MaxNumOrderAmends(MaxNumOrderAmendsFilter),
+    #[serde(rename = "MAX_NUM_ORDER_LISTS")]
+    MaxNumOrderLists(MaxNumOrderListsFilter),
     #[serde(rename = "MAX_POSITION")]
     MaxPosition(MaxPositionFilter),
     #[serde(rename = "TRAILING_DELTA")]
@@ -213,15 +217,14 @@ pub struct MaxPositionFilter {
     pub max_position: Decimal,
 }
 
-/// The `MAX_POSITION` filter defines the allowed maximum position an account can have on the
-/// base asset of a symbol. An account's position defined as the sum of the account's:
+/// The `TRAILING_DELTA` filter defines the minimum and maximum trailing delta allowed for trailing stop orders.
+/// The trailing delta is the difference between the activation price and the stop price for trailing stop orders.
+/// The filter ensures that the trailing delta values are within acceptable ranges.
 ///
-/// * free balance of the base asset
-/// * locked balance of the base asset
-/// * sum of the qty of all open BUY orders
-///
-/// BUY orders will be rejected if the account's position is greater than the maximum position
-/// allowed.
+/// * `min_trailing_above_delta` defines the minimum trailing delta when the stop price is above the activation price
+/// * `max_trailing_above_delta` defines the maximum trailing delta when the stop price is above the activation price
+/// * `min_trailing_below_delta` defines the minimum trailing delta when the stop price is below the activation price
+/// * `max_trailing_below_delta` defines the maximum trailing delta when the stop price is below the activation price
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TrailingDeltaFilter {
@@ -229,4 +232,21 @@ pub struct TrailingDeltaFilter {
     pub max_trailing_above_delta: Decimal,
     pub min_trailing_below_delta: Decimal,
     pub max_trailing_below_delta: Decimal,
+}
+
+/// The MAX_NUM_ORDER_AMENDS filter defines the maximum number of times an order can be amended
+/// on the given symbol. If there are too many order amendments made on a single order,
+/// you will receive the -2038 error code.
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct MaxNumOrderAmendsFilter {
+    pub max_num_order_amends: u64,
+}
+
+/// The MAX_NUM_ORDER_LISTS filter defines the maximum number of open order lists an account
+/// can have on a symbol. Note that OTOCOs count as one order list.
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct MaxNumOrderListsFilter {
+    pub max_num_order_lists: u64,
 }
