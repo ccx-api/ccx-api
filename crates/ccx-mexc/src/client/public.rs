@@ -8,6 +8,7 @@ impl<T> RequestReadyToSend<T> for T
 where
     T: PublicRequest,
 {
+    #[tracing::instrument(skip_all, fields(http_method = %T::HTTP_METHOD, endpoint = %T::ENDPOINT), err)]
     async fn send(
         self,
         client: &MexcClient,

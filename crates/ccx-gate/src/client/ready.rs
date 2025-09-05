@@ -33,7 +33,7 @@ impl<T> RequestReadyToSend<T> for ReadyRequest<T>
 where
     T: Request,
 {
-    #[tracing::instrument(skip_all, err)]
+    #[tracing::instrument(skip_all, fields(http_method = %T::HTTP_METHOD, endpoint = %self.path), err)]
     async fn send(self, client: &GateClient) -> GateResult<T::Response> {
         let mut url = client.config().api_base.join(&self.path)?;
 

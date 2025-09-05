@@ -5,6 +5,8 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let _ = dotenvy::dotenv();
+
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer().pretty())
         .with(

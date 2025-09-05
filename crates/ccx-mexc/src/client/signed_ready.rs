@@ -31,7 +31,7 @@ impl<T> RequestReadyToSend<T> for SignedReadyRequest<T>
 where
     T: SignedRequest,
 {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip_all, fields(http_method = %T::HTTP_METHOD, endpoint = %T::ENDPOINT), err)]
     async fn send(
         self,
         client: &MexcClient,

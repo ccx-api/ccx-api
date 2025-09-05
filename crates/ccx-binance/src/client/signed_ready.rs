@@ -31,7 +31,7 @@ impl<T> RequestReadyToSend<T> for SignedReadyRequest<T>
 where
     T: SignedRequest,
 {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip_all, fields(http_method = %T::HTTP_METHOD, endpoint = %T::ENDPOINT), err)]
     async fn send(
         self,
         client: &BinanceClient,
@@ -40,8 +40,6 @@ where
 
         let mut url = inner.config.api_base.join(T::ENDPOINT)?;
         url.set_query(Some(&self.query));
-
-        tracing::debug!(%url, "Request");
 
         let request = inner
             .client
