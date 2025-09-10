@@ -20,6 +20,10 @@ pub mod serde_util;
 
 #[cfg(any(feature = "with_awc", feature = "with_reqwest"))]
 pub use self::client::*;
+
+// Re-export awc types at root level for backward compatibility
+#[cfg(feature = "with_awc")]
+pub use self::client::awc::{make_client, Client, ClientRequest, ClientResponse, Method, StatusCode, SendRequestError};
 #[cfg(feature = "with_awc")]
 pub use self::connector::*;
 pub use self::cred::*;

@@ -21,3 +21,5 @@ pub use uuid1::Uuid;
 
 pub use self::error::*;
 pub use self::util::*;
+
+pub use ccx_api_lib;

@@ -76,6 +76,10 @@ where
     #[cfg(feature = "with_reqwest")]
     #[error("Unknown Status: {0}")]
     UnknownStatusReqwest(reqwest::StatusCode),
+    // Backward compatibility alias
+    #[cfg(feature = "with_awc")]
+    #[error("Unknown Status: {0}")]
+    UnknownStatus(awc::http::StatusCode),
     #[cfg(any(feature = "with_awc", feature = "with_reqwest"))]
     #[error("Request Error: {0}")]
     RequestError(String),

@@ -1,12 +1,12 @@
 use std::sync::Arc;
 use std::time::Instant;
 
+use ::awc::http::Method;
+use ::awc::http::StatusCode;
 use actix_http::encoding::Decoder;
 use actix_http::BoxedPayloadStream;
 use actix_http::Payload;
 use actix_http::Uri;
-use awc::http::Method;
-use awc::http::StatusCode;
 use ccx_api_lib::make_client;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;

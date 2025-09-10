@@ -27,3 +27,5 @@ mod with_network {
 
 pub use error::LibError;
 pub use error::LibResult;
+
+pub use ccx_api_lib;

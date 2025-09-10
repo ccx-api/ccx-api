@@ -21,3 +21,5 @@ mod with_network {
     // pub use super::api::spot::SpotApi;
     // pub use super::api::prime::PrimeApi;
 }
+
+pub use ccx_api_lib;

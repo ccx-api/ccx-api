@@ -74,6 +74,8 @@ pub use types::shipping::ShippingName;
 pub use types::time::Time;
 pub use uuid::Uuid;
 
+pub use ccx_api_lib;
+
 #[cfg(test)]
 mod tests {
 

@@ -16,3 +16,5 @@ pub use self::with_network::*;
 mod with_network {
     pub use super::api::GatepayApi;
 }
+
+pub use ccx_api_lib;
