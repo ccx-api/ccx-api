@@ -14,8 +14,12 @@ with_network = [
     "actix-tls",
     "actix-web",
     "actix-web-actors",
-    "awc",
-    "ccx-api-lib/with_network",
+    "awc",  # Still needed for WebSocket
+    "reqwest",
+    "rustls",
+    "webpki-roots",
+    "tokio",
+    "ccx-api-lib/with_reqwest",
 ]
 experimental = []
 debug_headers = []
@@ -29,15 +33,18 @@ actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 actix-web = { version = "4", features = ["rustls"], optional = true }
 actix-web-actors = { version = "4", optional = true }
-awc = { version = "3", optional = true, features = ["rustls"] }
-base64 = "0.21"
+awc = { version = "3", features = ["rustls"], optional = true }
+base64 = "0.22"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
-derive_more = "0.99"
+derive_more = { version = "2", features = ["full"] }
 futures = "0.3"
 hex = "0.4"
 hmac = "0.12"
 log = "0.4"
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks"], optional = true }
 rust_decimal = "1"
+rustls = { version = "0.20", optional = true }
+webpki-roots = { version = "0.23", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_repr = "0.1"
@@ -46,6 +53,7 @@ serde_urlencoded = "0.7"
 sha2 = "0.10"
 string_cache = "0.8"
 thiserror = "1"
+tokio = { version = "1", optional = true }
 url = { version = "2", features = ["serde"] }
 uuid08 = { package = "uuid", version = "0.8", optional = true, features = [
     "serde",

@@ -1,27 +1,21 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
-use actix_http::encoding::Decoder;
-use actix_http::BoxedPayloadStream;
-use actix_http::Payload;
-use actix_http::Uri;
-use awc::http::Method;
-use awc::http::StatusCode;
 use ccx_api_lib::make_client;
 use ccx_api_lib::Client;
-use ccx_api_lib::ClientRequest;
 use ccx_api_lib::ClientResponse;
+use ccx_api_lib::Method;
+use ccx_api_lib::StatusCode;
 use chrono::Utc;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
+use url::Url;
 
 use crate::client::*;
-// use crate::client::limits::UsedRateLimits;
-// use crate::client::WebsocketStream;
 use crate::error::*;
 use crate::Uuid;
-// use crate::proto::TimeWindow;
 
 /// API client.
 pub struct RestExchangeClient<S>
@@ -47,6 +41,7 @@ where
     S: CoinbaseExchangeSigner,
 {
     config: ExchangeConfig<S>,
+    client: Client,
 }
 
 pub struct ExchangeRequestBuilder<S>
@@ -54,7 +49,10 @@ where
     S: CoinbaseExchangeSigner,
 {
     api_client: RestExchangeClient<S>,
-    request: ClientRequest,
+    url: Url,
+    method: Method,
+    query_params: Vec<(String, String)>,
+    headers: HashMap<String, String>,
     sign: Option<(u32,)>,
     body: String,
 }
@@ -70,12 +68,13 @@ where
     S: CoinbaseExchangeSigner,
 {
     pub fn new(config: ExchangeConfig<S>) -> Self {
-        let inner = Arc::new(ClientInner { config });
+        let client = make_client(false, config.proxy.as_ref());
+        let inner = Arc::new(ClientInner { config, client });
         RestExchangeClient { inner }
     }
 
-    pub fn client(&self) -> Client {
-        make_client(false, self.inner.config.proxy.as_ref())
+    pub fn client(&self) -> &Client {
+        &self.inner.client
     }
 
     pub fn request(
@@ -86,10 +85,12 @@ where
         let url = self.inner.config.api_base.join(endpoint)?;
         log::debug!("Requesting: {}", url.as_str());
         let api_client = self.clone();
-        let request = self.client().request(method, url.as_str());
         Ok(ExchangeRequestBuilder {
             api_client,
-            request,
+            url,
+            method,
+            query_params: Vec::new(),
+            headers: HashMap::new(),
             sign: None,
             body: String::new(),
         })
@@ -122,7 +123,7 @@ where
     S: CoinbaseExchangeSigner,
 {
     pub fn uri(&self) -> String {
-        self.request.get_uri().to_string()
+        self.url.to_string()
     }
 
     pub fn query_arg<Name: AsRef<str>, T: Serialize + ?Sized>(
@@ -130,25 +131,9 @@ where
         name: Name,
         query: &T,
     ) -> CoinbaseResult<Self> {
-        let mut parts = self.request.get_uri().clone().into_parts();
-
-        if let Some(path_and_query) = parts.path_and_query {
-            let mut buf = path_and_query.path().to_string();
-            buf.push('?');
-            match path_and_query.query().unwrap_or("") {
-                "" => {}
-                old_query => {
-                    buf.push_str(old_query);
-                    buf.push('&');
-                }
-            }
-            buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
-            parts.path_and_query = buf.parse().ok();
-            let uri =
-                Uri::from_parts(parts).map_err(|e| CoinbaseError::other(format!("{:?}", e)))?;
-            self.request = self.request.uri(uri);
-        }
-
+        let serialized = serde_json::to_string(query)?;
+        self.query_params
+            .push((name.as_ref().to_string(), serialized));
         Ok(self)
     }
 
@@ -164,9 +149,10 @@ where
     }
 
     pub fn auth_header(mut self) -> CoinbaseResult<Self> {
-        self.request = self
-            .request
-            .append_header(("API-Key", self.api_client.inner.config.api_key()));
+        self.headers.insert(
+            "API-Key".to_string(),
+            self.api_client.inner.config.api_key().to_string(),
+        );
         Ok(self)
     }
 
@@ -191,18 +177,34 @@ where
     {
         let request_id = Uuid::new_v4();
         self = self.sign().await?;
-        self.request = self.request.content_type("application/json");
-        log::debug!(
-            "[{request_id}]  Request: {} {}",
-            self.request.get_method(),
-            self.request.get_uri()
-        );
+
+        // Build the request
+        let method_clone = self.method.clone();
+        let mut request = self
+            .api_client
+            .client()
+            .request(method_clone, self.url.as_str());
+
+        // Add query parameters
+        if !self.query_params.is_empty() {
+            request = request.query(&self.query_params);
+        }
+
+        // Add headers
+        for (key, value) in &self.headers {
+            request = request.header(key, value);
+        }
+
+        request = request.header("content-type", "application/json");
+
+        log::debug!("[{request_id}]  Request: {} {}", self.method, self.url);
+
         if cfg!(feature = "debug_headers") {
-            for (name, value) in self.request.headers().iter() {
+            for (name, value) in &self.headers {
                 let value = if name == "cb-access-passphrase" {
                     "****"
                 } else {
-                    value.to_str().unwrap_or("---")
+                    value
                 };
                 log::debug!("[{request_id}]  Request header: {name}: {value}",);
             }
@@ -210,71 +212,55 @@ where
         log::debug!("[{request_id}]  Request body: {:?}", self.body);
 
         let tm = Instant::now();
-        let mut res = self.request.send_body(self.body).await?;
+        let res: ClientResponse = if self.body.is_empty() {
+            request.send().await?
+        } else {
+            request.body(self.body).send().await?
+        };
         let d1 = tm.elapsed();
-        let resp = res.body().limit(16 * 1024 * 1024).await?;
-        let d2 = tm.elapsed() - d1;
-        log::debug!(
-            "[{request_id}]  Time elapsed:  {:0.1}ms + {:0.1}ms",
-            d1.as_secs_f64() * 1000.0,
-            d2.as_secs_f64() * 1000.0,
-        );
 
         let code = res.status();
         log::debug!("[{request_id}]  Response status: {code}");
+
         if cfg!(feature = "debug_headers") {
             for (name, value) in res.headers().iter() {
                 let value = value.to_str().unwrap_or("---");
                 log::debug!("[{request_id}]  Response header: {name}: {value}",);
             }
         }
+
+        let resp_text = res.text().await?;
+        let resp = resp_text.as_bytes();
+        let d2 = tm.elapsed() - d1;
+
+        log::debug!(
+            "[{request_id}]  Time elapsed:  {:0.1}ms + {:0.1}ms",
+            d1.as_secs_f64() * 1000.0,
+            d2.as_secs_f64() * 1000.0,
+        );
+
         log::debug!(
             "[{request_id}]  Response body: {:?}",
             String::from_utf8_lossy(&resp)
         );
+        log::debug!("[{request_id}]  Response body length: {} bytes", resp.len());
 
-        if let Err(err) = check_response(res) {
-            // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
-            Err(err)?
-        };
+        check_response(code)?;
         from_response(code, &resp)
     }
 
-    // pub async fn send_no_response(mut self) -> CoinbaseResult<()> {
-    //     self = self.sign()?;
-    //     log::debug!("{}  {}", self.request.get_method(), self.request.get_uri(),);
-    //     let tm = Instant::now();
-    //     let mut res = self.request.send().await?;
-    //     let d1 = tm.elapsed();
-    //     let resp = res.body().limit(16 * 1024 * 1024).await?;
-    //     let d2 = tm.elapsed() - d1;
-    //     log::debug!(
-    //         "Request time elapsed:  {:0.1}ms + {:0.1}ms",
-    //         d1.as_secs_f64() * 1000.0,
-    //         d2.as_secs_f64() * 1000.0,
-    //     );
-    //     log::debug!(
-    //         "Response: {} «{}»",
-    //         res.status(),
-    //         String::from_utf8_lossy(&resp)
-    //     );
-    //     if let Err(err) = check_response(res) {
-    //         // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
-    //         Err(err)?
-    //     };
-    //     Ok(())
-    // }
-
     async fn sign(mut self) -> CoinbaseResult<Self> {
         if let Some((timestamp,)) = self.sign {
-            let url_path = self
-                .request
-                .get_uri()
-                .path_and_query()
-                .ok_or(CoinbaseApiError::lib_error(&"Missing PathAndQuery"))?;
-            let method = self.request.get_method();
+            let path_and_query = format!(
+                "{}{}",
+                self.url.path(),
+                self.url
+                    .query()
+                    .map(|q| format!("?{}", q))
+                    .unwrap_or_default()
+            );
 
-            if *method == Method::GET {
+            if self.method == Method::GET {
                 self.body = String::new();
             }
 
@@ -283,50 +269,47 @@ where
                 .inner
                 .config
                 .signer()
-                .sign_data(timestamp, method.as_str(), url_path.as_str(), &self.body)
+                .sign_data(timestamp, self.method.as_str(), &path_and_query, &self.body)
                 .await?;
 
             let passphrase = self.api_client.inner.config.api_passphrase();
-            self.request = self
-                .request
-                .append_header(("CB-ACCESS-KEY", self.api_client.inner.config.api_key()))
-                .append_header(("CB-ACCESS-SIGN", signature))
-                .append_header(("CB-ACCESS-TIMESTAMP", timestamp))
-                .append_header(("CB-ACCESS-PASSPHRASE", passphrase));
+            self.headers.insert(
+                "CB-ACCESS-KEY".to_string(),
+                self.api_client.inner.config.api_key().to_string(),
+            );
+            self.headers.insert("CB-ACCESS-SIGN".to_string(), signature);
+            self.headers
+                .insert("CB-ACCESS-TIMESTAMP".to_string(), timestamp.to_string());
+            self.headers
+                .insert("CB-ACCESS-PASSPHRASE".to_string(), passphrase.to_string());
         };
 
-        self.request = self
-            .request
-            .append_header(("Accept", "application/json"))
-            .append_header(("User-Agent", "ccx-api/0.4 (lib; Rust)"));
+        self.headers
+            .insert("Accept".to_string(), "application/json".to_string());
+        self.headers.insert(
+            "User-Agent".to_string(),
+            "ccx-api/0.4 (lib; Rust)".to_string(),
+        );
 
         Ok(self)
     }
 }
-
-/// Return base64 encoded api sign.
-
-type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct ApiErrorMessage {
     message: String,
 }
 
-fn check_response(res: AwcClientResponse) -> CoinbaseApiResult<AwcClientResponse> {
-    // let used_rate_limits = UsedRateLimits::from_headers(res.headers());
-    //
-    // log::debug!("  used_rate_limits:  {:?}", used_rate_limits);
-
-    match res.status() {
-        StatusCode::OK => Ok(res),
-        // TODO check for rate limit error
+fn check_response(status: StatusCode) -> CoinbaseApiResult<()> {
+    match status {
+        StatusCode::OK => Ok(()),
         StatusCode::TOO_MANY_REQUESTS => Err(ApiServiceError::RateLimitExceeded)?,
         StatusCode::INTERNAL_SERVER_ERROR => Err(ApiServiceError::ServerError)?,
         StatusCode::BAD_GATEWAY => Err(ApiServiceError::ServiceUnavailable)?,
         StatusCode::SERVICE_UNAVAILABLE => Err(ApiServiceError::ServiceUnavailable)?,
         StatusCode::GATEWAY_TIMEOUT => Err(ApiServiceError::ServiceUnavailable)?,
-        _ => Ok(res),
+        _ if status.is_success() => Ok(()),
+        _ => Ok(()), // Let from_response handle other error codes
     }
 }
 
@@ -334,7 +317,12 @@ fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> Coinbase
     match code {
         _ if code.is_success() => match serde_json::from_slice(body) {
             Ok(result) => Ok(result),
-            Err(err) => Err(err)?,
+            Err(err) => {
+                log::error!("JSON parsing error: {:?}", err);
+                log::error!("Response body: {:?}", String::from_utf8_lossy(body));
+                log::error!("Response body hex: {}", hex::encode(body));
+                Err(err)?
+            }
         },
         _ => {
             let message = match serde_json::from_slice(body) {
@@ -349,39 +337,3 @@ fn from_response<V: DeserializeOwned>(code: StatusCode, body: &[u8]) -> Coinbase
         }
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[test]
-//     fn it_should_sign() {
-//         #[derive(Serialize)]
-//         struct Payload {
-//             ordertype: &'static str,
-//             pair: &'static str,
-//             price: &'static str,
-//             r#type: &'static str,
-//             volume: &'static str,
-//         }
-//         let encoded_secret = "kQH5HW/8p1uGOVjbgWA7FunAmGO8lsSUXNsu3eow76sz84Q18fWxnyRzBHCd3pd5nE9qa99HAZtuZuj6F1huXg==";
-//         let decoded_secret = base64::decode(&encoded_secret).unwrap();
-//         let nonce = Nonce::new(1616492376594_u64);
-//         // nonce=1616492376594&ordertype=limit&pair=XBTUSD&price=37500&type=buy&volume=1.25
-//         let payload = Payload {
-//             ordertype: "limit",
-//             pair: "XBTUSD",
-//             price: "37500",
-//             r#type: "buy",
-//             volume: "1.25",
-//         };
-//         let path = "/0/private/AddOrder";
-//         let wrapped = nonce.wrap(&payload);
-//         let body = serde_urlencoded::to_string(wrapped).unwrap();
-//         let res = sign(path, nonce, &body, &decoded_secret);
-//         assert_eq!(
-//             res,
-//             "4/dpxb3iT4tp/ZCVEwSnEsLxx0bqyhLpdfOpc6fn7OR8+UClSV5n9E6aSS8MPtnRfp32bAb0nmbRn6H8ndwLUQ=="
-//         )
-//     }
-// }

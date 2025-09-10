@@ -6,7 +6,8 @@ authors.workspace = true
 
 [features]
 default = []
-with_network = [
+with_network = ["with_awc"]  # Default to awc for backward compatibility
+with_awc = [
     "actix-http",
     "actix-rt",
     "actix-service",
@@ -16,6 +17,10 @@ with_network = [
     "tokio",
     "tokio-socks",
     "webpki-roots",
+]
+with_reqwest = [
+    "reqwest",
+    "tokio",
 ]
 with_env_logger = [
     "chrono",
@@ -29,7 +34,9 @@ actix-service = { version = "2", optional = true }
 actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 awc = { version = "3", features = ["rustls"], optional = true }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks"], optional = true }
 base64 = "0.21"
+bytes = "1.0"
 chrono = { version = "0.4", optional = true }
 env_logger = { version = "0.11", optional = true }
 log = { version = "0.4", optional = true }

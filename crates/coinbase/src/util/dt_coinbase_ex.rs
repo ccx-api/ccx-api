@@ -40,6 +40,13 @@ where
     D: serde::Deserializer<'de>,
 {
     let date_time_str = String::deserialize(deserializer)?;
+
+    // Try ISO format first (2023-09-01T15:35:48.564651Z)
+    if let Ok(ndt) = NaiveDateTime::parse_from_str(&date_time_str, "%Y-%m-%dT%H:%M:%S%.fZ") {
+        return Ok(ndt.and_utc());
+    }
+
+    // Fall back to original format (2024-03-26 13:52:30.819928+00)
     NaiveDateTime::parse_from_str(&date_time_str, "%Y-%m-%d %H:%M:%S%.f+00")
         .map_err(serde::de::Error::custom)
         .map(|ndt| ndt.and_utc())
