@@ -5,6 +5,7 @@ use ccx_coinbase::proto::WsCommand;
 use ccx_coinbase::proto::subscribe::ChannelType;
 use ccx_coinbase::proto::subscribe::Subscribe;
 use futures::stream::StreamExt;
+use tokio::sync::oneshot;
 
 #[tokio::main]
 async fn main() -> CoinbaseResult<()> {
@@ -25,9 +26,16 @@ async fn main() -> CoinbaseResult<()> {
     }))
     .await?;
 
-    while let Some(msg) = rx.next().await {
-        println!("{:?}", msg);
-    }
+    let (waiting_tx, waiting_rx) = oneshot::channel();
+
+    tokio::spawn(async move {
+        while let Some(msg) = rx.next().await {
+            println!("{:?}", msg);
+        }
+        waiting_tx.send(()).unwrap();
+    });
+
+    waiting_rx.await.unwrap();
 
     Ok(())
 }
