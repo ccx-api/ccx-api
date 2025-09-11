@@ -3,9 +3,9 @@ use std::pin::Pin;
 
 use ccx_api_lib::ApiCred;
 
-use crate::client::Nonce;
 use crate::KrakenError;
 use crate::KrakenResult;
+use crate::client::Nonce;
 
 pub type SignResult<'a> = Pin<Box<dyn Future<Output = KrakenResult<String>> + Send + 'a>>;
 
@@ -27,8 +27,8 @@ impl KrakenSigner for ApiCred {
         method: &'b str,
         query: &'b str,
     ) -> SignResult<'a> {
-        use base64::engine::general_purpose;
         use base64::Engine as _;
+        use base64::engine::general_purpose;
 
         Box::pin(async move {
             let decoded_secret = general_purpose::STANDARD
@@ -44,8 +44,8 @@ impl KrakenSigner for ApiCred {
 }
 
 fn sign(path: &str, nonce: Nonce, body: &str, decoded_secret: &[u8]) -> String {
-    use base64::engine::general_purpose;
     use base64::Engine as _;
+    use base64::engine::general_purpose;
     use hmac::Hmac;
     use hmac::Mac;
     use sha2::Digest;

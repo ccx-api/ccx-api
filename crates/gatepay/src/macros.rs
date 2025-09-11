@@ -1,4 +1,4 @@
-#[cfg(feature = "with_diesel")]
+#[cfg(feature = "with_diesel_1-4")]
 macro_rules! impl_diesel1 {
     ($type_name:ty) => {
         mod with_diesel1 {

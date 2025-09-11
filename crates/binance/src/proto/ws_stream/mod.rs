@@ -147,13 +147,13 @@ impl<T> UpstreamWebsocketResult<T> {
 mod deser {
     use std::fmt;
 
-    use serde::de::MapAccess;
-    use serde::de::Visitor;
-    use serde::de::{self};
     use serde::Deserialize;
     use serde::Deserializer;
     use serde::Serialize;
     use serde::Serializer;
+    use serde::de::MapAccess;
+    use serde::de::Visitor;
+    use serde::de::{self};
 
     use super::WsEvent;
     use super::WsStream;

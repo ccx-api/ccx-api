@@ -1,6 +1,6 @@
-use crate::api::prime::prelude::*;
 use crate::api::prime::AccountPortfolioWallet;
 use crate::api::prime::PortfolioWalletType;
+use crate::api::prime::prelude::*;
 
 /// List all wallets associated with a given portfolio.
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]

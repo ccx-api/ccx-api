@@ -12,11 +12,11 @@ use super::WsActionBookLevel;
 use super::WsBookLevel;
 use super::WsBookUpdate;
 use super::WsInstrument;
+use crate::LibResult;
 use crate::client::WebSocket;
 use crate::types::BookItem;
 use crate::types::Price;
 use crate::types::Size;
-use crate::LibResult;
 
 #[derive(Clone, Debug)]
 pub struct OrderMetaRate {

@@ -1,6 +1,6 @@
+use crate::api::RL_GENERAL_KEY;
 use crate::api::account_balance::AccountBalance;
 use crate::api::prelude::*;
-use crate::api::RL_GENERAL_KEY;
 
 pub type ListAccountBalanceResponse = Vec<AccountBalance>;
 

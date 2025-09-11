@@ -1,6 +1,6 @@
+use crate::api::exchange::RL_PRIVATE_KEY;
 use crate::api::exchange::account_coinbase::CoinbaseAccount;
 use crate::api::exchange::prelude::*;
-use crate::api::exchange::RL_PRIVATE_KEY;
 
 pub type ListAccountCoinbaseResponse = Vec<CoinbaseAccount>;
 

@@ -7,9 +7,9 @@ use smart_string::SmartString;
 use thiserror::Error;
 
 use crate::client::nonce::Nonce;
-use crate::util::dt_gatepay::DtGatepay;
 use crate::util::GatepayApiCred;
 use crate::util::GatepayNotificationCred;
+use crate::util::dt_gatepay::DtGatepay;
 
 pub type ApiSignResult<'a> =
     Pin<Box<dyn Future<Output = Result<SmartString<128>, SignError>> + Send + 'a>>;

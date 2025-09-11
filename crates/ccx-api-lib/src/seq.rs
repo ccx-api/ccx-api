@@ -1,6 +1,6 @@
-use std::iter::empty;
 use std::iter::Product;
 use std::iter::Sum;
+use std::iter::empty;
 use std::ops::AddAssign;
 
 #[derive(Debug)]

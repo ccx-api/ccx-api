@@ -1,18 +1,18 @@
 use std::fmt;
 
 use ccx_api_lib::LibError;
-use futures::channel::mpsc;
-use futures::channel::oneshot;
 use futures::FutureExt;
 use futures::SinkExt;
+use futures::channel::mpsc;
+use futures::channel::oneshot;
 
-use crate::client::rate_limiter::task_message::TaskMessage;
-use crate::client::rate_limiter::task_message::TaskMessageResult;
-use crate::client::rate_limiter::task_metadata::TaskCosts;
-use crate::client::rate_limiter::BucketName;
 use crate::client::CoinbaseTradeSigner;
 use crate::client::Task;
 use crate::client::TradeRequestBuilder;
+use crate::client::rate_limiter::BucketName;
+use crate::client::rate_limiter::task_message::TaskMessage;
+use crate::client::rate_limiter::task_message::TaskMessageResult;
+use crate::client::rate_limiter::task_metadata::TaskCosts;
 
 #[allow(dead_code)]
 pub(crate) struct TradeTaskBuilder<S>

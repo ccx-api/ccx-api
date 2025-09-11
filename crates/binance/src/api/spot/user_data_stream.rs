@@ -1,5 +1,5 @@
-use super::prelude::*;
 use super::RL_WEIGHT_PER_MINUTE;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const V1_USER_DATA_STREAM: &str = "/api/v1/userDataStream";

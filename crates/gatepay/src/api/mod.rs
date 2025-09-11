@@ -1,5 +1,5 @@
-use serde::de;
 use serde::Serialize;
+use serde::de;
 
 mod balance;
 mod close_order;
@@ -51,8 +51,8 @@ mod with_network {
     use ccx_api_lib::Proxy;
 
     pub use super::*;
-    use crate::client::config::GatepayApiConfig;
     use crate::client::config::CCX_GATEPAY_API_PREFIX;
+    use crate::client::config::GatepayApiConfig;
     use crate::client::rest::GatepayRestClient;
     use crate::client::rest::RequestError;
     use crate::client::signer::GatepaySigner;

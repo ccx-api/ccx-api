@@ -1,5 +1,5 @@
-use ccx_gatepay::util::GatepayApiCred;
 use ccx_gatepay::GatepayApi;
+use ccx_gatepay::util::GatepayApiCred;
 
 #[actix_rt::main]
 async fn main() {

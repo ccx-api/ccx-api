@@ -1,6 +1,6 @@
 use super::AssetList;
-use crate::api::prime::prelude::*;
 use crate::CoinbaseResult;
+use crate::api::prime::prelude::*;
 
 pub type EntityAssetsResponse = AssetList;
 

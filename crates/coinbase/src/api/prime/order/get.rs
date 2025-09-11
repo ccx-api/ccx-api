@@ -1,5 +1,5 @@
-use crate::api::prime::prelude::*;
 use crate::api::prime::AccountPortfolioOrder;
+use crate::api::prime::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AccountPortfolioOrderResponse {

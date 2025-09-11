@@ -1,6 +1,7 @@
 use rust_decimal::Decimal;
 use url::Url;
 
+use crate::BinancePayResponse;
 use crate::api::Api;
 use crate::error::LibResult;
 use crate::types::buyer::Buyer;
@@ -11,7 +12,6 @@ use crate::types::order_env::OrderEnv;
 use crate::types::shipping::Shipping;
 use crate::types::time::Time;
 use crate::uuid_simple;
-use crate::BinancePayResponse;
 
 const V2_BINANCEPAY_OPENAPI_ORDER: &str = "/binancepay/openapi/v2/order";
 

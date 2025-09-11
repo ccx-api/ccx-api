@@ -7,13 +7,13 @@ use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
 
+use crate::BinancePayResponse;
 use crate::api::Api;
 use crate::error::LibResult;
 use crate::types::enums::TransferStatus;
 use crate::types::enums::TransferType;
 use crate::types::time::Time;
 use crate::uuid_simple;
-use crate::BinancePayResponse;
 
 pub const BINANCEPAY_OPENAPI_TRANSFER_FUND: &str = "/binancepay/openapi/wallet/transfer";
 

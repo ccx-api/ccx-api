@@ -1,9 +1,9 @@
 // use ccx_kraken::api::spot::SpotApi;
+use ccx_kraken::KrakenApiError;
+use ccx_kraken::KrakenApiResult;
 use ccx_kraken::api::spot::SpotApi;
 #[allow(unused_imports)]
 use ccx_kraken::client::ApiCred;
-use ccx_kraken::KrakenApiError;
-use ccx_kraken::KrakenApiResult;
 use ccx_kraken_examples_util::*;
 
 // const BTCUSD: &str = "XXBTZUSD";

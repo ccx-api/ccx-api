@@ -1,4 +1,3 @@
-use actix::Message;
 use serde::Serialize;
 use subscribe::Subscribe;
 use subscribe::Unsubscribe;
@@ -8,8 +7,7 @@ pub mod message;
 pub mod subscribe;
 pub mod ticker;
 
-#[derive(Debug, Serialize, Message)]
-#[rtype(result = "()")]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "lowercase", tag = "type")]
 pub enum WsCommand {
     Subscribe(Subscribe),

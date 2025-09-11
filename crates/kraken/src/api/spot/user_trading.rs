@@ -1,7 +1,7 @@
-use super::prelude::*;
-use super::RlPriorityLevel;
 use super::RL_MATCHING_ENGINE_PER_MINUTE;
 use super::RL_PRIVATE_PER_MINUTE;
+use super::RlPriorityLevel;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const API_0_PRIVATE_ADD_ORDER: &str = "/0/private/AddOrder";

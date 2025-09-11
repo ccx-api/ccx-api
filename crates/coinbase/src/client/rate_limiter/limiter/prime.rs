@@ -3,10 +3,10 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
 
-use actix::clock::sleep;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 use futures::prelude::*;
+use tokio::time::sleep;
 
 use super::super::BucketName;
 use super::super::PrimeTaskBuilder;
@@ -14,10 +14,10 @@ use super::super::Queue;
 use super::super::RateLimiterBucket;
 use super::super::TaskCosts;
 use super::super::TaskMessage;
-use crate::client::CoinbasePrimeSigner;
-use crate::client::PrimeRequestBuilder;
 use crate::CoinbaseResult;
 use crate::LibError;
+use crate::client::CoinbasePrimeSigner;
+use crate::client::PrimeRequestBuilder;
 
 #[derive(Clone)]
 pub(crate) struct PrimeRateLimiter {
@@ -49,7 +49,7 @@ impl PrimeRateLimiter {
     pub(in super::super) fn recv(&self, mut rx: mpsc::UnboundedReceiver<TaskMessage>) {
         let buckets = self.buckets.clone();
         let queue = self.queue.clone();
-        actix_rt::spawn(async move {
+        tokio::spawn(async move {
             while let Some(task_message) = rx.next().await {
                 let is_first_task = queue.lock().await.add(task_message).is_first();
                 if is_first_task {
@@ -63,7 +63,7 @@ impl PrimeRateLimiter {
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         queue: Arc<Mutex<Queue>>,
     ) {
-        actix_rt::spawn(async move {
+        tokio::spawn(async move {
             loop {
                 let TaskMessage {
                     priority,

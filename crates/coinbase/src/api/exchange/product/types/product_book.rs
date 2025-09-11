@@ -1,5 +1,5 @@
-use crate::api::exchange::prelude::*;
 use crate::DtCoinbasePrime;
+use crate::api::exchange::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ProductBook {

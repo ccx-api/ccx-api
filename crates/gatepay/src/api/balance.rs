@@ -36,9 +36,9 @@ pub struct BalanceItem {
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
+    use crate::GatepayApi;
     use crate::client::rest::RequestError;
     use crate::client::signer::GatepaySigner;
-    use crate::GatepayApi;
 
     impl<S: GatepaySigner> GatepayApi<S> {
         /// Query merchant balance

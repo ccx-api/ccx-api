@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use url::Url;
 
+use crate::client::CCX_COINBASE_EXCHANGE_API_PREFIX;
 use crate::client::ExchangeApiCred;
 use crate::client::ExchangeConfig;
 use crate::client::ExchangeRateLimiter;
@@ -11,7 +12,6 @@ use crate::client::Proxy;
 use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBucketMode;
 use crate::client::RestExchangeClient;
-use crate::client::CCX_COINBASE_EXCHANGE_API_PREFIX;
 
 pub const API_BASE: &str = "https://api.exchange.coinbase.com/";
 pub const STREAM_MARKET_BASE: &str = "wss://ws-feed.exchange.coinbase.com/";
@@ -63,9 +63,9 @@ pub mod prelude {
     pub use super::ExchangeApi;
     #[cfg(feature = "with_network")]
     pub(crate) use super::RL_PRIVATE_KEY;
-    pub use crate::api::prelude::*;
     pub use crate::DtCoinbaseEx;
     pub use crate::DtCoinbasePrime;
+    pub use crate::api::prelude::*;
 }
 
 #[cfg(feature = "with_network")]
@@ -76,10 +76,10 @@ mod with_network {
     use ccx_api_lib::env_var_with_prefix;
 
     use super::*;
+    use crate::CoinbaseResult;
     use crate::client::CoinbaseExchangeSigner;
     use crate::client::ExchangeRateLimiterBuilder;
     use crate::client::WebsocketStream;
-    use crate::CoinbaseResult;
 
     #[derive(Clone)]
     pub struct ExchangeApi<S: CoinbaseExchangeSigner = ExchangeApiCred> {

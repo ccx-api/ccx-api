@@ -2,11 +2,11 @@ use crate::api::spot::SpotApi;
 use crate::error::ApiFineryError;
 use crate::error::LibError;
 use crate::error::LibResult;
+use crate::types::API_GET_COUNTERPARTY_INFO;
 use crate::types::GetCounterpartyInfoRequest;
 use crate::types::GetCounterpartyInfoResponse;
 use crate::types::Nonce;
 use crate::types::Time;
-use crate::types::API_GET_COUNTERPARTY_INFO;
 
 #[cfg(feature = "with_network")]
 mod with_network {

@@ -2,13 +2,13 @@ use ccx_api_lib::env_var_with_prefix;
 use url::Url;
 
 use crate::client::ApiCred;
+use crate::client::CCX_BINANCE_API_PREFIX;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBuilder;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
-use crate::client::CCX_BINANCE_API_PREFIX;
 use crate::error::*;
 
 mod account;

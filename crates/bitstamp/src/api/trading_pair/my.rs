@@ -1,6 +1,6 @@
+use crate::api::RL_GENERAL_KEY;
 use crate::api::prelude::*;
 use crate::api::trading_pair::MyTradingPair;
-use crate::api::RL_GENERAL_KEY;
 
 pub type MyTradingPairResponse = Vec<MyTradingPair>;
 

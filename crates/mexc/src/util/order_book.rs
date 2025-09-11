@@ -1,13 +1,13 @@
 use std::collections::BTreeMap;
 
-use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
+use rust_decimal::prelude::Zero;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::ws_stream::OrderBookDiffEvent;
 use crate::MexcError;
 use crate::MexcResult;
+use crate::ws_stream::OrderBookDiffEvent;
 
 pub enum OrderBookUpdater {
     Preparing { buffer: Vec<OrderBookDiffEvent> },

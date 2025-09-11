@@ -1,5 +1,5 @@
-use super::prelude::*;
 use super::RL_WEIGHT_PER_MINUTE;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const SAPI_V1_FIAT_CLEARJUNCTION_WITHDRAW: &str = "/sapi/v1/fiat/clearjunction/withdraw";

@@ -54,10 +54,10 @@ pub struct EnvType {
 #[derive(EnumString, AsRefStr)]
 #[strum(serialize_all = "UPPERCASE")]
 #[cfg_attr(
-    feature = "with_diesel",
+    feature = "with_diesel_1-4",
     derive(diesel_derives::AsExpression, diesel_derives::FromSqlRow)
 )]
-#[cfg_attr(feature = "with_diesel", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum TerminalType {
     App,
     Web,
@@ -66,7 +66,7 @@ pub enum TerminalType {
     Others,
 }
 
-#[cfg(feature = "with_diesel")]
+#[cfg(feature = "with_diesel_1-4")]
 impl_diesel1!(TerminalType);
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -98,9 +98,9 @@ pub struct CreateOrderResponse {
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
+    use crate::GatepayApi;
     use crate::client::rest::RequestError;
     use crate::client::signer::GatepaySigner;
-    use crate::GatepayApi;
 
     impl<S: GatepaySigner> GatepayApi<S> {
         /// # Create a prepay order

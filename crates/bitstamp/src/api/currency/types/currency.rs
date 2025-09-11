@@ -1,8 +1,8 @@
 use serde::Deserialize;
 
-use crate::maybe_str;
 use crate::Atom;
 use crate::Decimal;
+use crate::maybe_str;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Currency {

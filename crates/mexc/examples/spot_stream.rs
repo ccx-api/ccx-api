@@ -1,18 +1,18 @@
 use core::fmt;
 
+use ccx_mexc::ApiCred;
+use ccx_mexc::MexcError;
+use ccx_mexc::SpotApi;
 use ccx_mexc::util::OrderBook;
 use ccx_mexc::util::OrderBookUpdater;
 use ccx_mexc::ws_stream::UpstreamWebsocketMessage;
 use ccx_mexc::ws_stream::WsEvent;
 use ccx_mexc::ws_stream::WsStream;
-use ccx_mexc::ApiCred;
-use ccx_mexc::MexcError;
-use ccx_mexc::SpotApi;
 use console::Style;
 use console::Term;
-use futures::stream;
 use futures::FutureExt;
 use futures::StreamExt;
+use futures::stream;
 use rust_decimal::Decimal;
 use smart_string::DisplayExt;
 use smart_string::SmartString;

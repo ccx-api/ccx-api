@@ -1,8 +1,8 @@
-use ccx_mexc::api::spot::SpotApi;
-use ccx_mexc::client::ApiCred;
 #[allow(unused_imports)]
 use ccx_mexc::ChartInterval;
 use ccx_mexc::MexcResult;
+use ccx_mexc::api::spot::SpotApi;
+use ccx_mexc::client::ApiCred;
 use ccx_mexc_examples_util::*;
 
 const SYMBOL: &str = "BTCUSDT";

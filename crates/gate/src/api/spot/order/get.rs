@@ -2,8 +2,8 @@ use serde::Serialize;
 use serde_with::skip_serializing_none;
 use smart_string::SmartString;
 
-use super::create::AccountType;
 use super::Order;
+use super::create::AccountType;
 use crate::api::ApiMethod;
 use crate::api::ApiVersion;
 use crate::api::PrivateRequest;

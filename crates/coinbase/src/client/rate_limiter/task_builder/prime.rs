@@ -1,18 +1,18 @@
 use std::fmt;
 
 use ccx_api_lib::LibError;
-use futures::channel::mpsc;
-use futures::channel::oneshot;
 use futures::FutureExt;
 use futures::SinkExt;
+use futures::channel::mpsc;
+use futures::channel::oneshot;
 
-use crate::client::rate_limiter::task_message::TaskMessage;
-use crate::client::rate_limiter::task_message::TaskMessageResult;
-use crate::client::rate_limiter::task_metadata::TaskCosts;
-use crate::client::rate_limiter::BucketName;
 use crate::client::CoinbasePrimeSigner;
 use crate::client::PrimeRequestBuilder;
 use crate::client::Task;
+use crate::client::rate_limiter::BucketName;
+use crate::client::rate_limiter::task_message::TaskMessage;
+use crate::client::rate_limiter::task_message::TaskMessageResult;
+use crate::client::rate_limiter::task_metadata::TaskCosts;
 
 pub(crate) struct PrimeTaskBuilder<S>
 where

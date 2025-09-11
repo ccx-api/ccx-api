@@ -3,6 +3,9 @@ use std::println;
 use std::thread;
 
 use actix::prelude::*;
+use ccx_kraken::KrakenApiError;
+use ccx_kraken::KrakenApiResult;
+use ccx_kraken::KrakenError;
 use ccx_kraken::api::spot::SpotApi;
 use ccx_kraken::util::OrderBookUpdater;
 use ccx_kraken::ws_stream::UpstreamWebsocketMessage;
@@ -10,9 +13,6 @@ use ccx_kraken::ws_stream::UpstreamWebsocketResult;
 use ccx_kraken::ws_stream::WsEvent;
 use ccx_kraken::ws_stream::WsStream;
 use ccx_kraken::ws_stream::WsStreamBookParams;
-use ccx_kraken::KrakenApiError;
-use ccx_kraken::KrakenApiResult;
-use ccx_kraken::KrakenError;
 use futures::StreamExt;
 use string_cache::DefaultAtom as Atom;
 

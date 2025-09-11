@@ -1,6 +1,6 @@
-use ccx_api_lib::env_var_with_prefix;
 pub use ccx_api_lib::ApiCred;
 pub use ccx_api_lib::Proxy;
+use ccx_api_lib::env_var_with_prefix;
 use url::Url;
 
 use crate::client::BinanceSigner;

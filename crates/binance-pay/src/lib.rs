@@ -12,6 +12,7 @@ mod client;
 mod error;
 mod types;
 
+pub use api::Api;
 pub use api::json_string;
 pub use api::opt_uuid_simple;
 pub use api::prelude::BinancePayResponse;
@@ -42,14 +43,14 @@ pub use api::prelude::V2QueryOrderResult;
 pub use api::prelude::V2TransferFundRequest;
 pub use api::prelude::V2TransferResult;
 pub use api::uuid_simple;
-pub use api::Api;
+pub use ccx_api_lib;
 pub use client::BinancePaySigner;
 pub use client::Config;
 pub use client::MerchantId;
 pub use client::SignParams;
 pub use client::SignResult;
-pub use error::common_error::CommonBusinessError;
 pub use error::LibError;
+pub use error::common_error::CommonBusinessError;
 pub use rust_decimal::Decimal;
 pub use types::buyer::Buyer;
 pub use types::buyer::BuyerName;
@@ -73,8 +74,6 @@ pub use types::shipping::ShippingAddress;
 pub use types::shipping::ShippingName;
 pub use types::time::Time;
 pub use uuid::Uuid;
-
-pub use ccx_api_lib;
 
 #[cfg(test)]
 mod tests {

@@ -1,13 +1,13 @@
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::sync::Arc;
 
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 
+use super::super::BucketName;
 use super::super::queue::Queue;
 use super::super::task_message::TaskMessage;
-use super::super::BucketName;
 use crate::client::ExchangeRateLimiter;
 use crate::client::RateLimiterBucket;
 

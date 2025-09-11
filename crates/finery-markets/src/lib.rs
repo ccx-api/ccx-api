@@ -25,7 +25,6 @@ mod with_network {
     pub use super::client::SignResult;
 }
 
+pub use ccx_api_lib;
 pub use error::LibError;
 pub use error::LibResult;
-
-pub use ccx_api_lib;

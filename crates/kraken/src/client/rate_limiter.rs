@@ -1,7 +1,7 @@
 use std::borrow::Cow;
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::collections::hash_map::Entry;
 use std::fmt::Debug;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -440,11 +440,11 @@ mod tests {
     use std::sync::atomic::Ordering;
 
     use super::*;
-    use crate::api::spot::AssetInfoResponse;
-    use crate::client::RateLimiterTier;
     use crate::ApiCred;
     use crate::Proxy;
     use crate::SpotApi;
+    use crate::api::spot::AssetInfoResponse;
+    use crate::client::RateLimiterTier;
 
     pub static CCX_KRAKEN_API_PREFIX: &str = "CCX_KRAKEN_API";
 

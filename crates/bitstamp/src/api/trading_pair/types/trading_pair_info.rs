@@ -36,9 +36,9 @@ impl Status {
 }
 
 mod minimum_order {
+    use serde::Deserialize;
     use serde::de::Deserializer;
     use serde::de::{self};
-    use serde::Deserialize;
 
     use super::MinimumOrder;
 

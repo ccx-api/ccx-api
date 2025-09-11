@@ -30,7 +30,7 @@ where
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct Subscribe {
     pub product_ids: Vec<Atom>,
     pub channels: Vec<ChannelType>,
@@ -50,7 +50,7 @@ impl From<Channel> for Subscribe {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct Unsubscribe {
     pub product_ids: Vec<Atom>,
     pub channels: Vec<ChannelType>,

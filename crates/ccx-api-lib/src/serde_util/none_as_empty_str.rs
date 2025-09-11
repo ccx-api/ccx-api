@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 
-use serde::de::value::StrDeserializer;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
+use serde::de::value::StrDeserializer;
 
 pub fn serialize<S, T>(value: &Option<T>, serializer: S) -> Result<S::Ok, S::Error>
 where

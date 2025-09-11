@@ -1,6 +1,6 @@
-use crate::api::prime::prelude::*;
-use crate::api::prime::PortfolioWalletType;
 use crate::DtCoinbasePrime;
+use crate::api::prime::PortfolioWalletType;
+use crate::api::prime::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AccountPortfolioWallet {

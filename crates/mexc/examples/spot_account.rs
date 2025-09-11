@@ -1,12 +1,12 @@
-use ccx_mexc::api::spot::NewOrder;
-use ccx_mexc::api::spot::OrderSide;
-use ccx_mexc::api::spot::OrderType;
-use ccx_mexc::client::Task;
 use ccx_mexc::ApiCred;
 use ccx_mexc::Decimal;
 use ccx_mexc::MexcResult;
 use ccx_mexc::SpotApi;
 use ccx_mexc::TimeWindow;
+use ccx_mexc::api::spot::NewOrder;
+use ccx_mexc::api::spot::OrderSide;
+use ccx_mexc::api::spot::OrderType;
+use ccx_mexc::client::Task;
 use ccx_mexc_examples_util::d;
 use ccx_mexc_examples_util::print_res;
 

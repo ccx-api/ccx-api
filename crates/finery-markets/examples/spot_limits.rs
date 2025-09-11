@@ -1,9 +1,9 @@
-use ccx_finery_markets::types::LimitsRequest;
-use ccx_finery_markets::types::Nonce;
-use ccx_finery_markets::types::Time;
 use ccx_finery_markets::ApiCred;
 use ccx_finery_markets::LibResult;
 use ccx_finery_markets::SpotApi;
+use ccx_finery_markets::types::LimitsRequest;
+use ccx_finery_markets::types::Nonce;
+use ccx_finery_markets::types::Time;
 
 #[actix_rt::main]
 async fn main() {

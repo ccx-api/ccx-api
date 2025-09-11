@@ -1,7 +1,7 @@
+use crate::api::exchange::RL_PRIVATE_KEY;
 use crate::api::exchange::account_coinbase::CoinbaseAccountId;
 use crate::api::exchange::account_coinbase::GenerateCoinbaseAccount;
 use crate::api::exchange::prelude::*;
-use crate::api::exchange::RL_PRIVATE_KEY;
 
 pub type GenerateCryptoAddressResponse = GenerateCoinbaseAccount;
 

@@ -1,5 +1,5 @@
-use ccx_api_lib::env_var_with_prefix;
 use ccx_api_lib::Proxy;
+use ccx_api_lib::env_var_with_prefix;
 use url::Url;
 
 use crate::client::FinerySigner;

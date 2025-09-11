@@ -1,7 +1,7 @@
-use crate::api::prime::prelude::*;
 use crate::api::prime::PortfolioOrderSide;
 use crate::api::prime::PortfolioOrderTimeInForce;
 use crate::api::prime::PortfolioOrderType;
+use crate::api::prime::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 struct AccountPortfolioCreateOrderRequest<'a> {

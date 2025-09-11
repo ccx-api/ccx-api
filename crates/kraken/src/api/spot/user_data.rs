@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use super::prelude::*;
 use super::RL_MATCHING_ENGINE_PER_MINUTE;
 use super::RL_PRIVATE_PER_MINUTE;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const API_0_PRIVATE_BALANCE: &str = "/0/private/Balance";

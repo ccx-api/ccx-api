@@ -27,10 +27,10 @@ actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 actix-web = { version = "4", features = ["rustls"], optional = true }
 actix-web-actors = { version = "4", optional = true }
-awc = { version = "3", optional = true, features = ["rustls"] }
-base64 = "0.21"
+awc = { version = "3", features = ["rustls-0_23"], optional = true }
+base64 = "0.22"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
-derive_more = "0.99"
+derive_more = { version = "2", features = ["full"] }
 log = "0.4"
 futures = "0.3"
 hex = "0.4"
@@ -39,18 +39,18 @@ rust_decimal = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_repr = "0.1"
-erased-serde = "0.3"
+erased-serde = "0.4"
 serde_urlencoded = "0.7"
 sha2 = "0.10"
-string_cache = "0.8"
-thiserror = "1"
+string_cache = "0.9"
+thiserror = "2"
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde", "v4"] }
 
 ccx-api-lib = { path = "../ccx-api-lib" }
 
 [dev-dependencies]
-env_logger = "0.10"
+env_logger = "0.11"
 dotenv = "0.15"
 ccx-bitstamp-examples-util = { path = "examples/util" }
 serde_plain = "1"

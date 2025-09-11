@@ -6,10 +6,10 @@ use strum::EnumString;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(
-    feature = "with_diesel",
+    feature = "with_diesel_1-4",
     derive(diesel_derives::AsExpression, diesel_derives::FromSqlRow)
 )]
-#[cfg_attr(feature = "with_diesel", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 #[derive(EnumString, AsRefStr)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 pub enum BizStatus {
@@ -37,5 +37,5 @@ pub enum BizStatus {
     ConvertAddressPayDelay,
 }
 
-#[cfg(feature = "with_diesel")]
+#[cfg(feature = "with_diesel_1-4")]
 impl_diesel1!(BizStatus);

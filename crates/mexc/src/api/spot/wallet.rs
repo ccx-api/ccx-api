@@ -1,5 +1,5 @@
-use super::prelude::*;
 use super::RL_WEIGHT_PER_MINUTE;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const API_V3_CAPITAL_CONFIG_GETALL: &str = "/api/v3/capital/config/getall";

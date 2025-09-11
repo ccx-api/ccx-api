@@ -6,10 +6,10 @@ use serde::ser::Serializer;
 use serde_repr::Deserialize_repr;
 use serde_repr::Serialize_repr;
 
-use super::prelude::*;
 use super::OrderType;
-use super::RlPriorityLevel;
 use super::RL_WEIGHT_PER_MINUTE;
+use super::RlPriorityLevel;
+use super::prelude::*;
 use crate::client::Task;
 use crate::util::Ask;
 use crate::util::Bid;

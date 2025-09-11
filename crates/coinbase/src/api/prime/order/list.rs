@@ -1,8 +1,8 @@
-use crate::api::prime::prelude::*;
 use crate::api::prime::AccountPortfolioOrder;
 use crate::api::prime::PortfolioOrderSide;
 use crate::api::prime::PortfolioOrderStatus;
 use crate::api::prime::PortfolioOrderType;
+use crate::api::prime::prelude::*;
 
 /// List all wallets associated with a given portfolio.
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]

@@ -113,20 +113,22 @@ impl CommonBusinessError {
 
     pub fn solution(&self) -> &str {
         match self {
-            Self::UnknowError                       => "Try again later",
-            Self::InvalidRequest                    => "Please check whether the parameters are correct.",
-            Self::InvalidSignature                  => "Check whether the signature parameter and method comply with signature algorithm requirements.",
-            Self::InvalidTimestamp                  => "Sync server clock",
-            Self::InvalidApiKeyOrIp                 => "Check api key",
-            Self::BadApiKeyFmt                      => "Check api key.",
-            Self::MandatoryParamEmptyOrMalformed    => "",
-            Self::InvalidParamWrongLength           => "",
-            Self::InvalidParamWrongValue            => "",
-            Self::InvalidParamIllegalChar           => "",
-            Self::InvalidRequestTooLarge            => "",
-            Self::InvalidMerchantTradeNo            => "",
-            Self::OrderNotFound                     => "",
-            Self::InvalidAccountStatus              => "",
+            Self::UnknowError => "Try again later",
+            Self::InvalidRequest => "Please check whether the parameters are correct.",
+            Self::InvalidSignature => {
+                "Check whether the signature parameter and method comply with signature algorithm requirements."
+            }
+            Self::InvalidTimestamp => "Sync server clock",
+            Self::InvalidApiKeyOrIp => "Check api key",
+            Self::BadApiKeyFmt => "Check api key.",
+            Self::MandatoryParamEmptyOrMalformed => "",
+            Self::InvalidParamWrongLength => "",
+            Self::InvalidParamWrongValue => "",
+            Self::InvalidParamIllegalChar => "",
+            Self::InvalidRequestTooLarge => "",
+            Self::InvalidMerchantTradeNo => "",
+            Self::OrderNotFound => "",
+            Self::InvalidAccountStatus => "",
         }
     }
 }

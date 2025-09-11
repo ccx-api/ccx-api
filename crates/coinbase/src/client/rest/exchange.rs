@@ -2,16 +2,18 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
-use ::reqwest::{Client, Method, StatusCode};
+use ::reqwest::Client;
+use ::reqwest::Method;
+use ::reqwest::StatusCode;
 use chrono::Utc;
-use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use url::Url;
 
+use crate::Uuid;
 use crate::client::*;
 use crate::error::*;
-use crate::Uuid;
 
 /// API client.
 pub struct RestExchangeClient<S>

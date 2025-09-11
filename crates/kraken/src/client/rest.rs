@@ -1,16 +1,16 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use actix_http::encoding::Decoder;
+use ::awc::http::Method;
+use ::awc::http::StatusCode;
 use actix_http::BoxedPayloadStream;
 use actix_http::Payload;
 use actix_http::Uri;
-use ::awc::http::Method;
-use ::awc::http::StatusCode;
-use ccx_api_lib::make_client;
+use actix_http::encoding::Decoder;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;
 use ccx_api_lib::ClientResponse;
+use ccx_api_lib::make_client;
 use serde::Deserialize;
 use serde::Serialize;
 

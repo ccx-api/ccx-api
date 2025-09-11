@@ -1,6 +1,6 @@
+use crate::client::WebSocket;
 use crate::client::websocket::implement::message::Die;
 use crate::client::websocket::implement::message::WsCommand;
-use crate::client::WebSocket;
 use crate::error::LibResult;
 use crate::types::FeedId;
 use crate::types::FeedRequest;

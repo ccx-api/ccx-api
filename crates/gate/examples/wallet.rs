@@ -1,6 +1,6 @@
+use ccx_gate::GateApi;
 use ccx_gate::client::rest::RequestError;
 use ccx_gate::util::GateApiCred;
-use ccx_gate::GateApi;
 // use rust_decimal_macros::dec;
 
 #[actix_rt::main]

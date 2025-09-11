@@ -61,14 +61,16 @@ where
         }
 
         fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where
-                E: Error, {
+        where
+            E: Error,
+        {
             self.visit_none()
         }
 
         fn visit_none<E>(self) -> Result<Self::Value, E>
-            where
-                E: Error, {
+        where
+            E: Error,
+        {
             Ok(None)
         }
     }

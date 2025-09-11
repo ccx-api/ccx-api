@@ -1,4 +1,3 @@
-use crate::api::exchange::prelude::*;
 use crate::api::exchange::CancelAfter;
 use crate::api::exchange::Order;
 use crate::api::exchange::OrderSide;
@@ -6,6 +5,7 @@ use crate::api::exchange::OrderStop;
 use crate::api::exchange::OrderStp;
 use crate::api::exchange::OrderTimeInForce;
 use crate::api::exchange::OrderType;
+use crate::api::exchange::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CreateOrderRequest<'a> {

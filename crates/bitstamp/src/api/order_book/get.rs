@@ -1,6 +1,6 @@
+use crate::api::RL_GENERAL_KEY;
 use crate::api::order_book::OrderBook;
 use crate::api::prelude::*;
-use crate::api::RL_GENERAL_KEY;
 
 pub type GetOrderBookResponse = OrderBook;
 

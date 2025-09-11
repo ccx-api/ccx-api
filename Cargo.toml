@@ -23,9 +23,9 @@ members = [
 ]
 
 [workspace.package]
-version = "0.5.1"
+version = "0.6.0"
 authors = ["CCX-API Library developers <irbis.labs@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 
 [dependencies]

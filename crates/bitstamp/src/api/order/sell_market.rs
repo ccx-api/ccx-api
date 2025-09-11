@@ -1,6 +1,6 @@
+use crate::api::RL_GENERAL_KEY;
 use crate::api::order::MarketOrder;
 use crate::api::prelude::*;
-use crate::api::RL_GENERAL_KEY;
 
 pub type SellMarketOrderResponse = MarketOrder;
 

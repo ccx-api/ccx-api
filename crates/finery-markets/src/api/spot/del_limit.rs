@@ -3,11 +3,11 @@ pub use with_network::*;
 
 use crate::api::spot::SpotApi;
 use crate::error::LibResult;
+use crate::types::API_DEL_LIMIT;
 use crate::types::DelLimitRequest;
 use crate::types::DelLimitResponse;
 use crate::types::Nonce;
 use crate::types::Time;
-use crate::types::API_DEL_LIMIT;
 
 #[cfg(feature = "with_network")]
 mod with_network {

@@ -1,6 +1,6 @@
+use crate::api::RL_GENERAL_KEY;
 use crate::api::order::OpenOrder;
 use crate::api::prelude::*;
-use crate::api::RL_GENERAL_KEY;
 
 pub type ListOpenOrdersResponse = Vec<OpenOrder>;
 

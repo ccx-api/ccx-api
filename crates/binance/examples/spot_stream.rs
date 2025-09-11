@@ -1,20 +1,20 @@
 use core::fmt;
 use std::collections::BTreeMap;
 
+use ccx_binance::ApiCred;
+use ccx_binance::BinanceError;
+use ccx_binance::SpotApi;
 use ccx_binance::api::spot::OrderBookLimit;
 use ccx_binance::util::OrderBook;
 use ccx_binance::util::OrderBookUpdater;
 use ccx_binance::ws_stream::UpstreamWebsocketMessage;
 use ccx_binance::ws_stream::WsEvent;
 use ccx_binance::ws_stream::WsStream;
-use ccx_binance::ApiCred;
-use ccx_binance::BinanceError;
-use ccx_binance::SpotApi;
 use console::Style;
 use console::Term;
-use futures::stream;
 use futures::FutureExt;
 use futures::StreamExt;
+use futures::stream;
 use rust_decimal::Decimal;
 use smart_string::DisplayExt;
 use smart_string::SmartString;

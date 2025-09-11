@@ -1,6 +1,6 @@
 use crate::types::ClientId;
-use crate::types::ClientType;
 use crate::types::ClientStatus;
+use crate::types::ClientType;
 
 pub const API_GET_COUNTERPARTY_INFO: &str = "api/getCounterpartyInfo";
 

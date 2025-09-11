@@ -1,7 +1,7 @@
-use ccx_mexc::api::spot::SpotApi;
 use ccx_mexc::ApiCred;
 use ccx_mexc::MexcResult;
 use ccx_mexc::TimeWindow;
+use ccx_mexc::api::spot::SpotApi;
 use ccx_mexc_examples_util::*;
 
 // prevent some operations that could affect balance

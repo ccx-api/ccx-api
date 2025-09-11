@@ -8,10 +8,10 @@ use diesel_derives::AsExpression;
 use diesel_derives::FromSqlRow;
 use rust_decimal::Decimal;
 
-use crate::json_string;
-use crate::uuid_simple;
 use crate::PayerInfo;
 use crate::TradeType;
+use crate::json_string;
+use crate::uuid_simple;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]

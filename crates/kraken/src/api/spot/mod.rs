@@ -3,6 +3,7 @@ use std::time::Duration;
 use url::Url;
 
 use crate::client::ApiCred;
+use crate::client::CCX_KRAKEN_API_PREFIX;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RateLimiter;
@@ -11,7 +12,6 @@ use crate::client::RateLimiterBucketMode;
 use crate::client::RateLimiterTier;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
-use crate::client::CCX_KRAKEN_API_PREFIX;
 
 // TODO mod error;
 // TODO mod savings;
@@ -46,9 +46,9 @@ pub enum RlPriorityLevel {
 }
 
 mod prelude {
-    pub use super::types::*;
     #[cfg(feature = "with_network")]
     pub use super::SpotApi;
+    pub use super::types::*;
     pub use crate::api::prelude::*;
 }
 
@@ -58,8 +58,8 @@ pub use with_network::*;
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
-    use crate::client::RateLimiterBuilder;
     use crate::KrakenResult;
+    use crate::client::RateLimiterBuilder;
 
     #[derive(Clone)]
     pub struct SpotApi<S: KrakenSigner = ApiCred> {

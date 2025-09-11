@@ -1,10 +1,10 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::api::exchange::prelude::*;
 use crate::api::exchange::Order;
 use crate::api::exchange::OrderStatus;
 use crate::api::exchange::RL_PRIVATE_KEY;
+use crate::api::exchange::prelude::*;
 
 pub type ListOrderResponse = Vec<Order>;
 

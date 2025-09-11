@@ -1,6 +1,6 @@
+use crate::api::exchange::RL_PUBLIC_KEY;
 use crate::api::exchange::currency::CurrencyInfo;
 use crate::api::exchange::prelude::*;
-use crate::api::exchange::RL_PUBLIC_KEY;
 
 pub type GetCurrencyResponse = CurrencyInfo;
 

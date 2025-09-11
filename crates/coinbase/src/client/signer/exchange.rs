@@ -52,8 +52,8 @@ impl CoinbaseExchangeSigner for ExchangeApiCred {
 }
 
 fn sign(secret: &[u8], timestamp: u32, method: &str, url_path: &str, json_payload: &str) -> String {
-    use base64::engine::general_purpose;
     use base64::Engine as _;
+    use base64::engine::general_purpose;
     use hmac::Hmac;
     use hmac::Mac;
     use sha2::Sha256;
@@ -125,7 +125,10 @@ mod tests {
 
     #[test]
     fn test_decode() {
-        assert_eq!(hex::encode(secret()), "8e5410c187a1221816319b1b843b925031ff7fb013c24c4c13e7c1e06c592a0bd4bd283f2f6ade97b5414e8b49f3576c313a218cadb30a31cde1c5877244575a")
+        assert_eq!(
+            hex::encode(secret()),
+            "8e5410c187a1221816319b1b843b925031ff7fb013c24c4c13e7c1e06c592a0bd4bd283f2f6ade97b5414e8b49f3576c313a218cadb30a31cde1c5877244575a"
+        )
     }
 
     #[test]

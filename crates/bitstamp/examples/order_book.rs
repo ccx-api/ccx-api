@@ -1,6 +1,6 @@
-use ccx_bitstamp::api::Api as BitstampApi;
 use ccx_bitstamp::ApiCred;
 use ccx_bitstamp::BitstampResult;
+use ccx_bitstamp::api::Api as BitstampApi;
 use ccx_bitstamp_examples_util::*;
 
 #[actix_rt::main]

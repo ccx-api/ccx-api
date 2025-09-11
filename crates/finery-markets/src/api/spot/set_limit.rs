@@ -3,11 +3,11 @@ pub use with_network::*;
 
 use crate::api::spot::SpotApi;
 use crate::error::LibResult;
+use crate::types::API_SET_LIMIT;
 use crate::types::Nonce;
 use crate::types::SetLimitRequest;
 use crate::types::SetLimitResponse;
 use crate::types::Time;
-use crate::types::API_SET_LIMIT;
 
 #[cfg(feature = "with_network")]
 mod with_network {

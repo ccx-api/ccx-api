@@ -1,7 +1,7 @@
-use crate::api::exchange::prelude::*;
 use crate::api::exchange::EitherOrderId;
 use crate::api::exchange::Order;
 use crate::api::exchange::RL_PRIVATE_KEY;
+use crate::api::exchange::prelude::*;
 
 #[cfg(feature = "with_network")]
 impl<S> ExchangeApi<S>

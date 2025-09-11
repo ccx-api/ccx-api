@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use actix::clock::sleep;
-use ccx_api_lib::env_var_with_prefix;
 use ccx_api_lib::ApiCred;
 use ccx_api_lib::Proxy;
-use futures::channel::mpsc;
-use futures::future::select;
-use futures::future::Either;
+use ccx_api_lib::env_var_with_prefix;
 use futures::StreamExt;
+use futures::channel::mpsc;
+use futures::future::Either;
+use futures::future::select;
 use url::Url;
 
 mod add;
@@ -24,8 +24,8 @@ mod del_incoming_settlement_cp_request;
 mod del_incoming_settlement_request;
 mod del_limit;
 mod del_outgoing_settlement_transaction;
-mod get_subaccounts;
 mod get_counterparty_info;
+mod get_subaccounts;
 mod instruments;
 mod limits;
 mod positions;
@@ -37,19 +37,19 @@ mod settlement_requests;
 mod settlement_transaction_history;
 mod settlement_transactions;
 
+use crate::client::CCX_FINERY_API_PREFIX;
 use crate::client::Config;
 use crate::client::FinerySigner;
 use crate::client::RestClient;
 use crate::client::WebSocket;
 use crate::client::WsReceiver;
-use crate::client::CCX_FINERY_API_PREFIX;
 use crate::error::LibError;
 use crate::error::LibResult;
+use crate::types::API_MOD;
 use crate::types::ModRequest;
 use crate::types::ModResponse;
 use crate::types::Nonce;
 use crate::types::Time;
-use crate::types::API_MOD;
 
 pub const API_BASE: &str = "https://trade.finerymarkets.com/api";
 pub const STREAM_BASE: &str = "wss://trade.finerymarkets.com/ws";

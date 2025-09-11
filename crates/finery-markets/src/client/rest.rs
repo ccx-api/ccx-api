@@ -2,18 +2,19 @@ use std::borrow::Cow;
 use std::sync::Arc;
 use std::time::Instant;
 
-use actix_http::encoding::Decoder;
 use actix_http::BoxedPayloadStream;
-use awc::http::Method;
-use awc::http::StatusCode;
+use actix_http::encoding::Decoder;
 use awc::Client;
 use awc::ClientRequest;
 use awc::ClientResponse;
+use awc::http::Method;
+use awc::http::StatusCode;
 use ccx_api_lib::make_client;
 use serde::Serialize;
 use url::Url;
 
 use super::WebSocket;
+use crate::Proxy;
 use crate::client::Config;
 use crate::client::FinerySigner;
 use crate::client::WsSender;
@@ -24,7 +25,6 @@ use crate::types::ApiError;
 use crate::types::Nonce;
 use crate::types::Payload;
 use crate::types::Time;
-use crate::Proxy;
 
 pub struct RestClient<S>
 where

@@ -117,9 +117,7 @@ pub enum GatepayApiError {
     MerchantOrderNumberAlreadyExists(GatepayErrorInfo),
 
     /// Check whether the order has been traded or whether the order number is correct
-    #[error(
-        "Check whether the order has been traded or whether the order number is correct {0:?}"
-    )]
+    #[error("Check whether the order has been traded or whether the order number is correct {0:?}")]
     #[serde(rename = "400202")]
     OrderDoesNotExist(GatepayErrorInfo),
 
@@ -129,7 +127,9 @@ pub enum GatepayApiError {
     MerchantNumberDoesNotExist(GatepayErrorInfo),
 
     /// Check whether the order has expired, canceled, or closed, and use the query interface if necessary
-    #[error("Check whether the order has expired, canceled, or closed, and use the query interface if necessary {0:?}")]
+    #[error(
+        "Check whether the order has expired, canceled, or closed, and use the query interface if necessary {0:?}"
+    )]
     #[serde(rename = "400204")]
     OrderStatusIsIncorrect(GatepayErrorInfo),
 
@@ -224,7 +224,9 @@ pub enum GatepayApiError {
     InvalidRecipientIdForRefundTransactionOrder(GatepayErrorInfo),
 
     /// Please ensure that the refund currency is one of the order currency or the user's payment currency
-    #[error("Please ensure that the refund currency is one of the order currency or the user's payment currency {0:?}")]
+    #[error(
+        "Please ensure that the refund currency is one of the order currency or the user's payment currency {0:?}"
+    )]
     #[serde(rename = "500205")]
     RefundCurrencyDoesNotMatch(GatepayErrorInfo),
 
@@ -234,7 +236,9 @@ pub enum GatepayApiError {
     RefundAmountExceedsLimit(GatepayErrorInfo),
 
     /// Please confirm whether the refund was successful or check whether the address is correct
-    #[error("Please confirm whether the refund was successful or check whether the address is correct {0:?}")]
+    #[error(
+        "Please confirm whether the refund was successful or check whether the address is correct {0:?}"
+    )]
     #[serde(rename = "500207")]
     UnableToFindTheRefundOrderForAddressPayment(GatepayErrorInfo),
 

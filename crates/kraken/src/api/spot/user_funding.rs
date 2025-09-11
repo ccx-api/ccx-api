@@ -1,7 +1,7 @@
 use ccx_api_lib::serde_util::is_false;
 
-use super::prelude::*;
 use super::RL_PRIVATE_PER_MINUTE;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const API_0_PRIVATE_DEPOSIT_METHODS: &str = "/0/private/DepositMethods";

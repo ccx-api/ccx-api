@@ -1,9 +1,9 @@
-use super::prelude::*;
-use super::RlPriorityLevel;
-use super::SymbolPermission;
 use super::RL_ORDERS_PER_DAY;
 use super::RL_ORDERS_PER_SECOND;
 use super::RL_WEIGHT_PER_MINUTE;
+use super::RlPriorityLevel;
+use super::SymbolPermission;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const API_V3_ORDER_TEST: &str = "/api/v3/order/test";

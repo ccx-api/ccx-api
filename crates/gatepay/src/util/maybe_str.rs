@@ -1,12 +1,12 @@
 use std::fmt;
 
+use serde::Deserialize;
+use serde::Serialize;
 use serde::de::Deserializer;
 use serde::de::Error;
 use serde::de::IntoDeserializer;
 use serde::de::Visitor;
 use serde::ser::Serializer;
-use serde::Deserialize;
-use serde::Serialize;
 
 pub fn serialize<S, T>(value: &Option<T>, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -14,7 +14,7 @@ where
     T: Serialize,
 {
     match value {
-        Some(ref v) => v.serialize(serializer),
+        Some(v) => v.serialize(serializer),
         None => serializer.serialize_str(""),
     }
 }

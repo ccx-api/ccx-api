@@ -1,7 +1,7 @@
-use crate::api::prime::prelude::*;
+use crate::DtCoinbasePrime;
 use crate::api::prime::PortfolioOrderSide;
 use crate::api::prime::PortfolioOrderType;
-use crate::DtCoinbasePrime;
+use crate::api::prime::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AccountPortfolioOrderPreview {

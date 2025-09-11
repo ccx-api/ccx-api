@@ -1,9 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::Atom;
 use crate::util::OrderBook;
 use crate::util::OrderLevel;
-use crate::Atom;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct OrderBookSnap {

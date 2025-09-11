@@ -1,7 +1,7 @@
+use crate::api::RL_GENERAL_KEY;
 use crate::api::order::EitherOrderId;
 use crate::api::order::OrderStatus;
 use crate::api::prelude::*;
-use crate::api::RL_GENERAL_KEY;
 
 pub type OrderStatusResponse = OrderStatus;
 

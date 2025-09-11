@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use url::Url;
 
+// use crate::client::WebsocketStream;
+use crate::client::CCX_COINBASE_PRIME_API_PREFIX;
 use crate::client::PrimeApiCred;
 use crate::client::PrimeConfig;
 use crate::client::PrimeRateLimiter;
@@ -9,8 +11,6 @@ use crate::client::Proxy;
 use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBucketMode;
 use crate::client::RestPrimeClient;
-// use crate::client::WebsocketStream;
-use crate::client::CCX_COINBASE_PRIME_API_PREFIX;
 
 pub const API_BASE: &str = "https://api.prime.coinbase.com/";
 pub const STREAM_BASE: &str = "wss://api.prime.coinbase.com/";
@@ -44,12 +44,12 @@ pub use transaction::*;
 pub use wallet::*;
 
 mod prelude {
-    pub use super::types::*;
     #[cfg(feature = "with_network")]
     pub use super::PrimeApi;
+    pub use super::types::*;
+    pub use crate::DtCoinbasePrime;
     pub use crate::api::prelude::*;
     pub use crate::api::prime::RL_PORTFOLIO_KEY;
-    pub use crate::DtCoinbasePrime;
 }
 
 #[cfg(feature = "with_network")]

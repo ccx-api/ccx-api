@@ -7,8 +7,8 @@ use std::task::Poll;
 use futures::FutureExt;
 
 use super::TaskCosts;
-use crate::client::TaskMetadata;
 use crate::CoinbaseApiResult;
+use crate::client::TaskMetadata;
 
 pub struct Task<V>
 where

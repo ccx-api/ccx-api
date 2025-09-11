@@ -7,18 +7,18 @@ mod tests {
 
     use std::time::Duration;
 
-    use actix::clock::sleep;
     use actix::System;
+    use actix::clock::sleep;
     use futures::StreamExt;
 
+    use crate::ApiCred;
+    use crate::SpotApi;
     use crate::error::LibResult;
     use crate::types::FeedId;
     use crate::types::FeedRequest;
     use crate::types::Nonce;
     use crate::types::Pair;
     use crate::types::Time;
-    use crate::ApiCred;
-    use crate::SpotApi;
 
     type Api = SpotApi<ApiCred>;
 

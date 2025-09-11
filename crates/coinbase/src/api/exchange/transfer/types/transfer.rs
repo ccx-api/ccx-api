@@ -1,6 +1,6 @@
-use crate::api::exchange::prelude::*;
 use crate::api::exchange::TransferDetails;
 use crate::api::exchange::TransferType;
+use crate::api::exchange::prelude::*;
 
 /// Represents a transfer object from Coinbase Exchange/Pro API.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

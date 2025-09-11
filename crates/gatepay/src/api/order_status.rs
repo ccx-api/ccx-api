@@ -75,10 +75,10 @@ pub struct OrderStatusResponse {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(
-    feature = "with_diesel",
+    feature = "with_diesel_1-4",
     derive(diesel_derives::AsExpression, diesel_derives::FromSqlRow)
 )]
-#[cfg_attr(feature = "with_diesel", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 #[derive(EnumString, AsRefStr)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum OrderStatus {
@@ -86,15 +86,15 @@ pub enum OrderStatus {
     Expired,
 }
 
-#[cfg(feature = "with_diesel")]
+#[cfg(feature = "with_diesel_1-4")]
 impl_diesel1!(OrderStatus);
 
 #[cfg(feature = "with_network")]
 mod with_network {
     use super::*;
+    use crate::GatepayApi;
     use crate::client::rest::RequestError;
     use crate::client::signer::GatepaySigner;
-    use crate::GatepayApi;
 
     impl<S: GatepaySigner> GatepayApi<S> {
         /// # Order Status Inquiry

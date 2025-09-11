@@ -1,11 +1,11 @@
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::BinancePayResponse;
 use crate::api::Api;
 use crate::error::LibResult;
 use crate::opt_uuid_simple;
 use crate::types::time::Time;
-use crate::BinancePayResponse;
 
 pub const BINANCEPAY_OPENAPI_ORDER_CLOSE: &str = "/binancepay/openapi/order/close";
 

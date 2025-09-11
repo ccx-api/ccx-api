@@ -1,6 +1,6 @@
 use super::FeedRequest;
-use crate::client::WebSocket;
 use crate::LibResult;
+use crate::client::WebSocket;
 
 #[derive(Clone)]
 pub struct Transactions;

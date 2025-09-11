@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
+use ccx_api_lib::Atom;
 use ccx_api_lib::dec;
 use ccx_api_lib::env_logger_util::log_format_clean;
-use ccx_api_lib::Atom;
+use ccx_coinbase::CoinbaseResult;
 use ccx_coinbase::api::prime::types::*;
 use ccx_coinbase::api::prime::*;
-use ccx_coinbase::CoinbaseResult;
 use uuid1::Uuid;
 
 #[actix_rt::main]

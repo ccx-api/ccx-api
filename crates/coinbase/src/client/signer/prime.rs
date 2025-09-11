@@ -52,8 +52,8 @@ impl CoinbasePrimeSigner for PrimeApiCred {
 }
 
 fn sign(secret: &str, timestamp: u32, method: &str, url_path: &str, json_payload: &str) -> String {
-    use base64::engine::general_purpose;
     use base64::Engine as _;
+    use base64::engine::general_purpose;
     use hmac::Hmac;
     use hmac::Mac;
     use sha2::Sha256;

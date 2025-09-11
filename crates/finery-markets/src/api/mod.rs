@@ -11,6 +11,7 @@ mod tests {
 
     use actix::clock::sleep;
 
+    use crate::ApiCred;
     use crate::api::spot::SpotApi;
     use crate::error::LibResult;
     use crate::types::AddIncomingSettlementRequest;
@@ -51,7 +52,6 @@ mod tests {
     use crate::types::Size;
     use crate::types::Time;
     use crate::types::Timestamp;
-    use crate::ApiCred;
 
     type Api = SpotApi<ApiCred>;
 

@@ -1,8 +1,8 @@
+use crate::BinancePayResponse;
+use crate::Time;
 use crate::api::Api;
 use crate::error::LibResult;
 use crate::types::certificate::Certificate;
-use crate::BinancePayResponse;
-use crate::Time;
 
 const BINANCEPAY_OPENAPI_CERTIFICATES: &str = "/binancepay/openapi/certificates";
 

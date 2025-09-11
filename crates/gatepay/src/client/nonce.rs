@@ -1,7 +1,7 @@
 use std::ops;
 
-use rand::thread_rng;
 use rand::Rng;
+use rand::rng;
 
 const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -11,10 +11,10 @@ pub struct Nonce {
 
 impl Nonce {
     pub fn random() -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let nonce = (0..16)
             .map(|_| {
-                let idx = rng.gen_range(0..ALPHABET.len());
+                let idx = rng.random_range(0..ALPHABET.len());
                 ALPHABET[idx] as char
             })
             .collect();

@@ -2,12 +2,12 @@ use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::BinancePayResponse;
 use crate::api::Api;
 use crate::error::LibResult;
 use crate::types::enums::TradeType;
 use crate::types::time::Time;
 use crate::uuid_simple;
-use crate::BinancePayResponse;
 
 const V1_BINANCEPAY_OPENAPI_ORDER: &str = "/binancepay/openapi/order";
 

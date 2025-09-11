@@ -1,11 +1,11 @@
 use ccx_api_lib::ApiCred;
 use ccx_api_lib::Proxy;
 
+use crate::MerchantId;
 use crate::client::BinancePaySigner;
+use crate::client::CCX_BINANCE_PAY_API_PREFIX;
 use crate::client::Config;
 use crate::client::RestClient;
-use crate::client::CCX_BINANCE_PAY_API_PREFIX;
-use crate::MerchantId;
 
 mod certificates_v1;
 mod certificates_v2;

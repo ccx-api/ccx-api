@@ -1,6 +1,6 @@
+use crate::api::exchange::RL_PUBLIC_KEY;
 use crate::api::exchange::account::Account;
 use crate::api::exchange::prelude::*;
-use crate::api::exchange::RL_PUBLIC_KEY;
 
 pub type ListAccountResponse = Vec<Account>;
 

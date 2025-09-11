@@ -3,11 +3,11 @@ pub use with_network::*;
 
 use crate::api::spot::SpotApi;
 use crate::error::LibResult;
+use crate::types::API_SETTLEMENT_HISTORY;
 use crate::types::Nonce;
 use crate::types::SettlementHistoryRequest;
 use crate::types::SettlementHistoryResponse;
 use crate::types::Time;
-use crate::types::API_SETTLEMENT_HISTORY;
 
 #[cfg(feature = "with_network")]
 mod with_network {

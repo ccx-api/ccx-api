@@ -3,17 +3,17 @@ use chrono::Utc;
 use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::TimestampSeconds;
 use serde_with::formats::Flexible;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::TimestampSeconds;
 use smart_string::SmartString;
 
-use crate::api::withdrawal::WithdrawalWithdrawStatus;
 use crate::api::ApiMethod;
 use crate::api::ApiVersion;
 use crate::api::PrivateRequest;
 use crate::api::Request;
+use crate::api::withdrawal::WithdrawalWithdrawStatus;
 
 #[serde_as]
 #[skip_serializing_none]

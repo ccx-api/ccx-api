@@ -21,15 +21,10 @@ mod with_network {
     pub use awc::error::WsClientError;
     #[cfg(feature = "with_awc")]
     pub use awc::http::header::InvalidHeaderValue as AwcInvalidHeaderValue;
-
-    #[cfg(feature = "with_reqwest")]
-    pub use reqwest::header::InvalidHeaderValue as ReqwestInvalidHeaderValue;
     #[cfg(feature = "with_reqwest")]
     pub use reqwest::Error as ReqwestError;
-
-    // Re-export for coinbase crate
-    #[cfg(feature = "with_awc")]
-    pub use awc::error::WsClientError as WsError;
+    #[cfg(feature = "with_reqwest")]
+    pub use reqwest::header::InvalidHeaderValue as ReqwestInvalidHeaderValue;
 }
 
 #[derive(Clone, Debug, Error)]

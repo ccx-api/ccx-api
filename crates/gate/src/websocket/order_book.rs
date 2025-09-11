@@ -1,7 +1,7 @@
-use serde::ser::SerializeSeq;
 use serde::Deserialize;
 use serde::Serialize;
 use serde::Serializer;
+use serde::ser::SerializeSeq;
 use smart_string::SmartString;
 
 use crate::api::spot::PriceAndAmount;

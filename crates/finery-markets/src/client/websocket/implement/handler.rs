@@ -1,9 +1,9 @@
 use actix::Context;
 use actix::Handler;
 
+use crate::client::websocket::WebSocketActor;
 use crate::client::websocket::implement::message::Die;
 use crate::client::websocket::implement::message::WsCommand;
-use crate::client::websocket::WebSocketActor;
 use crate::error::LibResult;
 use crate::types::WsRequest;
 

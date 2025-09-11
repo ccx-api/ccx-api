@@ -1,5 +1,5 @@
-use ccx_gate::util::GateApiCred;
 use ccx_gate::GateApi;
+use ccx_gate::util::GateApiCred;
 
 #[actix_rt::main]
 async fn main() {

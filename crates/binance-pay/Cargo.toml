@@ -22,7 +22,7 @@ with_network = [
     "tokio-socks",
     "webpki-roots",
 ]
-db = ["diesel", "diesel_derives"]
+with_diesel_1-4 = ["diesel", "diesel_derives"]
 experimental = []
 
 [dependencies]
@@ -33,34 +33,34 @@ actix-rt = { version = "2", optional = true }
 actix-service = { version = "2", optional = true }
 actix-tls = { version = "3.0", optional = true }
 actix-web = { version = "4", features = ["rustls"], optional = true }
-awc = { version = "3", optional = true }
+awc = { version = "3", features = ["rustls-0_23"], optional = true }
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 diesel = { version = "1.4.5", features = ["postgres", "serde_json", "r2d2"], optional = true }
 diesel_derives = { version = "1.4.1", optional = true }
-dotenv = "0.15.0"
-erased-serde = "0.3"
+dotenvy = "0.15.0"
+erased-serde = "0.4"
 futures = "0.3"
 hex = { version = "0.4.3", optional = true }
 hmac = "0.12"
 log = "0.4"
-random-string = { version = "0.2", optional = true }
+random-string = { version = "1", features = ["charsets"], optional = true }
 rust_decimal = "1"
-rustls = { version = "0.21", optional = true }
+rustls = { version = "0.23", optional = true }
 slog-scope = "4.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 serde_plain = "1"
 serde_urlencoded = "0.7"
 sha2 = "0.10"
-thiserror = "1"
+thiserror = "2"
 tokio-socks = { version = "0.5", optional = true }
 url = { version = "2", features = ["serde"] }
 uuid = { version = "0.8", features = ["serde", "v4"] }
-webpki-roots = { version = "0.25", optional = true }
+webpki-roots = { version = "1", optional = true }
 
 ccx-api-lib = { path = "../ccx-api-lib" }
 
 [dev-dependencies]
-env_logger = "0.10"
+env_logger = "0.11"
 dotenv = "0.15"
 ccx-binance-pay-examples-util = { path = "examples/util" }

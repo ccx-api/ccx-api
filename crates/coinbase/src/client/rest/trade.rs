@@ -2,15 +2,17 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
-use ::reqwest::{Client, Method, StatusCode};
-use serde::de::DeserializeOwned;
+use ::reqwest::Client;
+use ::reqwest::Method;
+use ::reqwest::StatusCode;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use url::Url;
 
+use crate::Uuid;
 use crate::client::*;
 use crate::error::*;
-use crate::Uuid;
 
 /// API client.
 pub struct RestTradeClient<S>
@@ -72,14 +74,14 @@ where
         let mut builder = Client::builder()
             .connect_timeout(std::time::Duration::from_secs(5))
             .timeout(std::time::Duration::from_secs(60));
-            
+
         if let Some(proxy) = proxy {
             let proxy_url = format!("socks5://{}", proxy.addr());
             if let Ok(reqwest_proxy) = ::reqwest::Proxy::all(&proxy_url) {
                 builder = builder.proxy(reqwest_proxy);
             }
         }
-        
+
         builder.build().expect("Failed to create HTTP client")
     }
 
@@ -179,7 +181,11 @@ where
         self = self.sign().await?;
 
         // Build the request using reqwest API directly
-        let mut request = self.api_client.inner.client.request(self.method.clone(), self.url.clone());
+        let mut request = self
+            .api_client
+            .inner
+            .client
+            .request(self.method.clone(), self.url.clone());
 
         // Add query parameters
         if !self.query_params.is_empty() {

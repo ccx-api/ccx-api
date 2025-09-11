@@ -1,12 +1,12 @@
 use std::collections::BTreeMap;
 
-use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
+use rust_decimal::prelude::*;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::ws_stream::OrderBookDiff;
 use crate::KrakenResult;
+use crate::ws_stream::OrderBookDiff;
 
 #[derive(Debug)]
 pub enum OrderBookUpdater {

@@ -1,11 +1,11 @@
 use chrono::Utc;
 
 use super::PortfolioInfo;
+use crate::CoinbaseResult;
+use crate::Uuid;
 use crate::api::prime::PrimeApi;
 use crate::api::prime::RL_PORTFOLIO_KEY;
 use crate::client::Task;
-use crate::CoinbaseResult;
-use crate::Uuid;
 
 pub type GetPortfolioResponse = PortfolioInfo;
 

@@ -1,6 +1,6 @@
-use crate::api::exchange::prelude::*;
 use crate::api::exchange::ProductBook;
 use crate::api::exchange::RL_PUBLIC_KEY;
+use crate::api::exchange::prelude::*;
 
 #[cfg(feature = "with_network")]
 impl<S> ExchangeApi<S>

@@ -9,9 +9,9 @@ use displaydoc::Display;
 use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_with::TimestampMilliSeconds;
 use serde_with::formats::Flexible;
 use serde_with::serde_as;
-use serde_with::TimestampMilliSeconds;
 use smart_string::SmartString;
 
 #[cfg(feature = "with_network")]

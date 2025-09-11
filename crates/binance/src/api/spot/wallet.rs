@@ -1,5 +1,5 @@
-use super::prelude::*;
 use super::RL_WEIGHT_PER_MINUTE;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const SAPI_V1_SYSTEM_STATUS: &str = "/sapi/v1/system/status";

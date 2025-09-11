@@ -1,5 +1,5 @@
-use serde::de;
 use serde::Serialize;
+use serde::de;
 
 use crate::api::ApiMethod;
 use crate::api::ApiVersion;

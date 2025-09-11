@@ -5,6 +5,7 @@ use url::Url;
 
 use crate::client::ApiCred;
 use crate::client::BinanceSigner;
+use crate::client::CCX_BINANCE_API_PREFIX;
 use crate::client::Config;
 use crate::client::Proxy;
 use crate::client::RateLimiter;
@@ -12,7 +13,6 @@ use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBuilder;
 use crate::client::RestClient;
 use crate::client::WebsocketStream;
-use crate::client::CCX_BINANCE_API_PREFIX;
 use crate::error::*;
 
 mod market_data;

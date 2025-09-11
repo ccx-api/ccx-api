@@ -1,5 +1,5 @@
-use super::prelude::*;
 use super::RL_WEIGHT_PER_MINUTE;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const SAPI_V1_FUTURES_TRANSFER: &str = "/sapi/v1/futures/transfer";

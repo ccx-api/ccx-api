@@ -29,28 +29,28 @@ actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
 actix-web = { version = "4.0", features = ["rustls"], optional = true }
 actix-web-actors = { version = "4.0", optional = true }
-awc = { version = "3.0", optional = true, features = ["rustls"] }
+awc = { version = "3", features = ["rustls-0_23"], optional = true }
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 log = "0.4"
 futures = "0.3"
 hmac = "0.12"
 rust_decimal = "1"
-rustls = { version = "0.21", optional = true }
+rustls = { version = "0.23", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_repr = "0.1"
 serde_urlencoded = "0.7"
-erased-serde = "0.3"
+erased-serde = "0.4"
 sha2 = "0.10"
-string_cache = "0.8"
-thiserror = "1"
+string_cache = "0.9"
+thiserror = "2"
 url = { version = "2", features = ["serde"] }
-webpki-roots = { version = "0.25", optional = true }
+webpki-roots = { version = "1", optional = true }
 
 ccx-api-lib = { path = "../ccx-api-lib" }
 
 [dev-dependencies]
-console = "0.15"
+console = "0.16"
 dotenv = "0.15"
 env_logger = "0.11"
 rust_decimal_macros = "1"

@@ -33,22 +33,22 @@ actix-http = { version = "3", optional = true }
 actix-service = { version = "2", optional = true }
 actix-rt = { version = "2", optional = true }
 actix-tls = { version = "3", optional = true }
-awc = { version = "3", features = ["rustls"], optional = true }
+awc = { version = "3", features = ["rustls-0_23"], optional = true }
 reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks"], optional = true }
-base64 = "0.21"
+base64 = "0.22"
 bytes = "1.0"
 chrono = { version = "0.4", optional = true }
 env_logger = { version = "0.11", optional = true }
 log = { version = "0.4", optional = true }
 rust_decimal = "1"
 rust_decimal_macros = "1"
-rustls = { version = "0.20", optional = true }
+rustls = { version = "0.23", features = ["aws-lc-rs"], optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_urlencoded = "0.7"
-string_cache = "0.8"
-thiserror = "1"
+string_cache = "0.9"
+thiserror = "2"
 tokio = { version = "1", optional = true, default-features = false }
 tokio-socks = { version = "0.5", optional = true }
 url = { version = "2", features = ["serde"] }
-webpki-roots = { version = "0.23", optional = true }
+webpki-roots = { version = "1", optional = true }

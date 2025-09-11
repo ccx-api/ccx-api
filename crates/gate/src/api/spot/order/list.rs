@@ -1,15 +1,15 @@
 use chrono::DateTime;
 use chrono::Utc;
 use serde::Serialize;
+use serde_with::TimestampSeconds;
 use serde_with::serde_as;
 use serde_with::skip_serializing_none;
-use serde_with::TimestampSeconds;
 use smart_string::SmartString;
 
-use super::create::AccountType;
-use super::create::OrderSide;
 use super::Order;
 use super::OrderStatus;
+use super::create::AccountType;
+use super::create::OrderSide;
 use crate::api::ApiMethod;
 use crate::api::ApiVersion;
 use crate::api::PrivateRequest;

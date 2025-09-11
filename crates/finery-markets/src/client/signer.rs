@@ -24,8 +24,8 @@ impl FinerySigner for ApiCred {
 }
 
 fn sign(content: &str, secret: &[u8]) -> String {
-    use base64::engine::general_purpose;
     use base64::Engine as _;
+    use base64::engine::general_purpose;
     use hmac::Hmac;
     use hmac::Mac;
     use sha2::Sha384;

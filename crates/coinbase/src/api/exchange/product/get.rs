@@ -1,6 +1,6 @@
-use crate::api::exchange::prelude::*;
 use crate::api::exchange::Product;
 use crate::api::exchange::RL_PUBLIC_KEY;
+use crate::api::exchange::prelude::*;
 
 pub type GetProductResponse = Product;
 

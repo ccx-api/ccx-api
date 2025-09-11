@@ -90,10 +90,10 @@ fn channel_from_raw(value: &str) -> Option<(WsStream, Atom)> {
 mod channel {
     use std::fmt;
 
-    use serde::de::Visitor;
-    use serde::de::{self};
     use serde::Deserializer;
     use serde::Serializer;
+    use serde::de::Visitor;
+    use serde::de::{self};
 
     use super::Atom;
     use super::WsStream;

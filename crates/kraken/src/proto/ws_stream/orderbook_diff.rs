@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::util::OrderLevel;
 use crate::Atom;
+use crate::util::OrderLevel;
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct OrderBookDiff {

@@ -5,6 +5,8 @@ use serde_json::Value;
 use serde_tuple::Deserialize_tuple;
 use serde_tuple::Serialize_tuple;
 
+use crate::LibError;
+use crate::LibResult;
 use crate::types::CancelReason;
 use crate::types::ClientId;
 use crate::types::ClientOrderId;
@@ -16,8 +18,6 @@ use crate::types::Price;
 use crate::types::SideByRepr;
 use crate::types::Size;
 use crate::types::Timestamp;
-use crate::LibError;
-use crate::LibResult;
 
 mod order_book;
 mod positions;

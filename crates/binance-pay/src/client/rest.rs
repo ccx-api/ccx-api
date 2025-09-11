@@ -1,24 +1,24 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use actix_http::encoding::Decoder;
 use actix_http::BoxedPayloadStream;
 use actix_http::Payload;
+use actix_http::encoding::Decoder;
 use awc::http::Method;
 use awc::http::StatusCode;
-use ccx_api_lib::make_client;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;
 use ccx_api_lib::ClientResponse;
+use ccx_api_lib::make_client;
 use serde::Serialize;
 
+use crate::Config;
+use crate::LibError;
+use crate::Time;
 use crate::client::BinancePaySigner;
 use crate::error::BinanceError;
 use crate::error::LibResult;
 use crate::error::ServiceError;
-use crate::Config;
-use crate::LibError;
-use crate::Time;
 
 /// API client.
 pub struct RestClient<S>
@@ -191,14 +191,7 @@ where
     }
 
     pub fn random_nonce(self) -> LibResult<Self> {
-        let lchars = 'a'..='z';
-        let uchars = 'A'..='Z';
-        let chars = lchars
-            .into_iter()
-            .chain(uchars.into_iter())
-            .collect::<String>();
-        let charset_string = random_string::Charset::new(chars).unwrap();
-        let res = random_string::generate(32, &charset_string);
+        let res = random_string::generate(32, random_string::charsets::ALPHA);
         let nonce: String = res.to_string();
         self.nonce(nonce)
     }

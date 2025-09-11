@@ -14,10 +14,10 @@ use super::RateLimiterBucket;
 use super::TaskBuilder;
 use super::TaskCosts;
 use super::TaskMessage;
-use crate::client::BitstampSigner;
-use crate::client::RequestBuilder;
 use crate::BitstampResult;
 use crate::LibError;
+use crate::client::BitstampSigner;
+use crate::client::RequestBuilder;
 
 #[derive(Clone)]
 pub(crate) struct RateLimiter {

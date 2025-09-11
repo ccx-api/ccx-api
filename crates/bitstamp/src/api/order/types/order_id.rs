@@ -1,7 +1,7 @@
 use derive_more::Deref;
+use serde::Deserialize;
 use serde::de::Deserializer;
 use serde::de::Visitor;
-use serde::Deserialize;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

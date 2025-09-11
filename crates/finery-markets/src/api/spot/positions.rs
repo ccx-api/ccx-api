@@ -3,11 +3,11 @@ pub use with_network::*;
 
 use crate::api::spot::SpotApi;
 use crate::error::LibResult;
+use crate::types::API_POSITIONS;
 use crate::types::Nonce;
 use crate::types::PositionsRequest;
 use crate::types::PositionsResponse;
 use crate::types::Time;
-use crate::types::API_POSITIONS;
 
 #[cfg(feature = "with_network")]
 mod with_network {

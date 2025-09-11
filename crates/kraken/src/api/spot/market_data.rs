@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use super::prelude::*;
-use super::RlPriorityLevel;
 use super::RL_PUBLIC_PER_SECOND;
+use super::RlPriorityLevel;
+use super::prelude::*;
 use crate::client::Task;
 use crate::util::OrderBook;
 use crate::util::OrderLevel;

@@ -8,9 +8,9 @@ use super::LiveOrderEvent;
 use super::LiveTradeEvent;
 use super::OrderBookEvent;
 use super::WsStream;
-use crate::ws_stream::channel_from_raw;
-use crate::ws_stream::LiveOrderEventType;
 use crate::Atom;
+use crate::ws_stream::LiveOrderEventType;
+use crate::ws_stream::channel_from_raw;
 
 /// Internal type of event returned from bitstamp subscription.
 #[derive(Clone, Debug, Deserialize, From)]
@@ -194,9 +194,9 @@ pub struct WsError {
 #[derive(Debug, Display, Error, From)]
 pub(crate) enum DeserializeError {
     Serde(serde_json::Error),
-    #[display(fmt = "Invalid channel")]
+    #[display("Invalid channel")]
     #[from(ignore)]
     InvalidChannelName(#[error(not(source))] String),
-    #[display(fmt = "Invalid combination of `event`: {:?} and `stream`:{:?}", _0, _1)]
+    #[display("Invalid combination of `event`: {:?} and `stream`:{:?}", _0, _1)]
     InvalidEventAndChannel(ClientEventType, WsStream),
 }

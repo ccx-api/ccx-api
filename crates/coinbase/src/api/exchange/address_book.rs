@@ -1,6 +1,6 @@
-use crate::api::exchange::prelude::*;
-use crate::api::exchange::RL_PRIVATE_KEY;
 use crate::DtCoinbaseEx;
+use crate::api::exchange::RL_PRIVATE_KEY;
+use crate::api::exchange::prelude::*;
 
 pub type GetAddressBookResponse = Vec<Address>;
 

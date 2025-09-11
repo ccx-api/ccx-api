@@ -1,11 +1,11 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use ccx_api_lib::make_client;
 use ccx_api_lib::ClientRequest;
 use ccx_api_lib::Method;
 use ccx_api_lib::PayloadError;
 use ccx_api_lib::SendRequestError;
+use ccx_api_lib::make_client;
 use chrono::Utc;
 use smart_string::DisplayExt;
 use smart_string::SmartString;

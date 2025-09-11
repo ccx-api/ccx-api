@@ -3,13 +3,13 @@ use std::time::Duration;
 use url::Url;
 
 use crate::client::ApiCred;
+use crate::client::CCX_COINBASE_TRADE_API_PREFIX;
 use crate::client::Proxy;
 use crate::client::RateLimiterBucket;
 use crate::client::RateLimiterBucketMode;
 use crate::client::RestTradeClient;
 use crate::client::TradeConfig;
 use crate::client::TradeRateLimiter;
-use crate::client::CCX_COINBASE_TRADE_API_PREFIX;
 
 pub const API_BASE: &str = "https://coinbase.com/";
 pub const STREAM_BASE: &str = "wss://coinbase.com/";

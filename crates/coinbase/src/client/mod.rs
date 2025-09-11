@@ -2,7 +2,7 @@ mod config;
 mod rate_limiter;
 mod rest;
 mod signer;
-mod websocket;
+pub mod websocket;
 
 pub use self::config::*;
 pub use self::rate_limiter::*;

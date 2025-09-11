@@ -1,9 +1,9 @@
 use std::fmt::Display;
 
 use ccx_api_lib::serde_util::none_as_empty_str;
-use serde::de::Error;
 use serde::Deserialize;
 use serde::Deserializer;
+use serde::de::Error;
 use serde_json::value::RawValue;
 use serde_repr::Deserialize_repr;
 

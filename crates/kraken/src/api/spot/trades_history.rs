@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
-use super::prelude::*;
-use super::RlPriorityLevel;
 use super::RL_MATCHING_ENGINE_PER_MINUTE;
 use super::RL_PRIVATE_PER_MINUTE;
+use super::RlPriorityLevel;
+use super::prelude::*;
 use crate::client::Task;
 
 pub const API_0_PRIVATE_TRADES_HISTORY: &str = "/0/private/TradesHistory";

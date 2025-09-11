@@ -19,9 +19,9 @@ use tokio::io::AsyncRead;
 use tokio::io::AsyncWrite;
 use tokio::io::Interest;
 use tokio::io::ReadBuf;
-use tokio_socks::tcp::Socks5Stream;
 use tokio_socks::Error as SocksConnectError;
 use tokio_socks::TargetAddr;
+use tokio_socks::tcp::Socks5Stream;
 
 fn to_connect_error(e: SocksConnectError) -> ConnectError {
     ConnectError::Io(Error::new(ErrorKind::Other, e))

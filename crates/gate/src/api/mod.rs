@@ -26,12 +26,12 @@ mod with_network {
     use withdrawal::WithdrawalApi;
 
     pub use super::*;
-    use crate::client::config::GateApiConfig;
+    use crate::client::GateSigner;
     use crate::client::config::CCX_GATE_API_PREFIX;
+    use crate::client::config::GateApiConfig;
     use crate::client::rest::RequestError;
     use crate::client::rest::RestClient;
     use crate::client::websocket::WebsocketStream;
-    use crate::client::GateSigner;
     use crate::error::GateResult;
     use crate::util::GateApiCred;
 

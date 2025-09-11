@@ -3,11 +3,11 @@ pub use with_network::*;
 
 use crate::api::spot::SpotApi;
 use crate::error::LibResult;
+use crate::types::API_ADD_OUTGOING_SETTLEMENT_TRANSACTION;
 use crate::types::AddOutgoingSettlementTransactionRequest;
 use crate::types::AddOutgoingSettlementTransactionResponse;
 use crate::types::Nonce;
 use crate::types::Time;
-use crate::types::API_ADD_OUTGOING_SETTLEMENT_TRANSACTION;
 
 #[cfg(feature = "with_network")]
 mod with_network {

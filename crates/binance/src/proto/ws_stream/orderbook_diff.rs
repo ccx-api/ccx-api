@@ -1,9 +1,9 @@
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::Atom;
 use crate::util::Ask;
 use crate::util::Bid;
-use crate::Atom;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]

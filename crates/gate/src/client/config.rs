@@ -1,6 +1,6 @@
-use ccx_api_lib::env_var_with_prefix;
 pub use ccx_api_lib::PrimeApiCred;
 pub use ccx_api_lib::Proxy;
+use ccx_api_lib::env_var_with_prefix;
 use url::Url;
 
 pub static CCX_GATE_API_PREFIX: &str = "CCX_GATE_API";
