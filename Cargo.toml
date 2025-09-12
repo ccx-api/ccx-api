@@ -8,7 +8,7 @@ authors.workspace = true
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.6.0-dev.0"
+version = "0.7.0"
 authors = ["CCX-API Library developers <ccx-api@irbis-labs.com>"]
 edition = "2024"
 
