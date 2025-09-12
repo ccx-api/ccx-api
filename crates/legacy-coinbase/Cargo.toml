@@ -1,0 +1,60 @@
+[package]
+name = "ccx-coinbase"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[features]
+default = ["with_network", "uuid1"]
+with_network = [
+    "reqwest",
+    "rustls",
+    "webpki-roots",
+    "tokio",
+    "tokio-tungstenite",
+    "ccx-api-lib/with_reqwest",
+]
+experimental = []
+debug_headers = []
+db = []
+
+[dependencies]
+base64 = "0.22"
+bytes = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+derive_more = { version = "2", features = ["full"] }
+futures = "0.3"
+hex = "0.4"
+hmac = "0.12"
+log = "0.4"
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks"], optional = true }
+rust_decimal = "1"
+rustls = { version = "0.23", features = ["aws-lc-rs"], optional = true }
+webpki-roots = { version = "1", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_repr = "0.1"
+erased-serde = "0.4"
+serde_urlencoded = "0.7"
+sha2 = "0.10"
+string_cache = "0.9"
+thiserror = "2"
+tokio = { version = "1", optional = true, features = ["full"] }
+tokio-tungstenite = { version = "0.27", features = ["rustls-tls-webpki-roots"], optional = true }
+url = { version = "2", features = ["serde"] }
+uuid08 = { package = "uuid", version = "0.8", optional = true, features = [
+    "serde",
+    "v4",
+] }
+uuid1 = { package = "uuid", version = "1", optional = true, features = [
+    "serde",
+    "v4",
+] }
+ccx-api-lib = { path = "../legacy-ccx-api-lib" }
+
+[dev-dependencies]
+env_logger = "0.11"
+dotenv = "0.15"
+ccx-api-lib = { path = "../legacy-ccx-api-lib", features = ["with_env_logger"] }
+enum-iterator = "2.0.0"
+serde_plain = "1"
