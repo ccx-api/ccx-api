@@ -2,16 +2,16 @@
 
 use std::str::FromStr;
 
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::AsExpression;
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::FromSqlRow;
 use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum TradeType {
     #[serde(rename = "WEB")]
     Web,
@@ -32,8 +32,8 @@ impl TradeType {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum StatusRequest {
     #[serde(rename = "SUCCESS")]
     Success,
@@ -54,8 +54,8 @@ impl StatusRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum StatusOrder {
     #[serde(rename = "INITIAL")]
     Initial,
@@ -87,7 +87,7 @@ impl StatusOrder {
     }
 }
 
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 mod db_impl {
     use std::io::Write;
 
@@ -178,8 +178,8 @@ mod db_impl {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum TerminalType {
     #[serde(rename = "APP")]
     App,
@@ -206,8 +206,8 @@ impl TerminalType {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum OsType {
     #[serde(rename = "IOS")]
     IOs,
@@ -228,8 +228,8 @@ impl OsType {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Default)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum GoodsCategory {
     #[serde(rename = "0000")]
     _0000, //: Electronics & Computers
@@ -281,8 +281,8 @@ impl GoodsCategory {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum AddressType {
     #[serde(rename = "01")]
     _01, //: office
@@ -307,8 +307,8 @@ impl AddressType {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Default)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum GoodsType {
     #[serde(rename = "01")]
     #[default]
@@ -330,8 +330,8 @@ impl GoodsType {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum TransferType {
     #[serde(rename = "TO_MAIN")]
     ToMain,
@@ -352,8 +352,8 @@ impl TransferType {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum TransferStatus {
     #[serde(rename = "SUCCESS")]
     Success,

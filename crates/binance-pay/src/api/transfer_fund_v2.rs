@@ -1,6 +1,6 @@
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::AsExpression;
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::FromSqlRow;
 use rust_decimal::Decimal;
 use serde::Deserialize;

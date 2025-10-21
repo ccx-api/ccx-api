@@ -1,6 +1,6 @@
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::AsExpression;
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::FromSqlRow;
 use serde::Deserialize;
 use serde::Serialize;
@@ -19,8 +19,8 @@ pub struct PortfolioBalance {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum BalanceType {
     /// Trading balances.
     #[serde(rename = "TRADING_BALANCES")]
@@ -32,9 +32,9 @@ pub enum BalanceType {
     #[serde(rename = "TOTAL_BALANCES")]
     TotalBalances,
 }
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 forward_display_to_serde!(BalanceType);
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 forward_from_str_to_serde!(BalanceType);
 
 // impl BalanceType {

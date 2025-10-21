@@ -1,6 +1,6 @@
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::AsExpression;
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::FromSqlRow;
 
 use crate::api::exchange::prelude::*;
@@ -13,8 +13,8 @@ use crate::api::exchange::prelude::*;
 /// See the self-trade prevention documentation for details about these fields.
 /// [https://docs.cloud.coinbase.com/exchange/docs/matching-engine#self-trade-prevention]
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum OrderStp {
     /// Cancel smaller order and decrement larger order by the smaller size.
     /// If the same size, cancel both.
@@ -31,9 +31,9 @@ pub enum OrderStp {
     #[serde(rename = "cb")]
     CancelBoth,
 }
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 forward_display_to_serde!(OrderStp);
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 forward_from_str_to_serde!(OrderStp);
 
 impl OrderStp {

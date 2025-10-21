@@ -2,9 +2,9 @@
 
 use std::str::FromStr;
 
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::AsExpression;
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::FromSqlRow;
 use rust_decimal::Decimal;
 
@@ -14,8 +14,8 @@ use crate::json_string;
 use crate::uuid_simple;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum BizStatus {
     #[serde(rename = "PAY_SUCCESS")]
     PaySuccess,
@@ -54,8 +54,8 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 pub enum ReturnCode {
     #[serde(rename = "SUCCESS")]
     Success,
@@ -130,7 +130,7 @@ pub struct Notification {
     pub payer_info: Option<PayerInfo>, //  string	N	-   only merchant got approved by Binance Operation's approval will receive this payerInfo	payer information, refer to
 }
 
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 mod db_impl {
     use std::io::Write;
 

@@ -16,7 +16,7 @@ with_network = [
 ]
 experimental = []
 debug_headers = []
-db = []
+with_diesel_1-4 = []
 
 [dependencies]
 base64 = "0.22"

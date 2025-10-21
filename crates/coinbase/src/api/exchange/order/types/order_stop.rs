@@ -1,21 +1,21 @@
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::AsExpression;
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 use diesel_derives::FromSqlRow;
 
 use crate::api::exchange::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "db", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "db", sql_type = "diesel::sql_types::Text")]
+#[cfg_attr(feature = "with_diesel_1-4", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "with_diesel_1-4", sql_type = "diesel::sql_types::Text")]
 #[serde(rename_all = "snake_case")]
 pub enum OrderStop {
     Loss,
     Entry,
 }
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 forward_display_to_serde!(OrderStop);
-#[cfg(feature = "db")]
+#[cfg(feature = "with_diesel_1-4")]
 forward_from_str_to_serde!(OrderStop);
 
 impl OrderStop {
