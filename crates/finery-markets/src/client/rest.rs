@@ -9,7 +9,7 @@ use awc::ClientRequest;
 use awc::ClientResponse;
 use awc::http::Method;
 use awc::http::StatusCode;
-use ccx_api_lib::make_client;
+use ccx_api_lib::awc::make_client;
 use serde::Serialize;
 use url::Url;
 

@@ -6,10 +6,10 @@ use actix_http::Payload;
 use actix_http::encoding::Decoder;
 use awc::http::Method;
 use awc::http::StatusCode;
-use ccx_api_lib::Client;
-use ccx_api_lib::ClientRequest;
-use ccx_api_lib::ClientResponse;
-use ccx_api_lib::make_client;
+use ccx_api_lib::awc::Client;
+use ccx_api_lib::awc::ClientRequest;
+use ccx_api_lib::awc::ClientResponse;
+use ccx_api_lib::awc::make_client;
 use serde::Serialize;
 
 use crate::Config;

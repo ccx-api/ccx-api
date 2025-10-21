@@ -1,11 +1,11 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use ccx_api_lib::Client;
-use ccx_api_lib::ClientRequest;
-use ccx_api_lib::Method;
-use ccx_api_lib::StatusCode;
-use ccx_api_lib::make_client;
+use ccx_api_lib::reqwest::Client;
+use ccx_api_lib::reqwest::ClientRequest;
+use ccx_api_lib::reqwest::Method;
+use ccx_api_lib::reqwest::StatusCode;
+use ccx_api_lib::reqwest::make_client;
 use serde::Deserialize;
 use serde::Serialize;
 

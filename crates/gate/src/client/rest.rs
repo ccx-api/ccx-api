@@ -1,10 +1,10 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use ccx_api_lib::ClientRequest;
-use ccx_api_lib::Method;
-use ccx_api_lib::SendRequestError;
-use ccx_api_lib::make_client;
+use ccx_api_lib::reqwest::ClientRequest;
+use ccx_api_lib::reqwest::Method;
+use ccx_api_lib::reqwest::SendRequestError;
+use ccx_api_lib::reqwest::make_client;
 use chrono::Utc;
 use smart_string::DisplayExt;
 use smart_string::SmartString;
@@ -85,7 +85,7 @@ impl<S> RestClient<S> {
     }
 
     /// REST client from `reqwest` crate
-    pub(super) fn client(&self) -> ccx_api_lib::Client {
+    pub(super) fn client(&self) -> ccx_api_lib::reqwest::Client {
         make_client(false, self.inner.config.proxy.as_ref())
     }
 
