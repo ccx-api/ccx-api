@@ -3,7 +3,6 @@ use std::time::Instant;
 
 use ccx_api_lib::ClientRequest;
 use ccx_api_lib::Method;
-use ccx_api_lib::PayloadError;
 use ccx_api_lib::SendRequestError;
 use ccx_api_lib::make_client;
 use chrono::Utc;
@@ -26,8 +25,6 @@ use crate::error::GateResult;
 pub enum CallError {
     #[error("Send request error: {0}")]
     SendRequest(#[from] SendRequestError),
-    #[error("Payload error: {0}")]
-    Payload(#[from] PayloadError),
     #[error("Json error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("Gate.io API error: {0}")]
@@ -87,8 +84,8 @@ impl<S> RestClient<S> {
         Self { inner }
     }
 
-    /// REST and Websocket client from `awc` crate
-    pub(super) fn client(&self) -> awc::Client {
+    /// REST client from `reqwest` crate
+    pub(super) fn client(&self) -> ccx_api_lib::Client {
         make_client(false, self.inner.config.proxy.as_ref())
     }
 
@@ -111,11 +108,11 @@ impl<S> RestClient<S> {
         let mut req = self
             .client()
             .request(method, url.as_str())
-            .append_header(("Accept", "application/json"))
-            .append_header(("Content-Type", "application/json"));
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json");
 
         if let ApiMethod::Get = R::METHOD {
-            req = req.query(request).unwrap();
+            req = req.query(request);
         }
 
         let api_client = self.clone();
@@ -144,7 +141,7 @@ impl<R: Request, S> GateRequest<R, S> {
         } = self;
 
         let timestamp = Utc::now().timestamp();
-        let request = request.append_header(("Timestamp", timestamp));
+        let request = request.header("Timestamp", timestamp.to_string());
 
         GatePreparedRequest {
             api_client,
@@ -163,10 +160,14 @@ impl<R: Request, S> GateRequest<R, S> {
         log::debug!("[{request_id}]  Request body: {:?}", body);
 
         let tm = Instant::now();
-        let mut res = request.send_body(body).await?;
+        let res = if body.is_empty() {
+            request.send().await?
+        } else {
+            request.body(body).send().await?
+        };
         let is_success = res.status().is_success();
         let d1 = tm.elapsed();
-        let body = res.body().limit(16 * 1024 * 1024).await?;
+        let body = res.bytes().await?;
         let d2 = tm.elapsed() - d1;
 
         log::debug!(
@@ -176,8 +177,8 @@ impl<R: Request, S> GateRequest<R, S> {
         );
 
         if cfg!(debug_assertions) {
-            let body = String::from_utf8_lossy(&body);
-            log::debug!("[{request_id}]  Response body: {:?}", body);
+            let body_str = String::from_utf8_lossy(&body);
+            log::debug!("[{request_id}]  Response body: {:?}", body_str);
         }
 
         Ok(match is_success {
@@ -197,17 +198,16 @@ impl<R: Request + PrivateRequest, S: GateSigner> GatePreparedRequest<R, S> {
             _phantom,
         } = self;
 
-        let request_method = request.get_method().as_str();
-        let (request_path, request_query) = request
-            .get_uri()
-            .path_and_query()
-            .map_or(("", ""), |pq| (pq.path(), pq.query().unwrap_or("")));
+        let request_method = request.method().as_str();
+        let request_url = request.url();
+        let request_path = request_url.path();
+        let request_query = request_url.query().unwrap_or("");
 
         if cfg!(debug_assertions) {
             log::debug!(
                 "request: {:?} «{}»",
-                request.get_method().as_str(),
-                request.get_uri(),
+                request.method().as_str(),
+                request.url(),
             );
             log::debug!("headers: {:?}", request.headers());
             log::debug!("path: {:?}", request_path);
@@ -219,7 +219,7 @@ impl<R: Request + PrivateRequest, S: GateSigner> GatePreparedRequest<R, S> {
         debug_assert!(
             request_path.starts_with("/api/v4/"),
             "Invalid request_path: {:?}",
-            request.get_uri().path_and_query(),
+            request_path,
         );
 
         let timestamp: SmartString = timestamp.to_fmt();
@@ -238,8 +238,8 @@ impl<R: Request + PrivateRequest, S: GateSigner> GatePreparedRequest<R, S> {
             .await?;
 
         let request = request
-            .append_header(("KEY", signer.key()))
-            .append_header(("SIGN", sign.as_str()));
+            .header("KEY", signer.key())
+            .header("SIGN", sign.as_str());
 
         log::debug!("headers: {:?}", request.headers());
 
@@ -264,10 +264,14 @@ impl<R: Request> GateSignedRequest<R> {
         log::debug!("[{request_id}]  Request body: {:?}", body);
 
         let tm = Instant::now();
-        let mut res = request.send_body(body).await?;
+        let res = if body.is_empty() {
+            request.send().await?
+        } else {
+            request.body(body).send().await?
+        };
         let is_success = res.status().is_success();
         let d1 = tm.elapsed();
-        let body = res.body().limit(16 * 1024 * 1024).await?;
+        let body = res.bytes().await?;
         let d2 = tm.elapsed() - d1;
 
         log::debug!(
@@ -277,8 +281,8 @@ impl<R: Request> GateSignedRequest<R> {
         );
 
         if cfg!(debug_assertions) {
-            let body = String::from_utf8_lossy(&body);
-            log::debug!("[{request_id}]  Response body: {:?}", body);
+            let body_str = String::from_utf8_lossy(&body);
+            log::debug!("[{request_id}]  Response body: {:?}", body_str);
         }
 
         Ok(match is_success {
