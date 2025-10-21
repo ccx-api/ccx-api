@@ -274,7 +274,7 @@ fn check_response(status: StatusCode) -> KrakenApiResult<()> {
     // log::debug!("  used_rate_limits:  {:?}", used_rate_limits);
 
     match status {
-        StatusCode::OK => Ok(()),
+        StatusCode::OK => KrakenApiError::ok(()),
         StatusCode::INTERNAL_SERVER_ERROR => Err(ApiServiceError::ServerError)?,
         StatusCode::SERVICE_UNAVAILABLE => Err(ApiServiceError::ServiceUnavailable)?,
         // StatusCode::UNAUTHORIZED => Err(RequestError::Unauthorized)?,
@@ -283,7 +283,7 @@ fn check_response(status: StatusCode) -> KrakenApiResult<()> {
         //
         //     Err(ErrorKind::BinanceError(error_json.code, error_json.msg, response).into())
         // }
-        s => Err(KrakenError::UnknownStatus(s))?,
+        s => Err(KrakenError::other(format!("Unknown status: {}", s)))?,
     }
 }
 

@@ -35,7 +35,6 @@ pub struct WebsocketStream {
 #[derive(Clone)]
 pub struct WebsocketStreamTx {
     command_tx: mpsc::UnboundedSender<WsCommand>,
-    id_seq: Seq<u64>,
 }
 
 impl WebsocketStream {
@@ -53,7 +52,6 @@ impl WebsocketStream {
 
         let (command_tx, command_rx) = mpsc::unbounded();
         let (message_tx, message_rx) = mpsc::unbounded();
-        let id_seq = Seq::new();
 
         // Spawn background task to handle WebSocket
         tokio::spawn(async move {
@@ -62,7 +60,7 @@ impl WebsocketStream {
             }
         });
 
-        let tx = WebsocketStreamTx { command_tx, id_seq };
+        let tx = WebsocketStreamTx { command_tx };
         Ok(WebsocketStream { tx, rx: message_rx })
     }
 
@@ -101,7 +99,7 @@ async fn run_websocket(
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
     let mut heartbeat_interval = interval(HEARTBEAT_INTERVAL);
     let mut last_heartbeat = Instant::now();
-    let id_seq = Seq::new();
+    let mut id_seq = Seq::new();
 
     loop {
         tokio::select! {
