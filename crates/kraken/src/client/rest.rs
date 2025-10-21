@@ -1,15 +1,10 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use ::awc::http::Method;
-use ::awc::http::StatusCode;
-use actix_http::BoxedPayloadStream;
-use actix_http::Payload;
-use actix_http::Uri;
-use actix_http::encoding::Decoder;
 use ccx_api_lib::Client;
 use ccx_api_lib::ClientRequest;
-use ccx_api_lib::ClientResponse;
+use ccx_api_lib::Method;
+use ccx_api_lib::StatusCode;
 use ccx_api_lib::make_client;
 use serde::Deserialize;
 use serde::Serialize;
@@ -128,7 +123,7 @@ where
     S: KrakenSigner,
 {
     pub fn uri(&self) -> String {
-        self.request.get_uri().to_string()
+        self.request.url().to_string()
     }
 
     pub fn query_arg<Name: AsRef<str>, T: Serialize + ?Sized>(
@@ -136,24 +131,22 @@ where
         name: Name,
         query: &T,
     ) -> KrakenResult<Self> {
-        let mut parts = self.request.get_uri().clone().into_parts();
-
-        if let Some(path_and_query) = parts.path_and_query {
-            let mut buf = path_and_query.path().to_string();
-            buf.push('?');
-            match path_and_query.query().unwrap_or("") {
-                "" => {}
-                old_query => {
-                    buf.push_str(old_query);
-                    buf.push('&');
-                }
+        let serialized = serde_urlencoded::to_string([(name.as_ref(), query)])?;
+        let mut url = self.request.url().clone();
+        
+        // Add query parameter
+        match url.query() {
+            None => url.set_query(Some(&serialized)),
+            Some(existing) => {
+                let new_query = format!("{}&{}", existing, serialized);
+                url.set_query(Some(&new_query));
             }
-            buf.push_str(&serde_urlencoded::to_string([(name.as_ref(), query)])?);
-            parts.path_and_query = buf.parse().ok();
-            let uri = Uri::from_parts(parts).map_err(|e| KrakenError::other(format!("{:?}", e)))?;
-            self.request = self.request.uri(uri);
         }
-
+        
+        // Create new request with updated URL
+        let method = self.request.method().clone();
+        self.request = self.api_client.client().request(method, url.as_str());
+        
         Ok(self)
     }
 
@@ -171,7 +164,7 @@ where
     pub fn auth_header(mut self) -> KrakenResult<Self> {
         self.request = self
             .request
-            .append_header(("API-Key", self.api_client.inner.config.api_key()));
+            .header("API-Key", self.api_client.inner.config.api_key());
         Ok(self)
     }
 
@@ -195,13 +188,18 @@ where
         self = self.sign().await?;
         self.request = self
             .request
-            .content_type("application/x-www-form-urlencoded");
-        log::debug!("{}  {}", self.request.get_method(), self.request.get_uri());
+            .header("content-type", "application/x-www-form-urlencoded");
+        log::debug!("{}  {}", self.request.method(), self.request.url());
         log::debug!("{}", self.body);
         let tm = Instant::now();
-        let mut res = self.request.send_body(self.body).await?;
+        let res = if self.body.is_empty() {
+            self.request.send().await?
+        } else {
+            self.request.body(self.body).send().await?
+        };
+        let status = res.status();
         let d1 = tm.elapsed();
-        let resp = res.body().limit(16 * 1024 * 1024).await?;
+        let resp = res.bytes().await?;
         let d2 = tm.elapsed() - d1;
         log::debug!(
             "Request time elapsed:  {:0.1}ms + {:0.1}ms",
@@ -210,10 +208,10 @@ where
         );
         log::debug!(
             "Response: {} «{}»",
-            res.status(),
+            status,
             String::from_utf8_lossy(&resp)
         );
-        if let Err(err) = check_response(res) {
+        if let Err(err) = check_response(status) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?
         };
@@ -254,7 +252,7 @@ where
 
     async fn sign(mut self) -> KrakenResult<Self> {
         if let Some((nonce,)) = self.sign {
-            let path = self.request.get_uri().path();
+            let path = self.request.url().path();
             let signature = self
                 .api_client
                 .inner
@@ -262,7 +260,7 @@ where
                 .signer()
                 .sign_data(nonce, path, &self.body)
                 .await?;
-            self.request = self.request.append_header(("API-Sign", signature));
+            self.request = self.request.header("API-Sign", signature);
         };
         Ok(self)
     }
@@ -270,15 +268,13 @@ where
 
 /// Return base64 encoded api sign.
 
-type AwcClientResponse = ClientResponse<Decoder<Payload<BoxedPayloadStream>>>;
-
-fn check_response(res: AwcClientResponse) -> KrakenApiResult<AwcClientResponse> {
+fn check_response(status: StatusCode) -> KrakenApiResult<()> {
     // let used_rate_limits = UsedRateLimits::from_headers(res.headers());
     //
     // log::debug!("  used_rate_limits:  {:?}", used_rate_limits);
 
-    match res.status() {
-        StatusCode::OK => KrakenApiError::ok(res),
+    match status {
+        StatusCode::OK => Ok(()),
         StatusCode::INTERNAL_SERVER_ERROR => Err(ApiServiceError::ServerError)?,
         StatusCode::SERVICE_UNAVAILABLE => Err(ApiServiceError::ServiceUnavailable)?,
         // StatusCode::UNAUTHORIZED => Err(RequestError::Unauthorized)?,

@@ -9,7 +9,7 @@ use ccx_kraken_examples_util::*;
 // const BTCUSD: &str = "XXBTZUSD";
 // const BNBUSD: &str = "BNBZUSD";
 
-#[actix_rt::main]
+#[tokio::main]
 async fn main() {
     let _ = main_().await;
 }

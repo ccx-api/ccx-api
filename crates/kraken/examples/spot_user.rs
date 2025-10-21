@@ -8,7 +8,7 @@ use ccx_kraken_examples_util::*;
 
 // const SYMBOL: &str = "XXBTZUSD";
 
-#[actix_rt::main]
+#[tokio::main]
 async fn main() {
     let _ = main_().await;
 }
