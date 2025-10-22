@@ -201,7 +201,7 @@ impl<R: Request + PrivateRequest, S: GateSigner> GatePreparedRequest<R, S> {
         let request_method = request.method().as_str();
         let request_url = request.url();
         let request_path = request_url.path();
-        let request_query = request_url.query().unwrap_or("");
+        let request_query = request.query_params();
 
         if cfg!(debug_assertions) {
             log::debug!(
