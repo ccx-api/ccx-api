@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
 
-use actix::clock::sleep;
+use tokio::time::sleep;
 use futures::channel::mpsc;
 use futures::channel::oneshot;
 use futures::lock::Mutex;
@@ -89,7 +89,7 @@ impl RateLimiter {
     fn recv(&self, mut rx: mpsc::UnboundedReceiver<TaskMessage>) {
         let buckets = self.buckets.clone();
         let queue = self.queue.clone();
-        actix_rt::spawn(async move {
+        tokio::spawn(async move {
             while let Some(task_message) = rx.next().await {
                 let is_first_task = queue.lock().await.add(task_message).is_first();
                 if is_first_task {
@@ -103,7 +103,7 @@ impl RateLimiter {
         buckets: Arc<HashMap<BucketName, Mutex<RateLimiterBucket>>>,
         queue: Arc<Mutex<Queue>>,
     ) {
-        actix_rt::spawn(async move {
+        tokio::spawn(async move {
             loop {
                 let TaskMessage {
                     priority,
@@ -448,7 +448,7 @@ mod tests {
 
     pub static CCX_KRAKEN_API_PREFIX: &str = "CCX_KRAKEN_API";
 
-    #[actix_rt::test]
+    #[tokio::test]
     async fn test_rate_limiter_queue() {
         let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
@@ -494,7 +494,7 @@ mod tests {
         assert!(instant.elapsed() >= Duration::from_secs(30));
     }
 
-    #[actix_rt::test]
+    #[tokio::test]
     async fn test_rate_limiter_metadata() {
         let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
@@ -537,7 +537,7 @@ mod tests {
         }
     }
 
-    #[actix_rt::test]
+    #[tokio::test]
     async fn test_rate_limiter_delay() {
         let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
@@ -577,7 +577,7 @@ mod tests {
         assert!(instant.elapsed() >= Duration::from_secs(6));
     }
 
-    #[actix_rt::test]
+    #[tokio::test]
     async fn test_rate_limiter_wrong_bucket() {
         let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
@@ -611,7 +611,7 @@ mod tests {
         assert!(task_res.is_err())
     }
 
-    #[actix_rt::test]
+    #[tokio::test]
     async fn test_rate_limiter_decrease() {
         let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
         let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
@@ -649,32 +649,36 @@ mod tests {
         assert!(instant.elapsed() >= Duration::from_secs(13));
     }
 
-    #[actix_rt::test]
+    #[tokio::test]
     async fn test_rate_limiter_priority() {
-        let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-        let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-        let tier = RateLimiterTier::Starter;
-        let spot_api = SpotApi::new(signer, proxy, tier);
+        use tokio::task::LocalSet;
+        
+        let local = LocalSet::new();
+        local.run_until(async {
+            let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+            let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+            let tier = RateLimiterTier::Starter;
+            let spot_api = SpotApi::new(signer, proxy, tier);
 
-        let rate_limiter = RateLimiterBuilder::default()
-            .bucket(
-                "interval_3__limit_5",
-                RateLimiterBucket::default()
-                    .mode(RateLimiterBucketMode::KrakenDecrease)
-                    .interval(Duration::from_secs(3))
-                    .limit(5),
-            )
-            .start();
+            let rate_limiter = RateLimiterBuilder::default()
+                .bucket(
+                    "interval_3__limit_5",
+                    RateLimiterBucket::default()
+                        .mode(RateLimiterBucketMode::KrakenDecrease)
+                        .interval(Duration::from_secs(3))
+                        .limit(5),
+                )
+                .start();
 
-        let instant = Instant::now();
-        let counter = Arc::new(AtomicU8::new(0));
-        let position = Arc::new(AtomicU8::new(0));
-        {
-            let counter = counter.clone();
-            let position = position.clone();
-            let rate_limiter = rate_limiter.clone();
-            let spot_api = spot_api.clone();
-            actix::spawn(async move {
+            let instant = Instant::now();
+            let counter = Arc::new(AtomicU8::new(0));
+            let position = Arc::new(AtomicU8::new(0));
+            {
+                let counter = counter.clone();
+                let position = position.clone();
+                let rate_limiter = rate_limiter.clone();
+                let spot_api = spot_api.clone();
+                tokio::task::spawn_local(async move {
                 while counter.load(Ordering::SeqCst) < 6 {
                     sleep(Duration::from_millis(10)).await;
                 }
@@ -707,11 +711,11 @@ mod tests {
             });
         }
 
-        for _ in 1..10 {
-            let counter = counter.clone();
-            let rate_limiter = rate_limiter.clone();
-            let spot_api = spot_api.clone();
-            actix::spawn(async move {
+            for _ in 1..10 {
+                let counter = counter.clone();
+                let rate_limiter = rate_limiter.clone();
+                let spot_api = spot_api.clone();
+                tokio::task::spawn_local(async move {
                 let _task_res = rate_limiter
                     .task(
                         spot_api
@@ -738,11 +742,12 @@ mod tests {
             });
         }
 
-        while counter.load(Ordering::SeqCst) < 10 {
-            sleep(Duration::from_millis(100)).await;
-        }
+            while counter.load(Ordering::SeqCst) < 10 {
+                sleep(Duration::from_millis(100)).await;
+            }
 
-        assert!((7..=8).contains(&position.load(Ordering::SeqCst)));
-        assert!(instant.elapsed() >= Duration::from_secs(13));
+            assert!((7..=8).contains(&position.load(Ordering::SeqCst)));
+            assert!(instant.elapsed() >= Duration::from_secs(13));
+        }).await;
     }
 }

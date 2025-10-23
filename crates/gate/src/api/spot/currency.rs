@@ -114,7 +114,7 @@ mod tests {
             deposit_disabled: false,
             trade_disabled: false,
             fixed_rate: None,
-            chain: "GT".into(),
+            chain: Some("GT".into()),
         };
         assert_eq!(serde_json::from_str::<Currency>(json).unwrap(), expected);
     }

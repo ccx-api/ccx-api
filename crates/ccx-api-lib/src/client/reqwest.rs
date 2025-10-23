@@ -23,6 +23,7 @@ impl Client {
             url: url_parsed,
             method,
             headers: std::collections::HashMap::new(),
+            query_params: String::new(),
         }
     }
 }
@@ -33,6 +34,7 @@ pub struct ClientRequest {
     url: url::Url,
     method: Method,
     headers: std::collections::HashMap<String, String>,
+    query_params: String,
 }
 
 impl ClientRequest {
@@ -56,15 +58,28 @@ impl ClientRequest {
             url: self.url,
             method: self.method,
             headers: self.headers,
+            query_params: self.query_params,
         }
     }
 
-    pub fn query<T: serde::Serialize + ?Sized>(self, query: &T) -> Self {
+    pub fn query<T: serde::Serialize + ?Sized>(mut self, query: &T) -> Self {
+        // Serialize the query parameters
+        let serialized = serde_urlencoded::to_string(query).unwrap_or_default();
+        
+        // Append to existing query params
+        if !serialized.is_empty() {
+            if !self.query_params.is_empty() {
+                self.query_params.push('&');
+            }
+            self.query_params.push_str(&serialized);
+        }
+        
         Self {
             inner: self.inner.query(query),
             url: self.url,
             method: self.method,
             headers: self.headers,
+            query_params: self.query_params,
         }
     }
 
@@ -74,11 +89,16 @@ impl ClientRequest {
             url: self.url,
             method: self.method,
             headers: self.headers,
+            query_params: self.query_params,
         }
     }
 
     pub fn headers(&self) -> &std::collections::HashMap<String, String> {
         &self.headers
+    }
+
+    pub fn query_params(&self) -> &str {
+        &self.query_params
     }
 
     pub async fn send(self) -> Result<ClientResponse, reqwest::Error> {
@@ -140,3 +160,4 @@ pub fn client_with_proxy(proxy: &Proxy) -> Client {
 
     Client { inner }
 }
+

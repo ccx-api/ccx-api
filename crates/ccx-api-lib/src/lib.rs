@@ -18,14 +18,24 @@ mod rate_limiter;
 mod seq;
 pub mod serde_util;
 
-// Re-export awc types at root level for backward compatibility
+// Export both client modules when their features are enabled
 #[cfg(feature = "with_awc")]
+pub use self::client::awc;
+#[cfg(feature = "with_reqwest")]
+pub use self::client::reqwest;
+
+// For backward compatibility, re-export awc types at root level when only awc is enabled
+#[cfg(all(feature = "with_awc", not(feature = "with_reqwest")))]
 pub use self::client::awc::{
     Client, ClientRequest, ClientResponse, Method, PayloadError, SendRequestError, StatusCode,
     make_client,
 };
-#[cfg(any(feature = "with_awc", feature = "with_reqwest"))]
-pub use self::client::*;
+// For new code, re-export reqwest types at root level when only reqwest is enabled
+#[cfg(all(feature = "with_reqwest", not(feature = "with_awc")))]
+pub use self::client::reqwest::{
+    Client, ClientRequest, ClientResponse, Method, SendRequestError, StatusCode, make_client,
+};
+
 #[cfg(feature = "with_awc")]
 pub use self::connector::*;
 pub use self::cred::*;

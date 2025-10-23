@@ -2,12 +2,12 @@ use std::borrow::Cow;
 use std::sync::Arc;
 use std::time::Instant;
 
-use ccx_api_lib::Client;
-use ccx_api_lib::ClientRequest;
-use ccx_api_lib::Method;
-use ccx_api_lib::PayloadError;
-use ccx_api_lib::SendRequestError;
-use ccx_api_lib::make_client;
+use ccx_api_lib::awc::Client;
+use ccx_api_lib::awc::ClientRequest;
+use ccx_api_lib::awc::Method;
+use ccx_api_lib::awc::PayloadError;
+use ccx_api_lib::awc::SendRequestError;
+use ccx_api_lib::awc::make_client;
 use smart_string::DisplayExt;
 use smart_string::SmartString;
 use thiserror::Error;

@@ -3,7 +3,7 @@ use ccx_gate::client::rest::RequestError;
 use ccx_gate::util::GateApiCred;
 // use rust_decimal_macros::dec;
 
-#[actix_rt::main]
+#[tokio::main]
 async fn main() -> Result<(), RequestError> {
     let _ = dotenvy::dotenv();
 

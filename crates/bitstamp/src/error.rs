@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::fmt;
 
 pub use ccx_api_lib::*;
+use ccx_api_lib::awc::StatusCode;
 use thiserror::Error;
 
 #[derive(Clone, Debug, Error)]

@@ -7,28 +7,22 @@ authors.workspace = true
 [features]
 default = ["with_network"]
 with_network = [
-    "actix",
-    "actix-codec",
-    "actix-http",
-    "actix-rt",
-    "actix-tls",
-    "actix-web",
-    "actix-web-actors",
-    "awc",
-    "ccx-api-lib/with_network",
+    "reqwest",
+    "rustls",
+    "webpki-roots",
+    "tokio",
+    "tokio-tungstenite",
+    "ccx-api-lib/with_reqwest",
 ]
 experimental = []
 
 [dependencies]
-actix = { version = "0.13", optional = true }
-actix-codec = { version = "0.5", optional = true }
-actix-http = { version = "3", optional = true, features = ["rustls"] }
-actix-rt = { version = "2", optional = true }
-actix-tls = { version = "3", optional = true }
-actix-web = { version = "4", features = ["rustls"], optional = true }
-actix-web-actors = { version = "4", optional = true }
-awc = { version = "3", features = ["rustls-0_23"], optional = true }
 base64 = "0.22"
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks"], optional = true }
+rustls = { version = "0.23", features = ["aws-lc-rs"], optional = true }
+webpki-roots = { version = "1", optional = true }
+tokio = { version = "1", optional = true, features = ["full"] }
+tokio-tungstenite = { version = "0.27", features = ["rustls-tls-webpki-roots"], optional = true }
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 log = "0.4"
 futures = "0.3"

@@ -1,7 +1,7 @@
 use ccx_gate::GateApi;
 use ccx_gate::util::GateApiCred;
 
-#[actix_rt::main]
+#[tokio::main]
 async fn main() {
     let _ = dotenvy::dotenv();
 

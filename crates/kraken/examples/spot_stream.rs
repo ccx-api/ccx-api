@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::println;
 use std::thread;
 
-use actix::prelude::*;
 use ccx_kraken::KrakenApiError;
 use ccx_kraken::KrakenApiResult;
 use ccx_kraken::KrakenError;
@@ -16,13 +15,9 @@ use ccx_kraken::ws_stream::WsStreamBookParams;
 use futures::StreamExt;
 use string_cache::DefaultAtom as Atom;
 
-fn main() {
-    let system = System::new();
-    let _addr = system.block_on(async {
-        let _ = main_().await;
-        System::current().stop();
-    });
-    system.run().unwrap();
+#[tokio::main]
+async fn main() {
+    let _ = main_().await;
 }
 
 async fn main_() -> KrakenApiResult<()> {
