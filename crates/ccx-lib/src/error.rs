@@ -17,9 +17,9 @@ pub enum Error<ApiError: CcxApiError> {
     Api(ApiError),
     Sign(SignError),
     #[display("Failed to serialize data to urlencoded: {_0}")]
-    Serialize(serde_urlencoded::ser::Error),
+    Serialize(serde_html_form::ser::Error),
     #[display("Failed to deserialize data from urlencoded: {_0}")]
-    Deserialize(serde_urlencoded::de::Error),
+    Deserialize(serde_html_form::de::Error),
     #[display("Failed to serialize/deserialize data: {_0}")]
     JsonConversion(serde_json::Error),
     #[display("Request error: {_0}")]

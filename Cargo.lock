@@ -339,8 +339,8 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
+ "serde_html_form",
  "serde_json",
- "serde_urlencoded",
  "string_cache",
  "thiserror",
  "tokio",
@@ -365,9 +365,9 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
+ "serde_html_form",
  "serde_json_path_to_error",
  "serde_repr",
- "serde_urlencoded",
  "sha2",
  "smallvec",
  "smart-string",
@@ -401,8 +401,8 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
+ "serde_html_form",
  "serde_json_path_to_error",
- "serde_urlencoded",
  "serde_with",
  "similar-asserts",
  "smallvec",
@@ -437,10 +437,10 @@ dependencies = [
  "rust_decimal",
  "rustls",
  "serde",
+ "serde_html_form",
  "serde_json",
  "serde_plain",
  "serde_repr",
- "serde_urlencoded",
  "sha2",
  "string_cache",
  "thiserror",
@@ -471,10 +471,10 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
+ "serde_html_form",
  "serde_json_path_to_error",
  "serde_path_to_error",
  "serde_repr",
- "serde_urlencoded",
  "serde_with",
  "sha2",
  "similar-asserts",
@@ -513,11 +513,11 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
+ "serde_html_form",
  "serde_json_path_to_error",
  "serde_path_to_error",
  "serde_plain",
  "serde_repr",
- "serde_urlencoded",
  "serde_with",
  "sha2",
  "similar-asserts",
@@ -549,8 +549,8 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
+ "serde_html_form",
  "serde_json_path_to_error",
- "serde_urlencoded",
  "smallvec",
  "smart-string",
  "soketto",
@@ -580,9 +580,9 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
+ "serde_html_form",
  "serde_json_path_to_error",
  "serde_repr",
- "serde_urlencoded",
  "sha2",
  "smallvec",
  "smart-string",
@@ -2455,22 +2455,45 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.219"
+version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
+checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
+dependencies = [
+ "serde_core",
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_core"
+version = "1.0.228"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41d385c7d4ca58e59fc732af25c3983b67ac852c1a25000afe1175de458b67ad"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.219"
+version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
+checksum = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
 dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.106",
+]
+
+[[package]]
+name = "serde_html_form"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2f2d7ff8a2140333718bb329f5c40fc5f0865b84c426183ce14c97d2ab8154f"
+dependencies = [
+ "form_urlencoded",
+ "indexmap 2.11.1",
+ "itoa",
+ "ryu",
+ "serde_core",
 ]
 
 [[package]]

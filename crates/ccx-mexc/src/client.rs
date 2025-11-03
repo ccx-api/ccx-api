@@ -81,7 +81,7 @@ where
         let payload = if is_json {
             serde_json::from_slice(&full)?
         } else {
-            serde_urlencoded::from_bytes(&full)?
+            serde_html_form::from_bytes(&full)?
         };
 
         Ok(MexcResponseWithMeta::new(meta, payload))

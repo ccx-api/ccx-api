@@ -17,7 +17,7 @@ pub fn to_request_content<T: Request>(request: &T) -> Result<RequestContent, Bit
             body: Some(serde_json::to_string(request)?),
         },
         _ => RequestContent {
-            query: Some(serde_urlencoded::to_string(request)?),
+            query: Some(serde_html_form::to_string(request)?),
             body: None,
         },
     })

@@ -82,7 +82,7 @@ mod tests {
             limit: Some(100),
         };
         let expected = r"symbol=ADAUSDT&limit=100";
-        let serialized = serde_urlencoded::to_string(&request).unwrap();
+        let serialized = serde_html_form::to_string(&request).unwrap();
         assert_eq!(serialized, expected);
     }
 

@@ -36,7 +36,7 @@ where
         use std::fmt::Write;
 
         async move {
-            let mut query = serde_urlencoded::to_string(&self)?;
+            let mut query = serde_html_form::to_string(&self)?;
 
             let signature = signer.sign_request(&query).await?;
             let div = if query.is_empty() { "" } else { "&" };

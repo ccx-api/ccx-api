@@ -45,7 +45,7 @@ fn sign(secret: &str, path: &str, body: &str, nonce: Nonce) -> String {
         .decode(secret)
         .expect("API_SECRET should be base64 encoded");
 
-    // let payload = serde_urlencoded::to_string(payload).expect("serialize payload");
+    // let payload = serde_html_form::to_string(payload).expect("serialize payload");
     let mut m256 = Sha256::new();
     m256.update(nonce.to_string());
     m256.update(body);

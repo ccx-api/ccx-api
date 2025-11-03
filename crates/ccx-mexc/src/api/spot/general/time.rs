@@ -39,7 +39,7 @@ mod tests {
     fn test_request_serialization() {
         let request = GetServerTime {};
         let expected = r#""#;
-        let serialized = serde_urlencoded::to_string(&request).unwrap();
+        let serialized = serde_html_form::to_string(&request).unwrap();
         assert_eq!(serialized, expected);
     }
 

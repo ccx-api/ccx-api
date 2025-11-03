@@ -67,7 +67,7 @@ where
     #[error("Url Parse Error: {0}")]
     UrlParserError(#[from] url::ParseError),
     #[error("Url Encoded Error: {0}")]
-    UrlEncodedError(#[from] serde_urlencoded::ser::Error),
+    UrlEncodedError(#[from] serde_html_form::ser::Error),
     #[error("Json Error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("Time Error: {0}")]

@@ -22,7 +22,7 @@ rust_decimal_macros = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json.workspace = true
 serde_repr.workspace = true
-serde_urlencoded = "0.7.1"
+serde_html_form.workspace = true
 sha2 = "0.10"
 smallvec.workspace = true
 smart-string = "0.1"

@@ -79,17 +79,17 @@ mod tests {
     fn test_request_serialization() {
         let request = GetExchangeInfo::new();
         let expected = r#""#;
-        let serialized = serde_urlencoded::to_string(&request).unwrap();
+        let serialized = serde_html_form::to_string(&request).unwrap();
         assert_eq!(serialized, expected);
 
         let request = GetExchangeInfo::with_symbol("BNBBTC");
         let expected = r#"symbol=BNBBTC"#;
-        let serialized = serde_urlencoded::to_string(&request).unwrap();
+        let serialized = serde_html_form::to_string(&request).unwrap();
         assert_eq!(serialized, expected);
 
         let request = GetExchangeInfo::with_symbols(&["BNBBTC", "BTCUSDT"]);
         let expected = r#"symbols=%5B%22BNBBTC%22%2C%22BTCUSDT%22%5D"#;
-        let serialized = serde_urlencoded::to_string(&request).unwrap();
+        let serialized = serde_html_form::to_string(&request).unwrap();
         assert_eq!(serialized, expected);
     }
 

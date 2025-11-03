@@ -23,7 +23,7 @@ rust_decimal_macros = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json.workspace = true
 serde_path_to_error = { version = "0.1" }
-serde_urlencoded.workspace = true
+serde_html_form.workspace = true
 serde_plain.workspace = true
 serde_repr.workspace = true
 serde_with = { version = "3.12", features = ["chrono_0_4"] }
