@@ -78,7 +78,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dbg!(&wallet_by_id);
 
     let wallet_info = wallet::GetWalletByIdCoin::builder()
-        .coin("tsol:usdcv2")
+        .coin("hteth")
         .wallet_id(config.hot_wallet_id.clone())
         .include_balance(true) // Include wallet balance
         .build()
@@ -102,6 +102,36 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into_payload();
 
     dbg!(&total_balances);
+
+    // List addresses for a wallet
+    let addresses = wallet::ListAddresses::builder()
+        .coin("hteth")
+        .wallet_id(config.hot_wallet_id.clone())
+        .limit(10u32)
+        .include_balances(true)
+        .include_tokens(true)
+        .build()
+        .throttle(&rate_limiter)
+        .await?
+        .sign_now_and_send(&credential, &client)
+        .await?
+        .into_payload();
+
+    dbg!(&addresses);
+
+    // List addresses for a go wallet
+    let addresses = dbg!(wallet::ListAddresses::builder()
+        .coin("ofc")
+        .token(bon::vec!["ofchteth"])
+        .wallet_id(config.go_wallet_id.clone())
+        .build())
+        .throttle(&rate_limiter)
+        .await?
+        .sign_now_and_send(&credential, &client)
+        .await?
+        .into_payload();
+
+    dbg!(&addresses);
 
     // // Go Account -> Hot Wallet withdrawal
     // let send_coins = wallet::SendCoins::builder()
