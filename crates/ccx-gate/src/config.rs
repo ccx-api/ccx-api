@@ -22,3 +22,10 @@ pub fn production() -> ConnectionConfig {
         url!("wss://api.gateio.ws/ws/v4/"),
     )
 }
+
+pub fn testing() -> ConnectionConfig {
+    ConnectionConfig::new(
+        url!("https://api-testnet.gateapi.io/api/v4"),
+        url!("wss://ws-testnet.gate.com/v4/ws/spot/"),
+    )
+}

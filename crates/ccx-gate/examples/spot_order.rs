@@ -1,5 +1,6 @@
 use ccx_gate::prelude::*;
 use envconfig::Envconfig;
+use rust_decimal_macros::dec;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -37,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = {
         let client = reqwest::Client::new();
-        let config = config::production();
+        let config = config::testing();
         GateClient::new(client, config)
     };
 
@@ -57,18 +58,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     dbg!(list_orders);
 
-    let order_currency_pair = "BTC_USDT";
+    let order_currency_pair = "ETH_USDT";
 
     // WARNING: here we create an actual exchange order for 3 USDT.
     // If you lucky enough you may acquire 3 BTC with it, so
-    // why not to try anyway, right? It'll cancelled in the code later
+    // why not to try anyway, right? It'll be cancelled in the code later
     let create_order = spot::CreateOrder::builder()
         .currency_pair(order_currency_pair)
-        .order_type(spot::OrderType::Limit)
+        .order_type(spot::OrderType::Market)
+        .account(spot::AccountType::Spot)
         .side(spot::OrderSide::Buy)
-        .amount(1.into())
-        .price(3.into())
-        .time_in_force(spot::TimeInForce::ImmediateOrCancelled)
+        .amount(dec!(11))
+        .time_in_force(spot::TimeInForce::FillOrKill)
         .build()
         .sign_now_and_send(&credential, &client)
         .await?

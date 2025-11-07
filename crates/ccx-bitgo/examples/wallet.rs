@@ -120,16 +120,18 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dbg!(&addresses);
 
     // List addresses for a go wallet
-    let addresses = dbg!(wallet::ListAddresses::builder()
-        .coin("ofc")
-        .token(bon::vec!["ofchteth"])
-        .wallet_id(config.go_wallet_id.clone())
-        .build())
-        .throttle(&rate_limiter)
-        .await?
-        .sign_now_and_send(&credential, &client)
-        .await?
-        .into_payload();
+    let addresses = dbg!(
+        wallet::ListAddresses::builder()
+            .coin("ofc")
+            .token(bon::vec!["ofchteth"])
+            .wallet_id(config.go_wallet_id.clone())
+            .build()
+    )
+    .throttle(&rate_limiter)
+    .await?
+    .sign_now_and_send(&credential, &client)
+    .await?
+    .into_payload();
 
     dbg!(&addresses);
 

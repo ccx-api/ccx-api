@@ -15,7 +15,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = {
         let client = reqwest::Client::new();
-        let config = config::production();
+        let config = config::testing();
 
         GateClient::new(client, config)
     };

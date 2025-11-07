@@ -36,7 +36,7 @@ pub struct DepositMethodResponse {
     /// Whether or not method has an address setup fee.
     pub address_setup_fee: Option<Decimal>,
     /// Whether new addresses can be generated for this method..
-    pub gen_address: bool,
+    pub gen_address: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

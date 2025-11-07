@@ -113,4 +113,3 @@ impl Request for ListAddresses {
 }
 
 impl SignedRequest for ListAddresses {}
-
