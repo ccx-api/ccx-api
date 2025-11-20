@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use bon::Builder;
 
-use crate::api::error::GateApiError;
+use crate::api::error::{GateApiError, GateApiErrorInfo};
 use crate::error::GateResult;
 use crate::proto::{Request, RequestReadyToSend, Response};
 use crate::types::timestamp::Timestamp;
@@ -75,20 +75,26 @@ async fn handle_response<T>(resp: reqwest::Response) -> Result<T, GateError>
 where
     T: Response,
 {
-    if resp.status().is_success() {
-        let full = resp.bytes().await?;
+    let status = resp.status();
+    let full = resp.bytes().await?;
 
-        tracing::trace!("Response: {}", String::from_utf8_lossy(&full));
+    tracing::trace!("Response: {}", String::from_utf8_lossy(&full));
 
+    if status.is_success() {
         let payload = serde_json::from_slice(&full)?;
 
         Ok(payload)
     } else {
-        let err = resp.json::<GateApiError>().await?;
+        let err: GateApiError = serde_json::from_slice(&full).map_err(|e| {
+            tracing::error!(?e, "Failed to parse the response from Gate API");
+            GateError::Api(GateApiError::ServerError(GateApiErrorInfo {
+                message: "Failed to parse the response from Gate API".into(),
+            }))
+        })?;
 
         tracing::error!(?err);
 
-        Err(GateError::Api(err))
+        Err(GateError::Api(err.clone()))
     }
 }
 

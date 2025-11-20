@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with(tracing_subscriber::fmt::layer().pretty())
         .with(
             EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_err| "info,ccx_gate=debug,ccx_lib=trace".into()),
+                .unwrap_or_else(|_err| "info,ccx_gate=trace,ccx_lib=trace".into()),
         )
         .init();
 
@@ -70,6 +70,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into_payload();
 
     dbg!(deposit_history);
+
+    // This doesn't work in testing environment
+    // let withdraw_status = wallet::WithdrawStatus::with_currency("ETH")
+    //     .sign_now_and_send(&credential, &client)
+    //     .await?
+    //     .into_payload();
+
+    // dbg!(withdraw_status);
 
     Ok(())
 }
