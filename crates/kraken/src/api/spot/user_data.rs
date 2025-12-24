@@ -211,9 +211,9 @@ mod tests {
     #[test]
     fn test_query_orders_info() {
         let json_response = r#"{
-            "BBBAAA-AA22A-AAABBB":{
+            "OVVDHC-CA22A-NESYIB":{
                 "refid":null,
-                "userref":123456789,
+                "userref":131280319,
                 "status":"closed",
                 "opentm":1766554023.422301,
                 "starttm":0,
@@ -243,13 +243,15 @@ mod tests {
             }
         }"#;
 
-        let response: QueryOrdersInfoResponse = serde_json::from_str(json_response).unwrap();
-        assert_eq!(response.orders.len(), 1);
-        assert_eq!(response.orders.keys().next().unwrap(), "BBBAAA-AA22A-AAABBB");
-        assert_eq!(response.orders.values().next().unwrap().status, OrderStatus::Closed);
-        assert_eq!(response.orders.values().next().unwrap().opentm, 1766554023.422301);
-        assert_eq!(response.orders.values().next().unwrap().starttm, 0.0);
-        assert_eq!(response.orders.values().next().unwrap().expiretm, 0.0);
-        assert_eq!(response.orders.values().next().unwrap().closetm, Some(1766554023.422301));
+        let get_query_orders_info_response: QueryOrdersInfoResponse = serde_json::from_str(&json_response).unwrap();
+        let (order_id, order_info) = get_query_orders_info_response.orders.iter().next().unwrap();
+
+        assert_eq!(order_id, "OVVDHC-CA22A-NESYIB");
+        assert_eq!(order_info.status, OrderStatus::Closed);
+        assert_eq!(order_info.opentm, 1766554023.422301);
+        assert_eq!(order_info.starttm, 0.0);
+        assert_eq!(order_info.expiretm, 0.0);
+        assert_eq!(order_info.closetm, Some(1766554023.422301));
+       
     }
 }
