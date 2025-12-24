@@ -8,13 +8,13 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
 
-use tokio::time::sleep;
 use futures::channel::mpsc;
 use futures::channel::oneshot;
 use futures::lock::Mutex;
 use futures::prelude::*;
 use futures::task::Context;
 use futures::task::Poll;
+use tokio::time::sleep;
 
 use super::KrakenSigner;
 use super::RequestBuilder;
@@ -652,102 +652,104 @@ mod tests {
     #[tokio::test]
     async fn test_rate_limiter_priority() {
         use tokio::task::LocalSet;
-        
+
         let local = LocalSet::new();
-        local.run_until(async {
-            let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-            let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
-            let tier = RateLimiterTier::Starter;
-            let spot_api = SpotApi::new(signer, proxy, tier);
+        local
+            .run_until(async {
+                let signer = ApiCred::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+                let proxy = Proxy::from_env_with_prefix(CCX_KRAKEN_API_PREFIX);
+                let tier = RateLimiterTier::Starter;
+                let spot_api = SpotApi::new(signer, proxy, tier);
 
-            let rate_limiter = RateLimiterBuilder::default()
-                .bucket(
-                    "interval_3__limit_5",
-                    RateLimiterBucket::default()
-                        .mode(RateLimiterBucketMode::KrakenDecrease)
-                        .interval(Duration::from_secs(3))
-                        .limit(5),
-                )
-                .start();
+                let rate_limiter = RateLimiterBuilder::default()
+                    .bucket(
+                        "interval_3__limit_5",
+                        RateLimiterBucket::default()
+                            .mode(RateLimiterBucketMode::KrakenDecrease)
+                            .interval(Duration::from_secs(3))
+                            .limit(5),
+                    )
+                    .start();
 
-            let instant = Instant::now();
-            let counter = Arc::new(AtomicU8::new(0));
-            let position = Arc::new(AtomicU8::new(0));
-            {
-                let counter = counter.clone();
-                let position = position.clone();
-                let rate_limiter = rate_limiter.clone();
-                let spot_api = spot_api.clone();
-                tokio::task::spawn_local(async move {
-                while counter.load(Ordering::SeqCst) < 6 {
-                    sleep(Duration::from_millis(10)).await;
+                let instant = Instant::now();
+                let counter = Arc::new(AtomicU8::new(0));
+                let position = Arc::new(AtomicU8::new(0));
+                {
+                    let counter = counter.clone();
+                    let position = position.clone();
+                    let rate_limiter = rate_limiter.clone();
+                    let spot_api = spot_api.clone();
+                    tokio::task::spawn_local(async move {
+                        while counter.load(Ordering::SeqCst) < 6 {
+                            sleep(Duration::from_millis(10)).await;
+                        }
+
+                        let _task_res = rate_limiter
+                            .task(
+                                spot_api
+                                    .client
+                                    .get("/0/public/Assets")
+                                    .unwrap()
+                                    .try_query_arg("pairs", &None::<&str>)
+                                    .unwrap()
+                                    .try_query_arg("info", &None::<&str>)
+                                    .unwrap(),
+                            )
+                            .cost("interval_3__limit_5", 1)
+                            .priority(1)
+                            .send::<AssetInfoResponse>()
+                            .await;
+                        println!(
+                            "Time now: {:?}",
+                            std::time::SystemTime::now()
+                                .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                                .unwrap()
+                                .as_secs()
+                        );
+                        let current = counter.fetch_add(1, Ordering::SeqCst) + 1;
+                        position.store(current, Ordering::SeqCst);
+                        println!("PRIORITY POS: {}", current);
+                    });
                 }
 
-                let _task_res = rate_limiter
-                    .task(
-                        spot_api
-                            .client
-                            .get("/0/public/Assets")
-                            .unwrap()
-                            .try_query_arg("pairs", &None::<&str>)
-                            .unwrap()
-                            .try_query_arg("info", &None::<&str>)
-                            .unwrap(),
-                    )
-                    .cost("interval_3__limit_5", 1)
-                    .priority(1)
-                    .send::<AssetInfoResponse>()
-                    .await;
-                println!(
-                    "Time now: {:?}",
-                    std::time::SystemTime::now()
-                        .duration_since(std::time::SystemTime::UNIX_EPOCH)
-                        .unwrap()
-                        .as_secs()
-                );
-                let current = counter.fetch_add(1, Ordering::SeqCst) + 1;
-                position.store(current, Ordering::SeqCst);
-                println!("PRIORITY POS: {}", current);
-            });
-        }
+                for _ in 1..10 {
+                    let counter = counter.clone();
+                    let rate_limiter = rate_limiter.clone();
+                    let spot_api = spot_api.clone();
+                    tokio::task::spawn_local(async move {
+                        let _task_res = rate_limiter
+                            .task(
+                                spot_api
+                                    .client
+                                    .get("/0/public/Assets")
+                                    .unwrap()
+                                    .try_query_arg("pairs", &None::<&str>)
+                                    .unwrap()
+                                    .try_query_arg("info", &None::<&str>)
+                                    .unwrap(),
+                            )
+                            .cost("interval_3__limit_5", 1)
+                            .send::<AssetInfoResponse>()
+                            .await;
+                        println!(
+                            "Time now: {:?}",
+                            std::time::SystemTime::now()
+                                .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                                .unwrap()
+                                .as_secs()
+                        );
+                        let current = counter.fetch_add(1, Ordering::SeqCst) + 1;
+                        println!("TASK POS: {}", current);
+                    });
+                }
 
-            for _ in 1..10 {
-                let counter = counter.clone();
-                let rate_limiter = rate_limiter.clone();
-                let spot_api = spot_api.clone();
-                tokio::task::spawn_local(async move {
-                let _task_res = rate_limiter
-                    .task(
-                        spot_api
-                            .client
-                            .get("/0/public/Assets")
-                            .unwrap()
-                            .try_query_arg("pairs", &None::<&str>)
-                            .unwrap()
-                            .try_query_arg("info", &None::<&str>)
-                            .unwrap(),
-                    )
-                    .cost("interval_3__limit_5", 1)
-                    .send::<AssetInfoResponse>()
-                    .await;
-                println!(
-                    "Time now: {:?}",
-                    std::time::SystemTime::now()
-                        .duration_since(std::time::SystemTime::UNIX_EPOCH)
-                        .unwrap()
-                        .as_secs()
-                );
-                let current = counter.fetch_add(1, Ordering::SeqCst) + 1;
-                println!("TASK POS: {}", current);
-            });
-        }
+                while counter.load(Ordering::SeqCst) < 10 {
+                    sleep(Duration::from_millis(100)).await;
+                }
 
-            while counter.load(Ordering::SeqCst) < 10 {
-                sleep(Duration::from_millis(100)).await;
-            }
-
-            assert!((7..=8).contains(&position.load(Ordering::SeqCst)));
-            assert!(instant.elapsed() >= Duration::from_secs(13));
-        }).await;
+                assert!((7..=8).contains(&position.load(Ordering::SeqCst)));
+                assert!(instant.elapsed() >= Duration::from_secs(13));
+            })
+            .await;
     }
 }

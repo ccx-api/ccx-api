@@ -1,9 +1,9 @@
 use std::time::Duration;
 
 use ccx_api_lib::Seq;
-use futures::channel::mpsc;
-use futures::StreamExt;
 use futures::SinkExt;
+use futures::StreamExt;
+use futures::channel::mpsc;
 use tokio::time::Instant;
 use tokio::time::interval;
 use tokio_tungstenite::MaybeTlsStream;

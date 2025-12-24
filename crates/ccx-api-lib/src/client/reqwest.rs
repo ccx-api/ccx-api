@@ -65,7 +65,7 @@ impl ClientRequest {
     pub fn query<T: serde::Serialize + ?Sized>(mut self, query: &T) -> Self {
         // Serialize the query parameters
         let serialized = serde_urlencoded::to_string(query).unwrap_or_default();
-        
+
         // Append to existing query params
         if !serialized.is_empty() {
             if !self.query_params.is_empty() {
@@ -73,7 +73,7 @@ impl ClientRequest {
             }
             self.query_params.push_str(&serialized);
         }
-        
+
         Self {
             inner: self.inner.query(query),
             url: self.url,
@@ -160,4 +160,3 @@ pub fn client_with_proxy(proxy: &Proxy) -> Client {
 
     Client { inner }
 }
-

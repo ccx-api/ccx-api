@@ -1,8 +1,8 @@
 use std::time::Duration;
 
-use futures::channel::mpsc;
-use futures::StreamExt;
 use futures::SinkExt;
+use futures::StreamExt;
+use futures::channel::mpsc;
 use tokio::time::Instant;
 use tokio::time::interval;
 use tokio_tungstenite::MaybeTlsStream;
@@ -14,9 +14,9 @@ use url::Url;
 use crate::client::RestClient;
 use crate::error::GateError;
 use crate::error::GateResult;
+use crate::websocket::order_book::OrderBookRequest;
 use crate::websocket::request::WsRequest;
 use crate::websocket::request::WsRequestEvent;
-use crate::websocket::order_book::OrderBookRequest;
 use crate::websocket::response::Event;
 use crate::websocket::response::WsResponse;
 
@@ -36,10 +36,7 @@ pub struct WebsocketStreamTx {
 }
 
 impl WebsocketStream {
-    pub async fn connect<S>(
-        _api_client: RestClient<S>,
-        url: Url,
-    ) -> GateResult<Self> {
+    pub async fn connect<S>(_api_client: RestClient<S>, url: Url) -> GateResult<Self> {
         log::debug!("Connecting WS: {}", url.as_str());
 
         let (ws_stream, response) = connect_async(url.as_str())

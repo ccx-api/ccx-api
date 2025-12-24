@@ -133,7 +133,7 @@ where
     ) -> KrakenResult<Self> {
         let serialized = serde_urlencoded::to_string([(name.as_ref(), query)])?;
         let mut url = self.request.url().clone();
-        
+
         // Add query parameter
         match url.query() {
             None => url.set_query(Some(&serialized)),
@@ -142,11 +142,11 @@ where
                 url.set_query(Some(&new_query));
             }
         }
-        
+
         // Create new request with updated URL
         let method = self.request.method().clone();
         self.request = self.api_client.client().request(method, url.as_str());
-        
+
         Ok(self)
     }
 
@@ -206,11 +206,7 @@ where
             d1.as_secs_f64() * 1000.0,
             d2.as_secs_f64() * 1000.0,
         );
-        log::debug!(
-            "Response: {} «{}»",
-            status,
-            String::from_utf8_lossy(&resp)
-        );
+        log::debug!("Response: {} «{}»", status, String::from_utf8_lossy(&resp));
         if let Err(err) = check_response(status) {
             // log::debug!("Response: {}", String::from_utf8_lossy(&resp));
             Err(err)?

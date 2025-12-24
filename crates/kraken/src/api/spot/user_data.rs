@@ -243,7 +243,8 @@ mod tests {
             }
         }"#;
 
-        let get_query_orders_info_response: QueryOrdersInfoResponse = serde_json::from_str(&json_response).unwrap();
+        let get_query_orders_info_response: QueryOrdersInfoResponse =
+            serde_json::from_str(&json_response).unwrap();
         let (order_id, order_info) = get_query_orders_info_response.orders.iter().next().unwrap();
 
         assert_eq!(order_id, "OVVDHC-CA22A-NESYIB");
@@ -252,6 +253,5 @@ mod tests {
         assert_eq!(order_info.starttm, 0.0);
         assert_eq!(order_info.expiretm, 0.0);
         assert_eq!(order_info.closetm, Some(1766554023.422301));
-       
     }
 }
