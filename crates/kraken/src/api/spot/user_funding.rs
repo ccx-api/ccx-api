@@ -29,9 +29,11 @@ pub struct DepositMethod {
     /// Maximum net amount that can be deposited right now, or false if no limit.
     pub limit: DepositMethodLimit,
     /// Amount of fees that will be paid.
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub fee: Option<Decimal>,
     /// Whether or not method has an address setup fee.
     #[serde(rename = "address-setup-fee")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub address_setup_fee: Option<Decimal>,
     /// Whether new addresses can be generated for this method..
     #[serde(rename = "gen-address")]
@@ -41,6 +43,7 @@ pub struct DepositMethod {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum DepositMethodLimit {
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     Limited(Decimal),
     /// The value expected to be false.
     Unlimited(bool),
@@ -104,10 +107,12 @@ pub struct Deposit {
     pub info: String,
 
     /// Amount deposited.
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub amount: Decimal,
 
     /// Fees paid (if any).
     #[serde(default)]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub fee: Option<Decimal>,
 
     /// Unix timestamp when request made.

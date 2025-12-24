@@ -11,9 +11,12 @@ struct AddOrderRequest<'a> {
     userref: Option<u32>,
     ordertype: OrderType,
     r#type: OrderSide,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     volume: Option<Decimal>,
     pair: &'a str,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     price: Option<Decimal>,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     price2: Option<Decimal>,
     leverage: Option<&'a str>,
     oflags: Option<OrderFlags>,
@@ -23,8 +26,10 @@ struct AddOrderRequest<'a> {
     #[serde(rename = "close[ordertype]")]
     close_ordertype: Option<&'a str>,
     #[serde(rename = "close[price]")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     close_price: Option<Decimal>,
     #[serde(rename = "close[price2]")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     close_price2: Option<Decimal>,
     deadline: Option<&'a str>,
     validate: bool,

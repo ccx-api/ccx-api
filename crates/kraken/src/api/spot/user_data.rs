@@ -61,18 +61,25 @@ pub struct OrderInfo {
     /// Order description info.
     pub descr: OrderDescription,
     /// Volume of order (base currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub vol: Decimal,
     /// Volume executed (base currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub vol_exec: Decimal,
     /// Total cost (quote currency unless).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub cost: Decimal,
     /// Total fee (quote currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub fee: Decimal,
     /// Average price (quote currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price: Decimal,
     /// Stop price (quote currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub stopprice: Decimal,
     /// Triggered limit price (quote currency, when limit based order type triggered).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub limitprice: Decimal,
     /// Comma delimited list of miscellaneous info.
     pub misc: String,
@@ -91,8 +98,10 @@ pub struct OrderDescription {
     /// Order type.
     pub ordertype: OrderType,
     /// Primary price.
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price: Decimal,
     /// Secondary price.
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price2: Decimal,
     /// Amount of leverage.
     pub leverage: Option<String>,

@@ -14,8 +14,11 @@ pub struct Trade {
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct TradePayload {
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub volume: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub time: Decimal,
     pub side: String,
     #[serde(rename = "orderType")]

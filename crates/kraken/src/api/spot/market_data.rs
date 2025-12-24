@@ -137,12 +137,15 @@ pub struct AssetPairInfo {
     pub margin_stop: u32,
     /// Minimum order size (in terms of base currency).
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub ordermin: Option<Decimal>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AssetPairFee {
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub volume: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub percent_fee: Decimal,
 }
 
@@ -180,25 +183,33 @@ pub struct TickerInfo {
     pub high: TickerMetricInfo,
     /// Today's opening price.
     #[serde(rename = "o")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub open: Decimal,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct TickerLotInfo {
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub whole_lot_volume: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub lot_volume: Decimal,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct TickerLastTradeInfo {
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub lot_volume: Decimal,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct TickerMetricInfo {
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub today: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub last_24_hours: Decimal,
 }
 
@@ -222,7 +233,9 @@ pub struct AssetDepthInfo {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct AssetDepthLotInfo {
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price: Decimal,
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub volume: Decimal,
     pub timestamp: u32,
 }

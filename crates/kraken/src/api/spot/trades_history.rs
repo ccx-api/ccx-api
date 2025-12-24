@@ -61,14 +61,19 @@ pub struct TradeInfo {
     #[serde(rename = "ordertype")]
     pub order_type: OrderType,
     /// Average price order was executed at (quote currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub price: Decimal,
     /// Total cost of order (quote currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub cost: Decimal,
     /// Total fee (quote currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub fee: Decimal,
     /// Volume (base currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub vol: Decimal,
     /// Initial margin (quote currency).
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision::deserialize")]
     pub margin: Decimal,
     /// Amount of leverage used in trade.
     pub leverage: Option<String>,
@@ -85,20 +90,26 @@ pub struct TradeInfo {
     pub pos_status: Option<String>,
     /// Average price of closed portion of position (quote currency)
     #[serde(rename = "cprice")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub closed_price: Option<Decimal>,
     /// Total cost of closed portion of position (quote currency)
     #[serde(rename = "ccost")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub closed_cost: Option<Decimal>,
     /// Total fee of closed portion of position (quote currency)
     #[serde(rename = "cfee")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub closed_fee: Option<Decimal>,
     /// Total fee of closed portion of position (quote currency)
     #[serde(rename = "cvol")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub closed_vol: Option<Decimal>,
     /// Total margin freed in closed portion of position (quote currency)
     #[serde(rename = "cmargin")]
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub closed_margin: Option<Decimal>,
     /// Net profit/loss of closed portion of position (quote currency, quote currency scale)
+    #[serde(deserialize_with = "rust_decimal::serde::arbitrary_precision_option::deserialize")]
     pub net: Option<Decimal>,
     /// List of closing trades for position (if available)
     #[serde(skip)]
