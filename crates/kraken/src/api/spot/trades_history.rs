@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
+use ccx_api_lib::serde_util::f64_arbitrary_precision;
+
 use super::RL_MATCHING_ENGINE_PER_MINUTE;
 use super::RL_PRIVATE_PER_MINUTE;
 use super::RlPriorityLevel;
@@ -51,6 +53,7 @@ pub struct TradeInfo {
     /// Asset pair.
     pub pair: Atom,
     /// Unix timestamp of trade.
+    #[serde(deserialize_with = "f64_arbitrary_precision::deserialize")]
     pub time: f64,
     /// Type of order (buy/sell).
     pub r#type: TradeInfoType,

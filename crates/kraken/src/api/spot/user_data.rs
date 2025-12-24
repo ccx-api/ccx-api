@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use ccx_api_lib::serde_util::f64_arbitrary_precision;
+
 use super::RL_MATCHING_ENGINE_PER_MINUTE;
 use super::RL_PRIVATE_PER_MINUTE;
 use super::prelude::*;
@@ -20,7 +22,9 @@ pub struct AccountBalanceResponse {
 struct GetClosedOrdersRequest {
     trades: Option<bool>,
     userref: Option<u32>,
+    #[serde(deserialize_with = "f64_arbitrary_precision::deserialize_option")]
     start: Option<f64>,
+    #[serde(deserialize_with = "f64_arbitrary_precision::deserialize_option")]
     end: Option<f64>,
     ofs: Option<u32>,
     closetime: Option<CloseTime>,
@@ -43,12 +47,16 @@ pub struct OrderInfo {
     /// Additional info on status (if any).
     pub reason: Option<String>,
     /// Unix timestamp of when order was placed.
+    #[serde(deserialize_with = "f64_arbitrary_precision::deserialize")]
     pub opentm: f64,
     /// Unix timestamp of order start time (or 0 if not set).
+    #[serde(deserialize_with = "f64_arbitrary_precision::deserialize")]
     pub starttm: f64,
     /// Unix timestamp of order end time (or 0 if not set).
+    #[serde(deserialize_with = "f64_arbitrary_precision::deserialize")]
     pub expiretm: f64,
     /// Unix timestamp of when order was closed.
+    #[serde(deserialize_with = "f64_arbitrary_precision::deserialize_option")]
     pub closetm: Option<f64>,
     /// Order description info.
     pub descr: OrderDescription,

@@ -1,3 +1,4 @@
+pub mod f64_arbitrary_precision;
 /// (De)serialize empty string as [None]
 ///
 /// Unlike `serde_with::NoneAsEmptyString`, it uses `Serialize` & `Deserialize`
