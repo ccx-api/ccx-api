@@ -49,7 +49,7 @@ where
         }
 
         fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
-            while let Some((k, v)) = map.next_entry::<&str, &str>()? {
+            while let Some((k, v)) = map.next_entry::<String, String>()? {
                 if k == SERDE_JSON_NUMBER_TOKEN {
                     return v.parse::<f64>().map_err(A::Error::custom);
                 }
