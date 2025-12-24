@@ -203,3 +203,53 @@ mod with_network {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_query_orders_info() {
+        let json_response = r#"{
+            "BBBAAA-AA22A-AAABBB":{
+                "refid":null,
+                "userref":123456789,
+                "status":"closed",
+                "opentm":1766554023.422301,
+                "starttm":0,
+                "expiretm":0,
+                "descr":{
+                    "pair":"XBTEUR",
+                    "aclass":"forex",
+                    "type":"sell",
+                    "ordertype":"market",
+                    "price":"0",
+                    "price2":"0",
+                    "leverage":"none",
+                    "order":"sell 0.00138240 XBTEUR @ market",
+                    "close":""
+                },
+                "vol":"0.00138240",
+                "vol_exec":"0.00138240",
+                "cost":"102.18770",
+                "fee":"0.40875",
+                "price":"73920.5",
+                "stopprice":"0.00000",
+                "limitprice":"0.00000",
+                "misc":"",
+                "oflags":"fciq",
+                "reason":null,
+                "closetm":1766554023.422301
+            }
+        }"#;
+
+        let response: QueryOrdersInfoResponse = serde_json::from_str(json_response).unwrap();
+        assert_eq!(response.orders.len(), 1);
+        assert_eq!(response.orders.keys().next().unwrap(), "BBBAAA-AA22A-AAABBB");
+        assert_eq!(response.orders.values().next().unwrap().status, OrderStatus::Closed);
+        assert_eq!(response.orders.values().next().unwrap().opentm, 1766554023.422301);
+        assert_eq!(response.orders.values().next().unwrap().starttm, 0.0);
+        assert_eq!(response.orders.values().next().unwrap().expiretm, 0.0);
+        assert_eq!(response.orders.values().next().unwrap().closetm, Some(1766554023.422301));
+    }
+}
