@@ -50,7 +50,7 @@ pub struct DepositStatusResponse {
     #[serde(default)]
     pub fee: Option<Decimal>,
     /// Unix timestamp when request made.
-    pub time: i64,
+    pub time: Decimal,
     /// Status of deposit.
     pub status: DepositStatusValue,
     /// Addition status properties (if available)

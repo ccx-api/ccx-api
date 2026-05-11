@@ -45,7 +45,7 @@ pub struct WithdrawalStatusResponse {
     /// Fees paid.
     pub fee: Option<Decimal>,
     /// Unix timestamp when request made.
-    pub time: i64,
+    pub time: Decimal,
     /// Status of deposit.
     pub status: WithdrawalStatusValue,
     /// Addition status properties (if available)

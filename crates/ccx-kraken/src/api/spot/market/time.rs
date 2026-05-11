@@ -1,3 +1,4 @@
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use crate::proto::{PublicRequest, Request, Response};
@@ -11,7 +12,7 @@ pub struct ServerTime;
 
 #[derive(Deserialize, Debug)]
 pub struct ServerTimeResponse {
-    pub unixtime: u64,
+    pub unixtime: Decimal,
     pub rfc1123: String,
 }
 

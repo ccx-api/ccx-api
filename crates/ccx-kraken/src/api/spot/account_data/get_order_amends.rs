@@ -55,7 +55,7 @@ pub struct OrderAmendEntry {
     /// Indicates if the transaction was restricted from taking liquidity.
     pub post_only: Option<bool>,
     /// The UNIX timestamp for the amend transaction.
-    pub timestamp: u64,
+    pub timestamp: Decimal,
 }
 
 /// The type of amend transaction.

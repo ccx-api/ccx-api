@@ -160,11 +160,11 @@ pub struct OrderInfo {
     /// Status of order
     pub status: OrderStatus,
     /// Unix timestamp of when order was placed
-    pub opentm: u64,
+    pub opentm: Decimal,
     /// Unix timestamp of order start time (if set)
-    pub starttm: Option<u64>,
+    pub starttm: Option<Decimal>,
     /// Unix timestamp of order end time (if set)
-    pub expiretm: Option<u64>,
+    pub expiretm: Option<Decimal>,
     /// Order description info
     pub descr: OrderInfoDescription,
     /// Volume of order (base currency unless viqc set in oflags)
@@ -195,7 +195,7 @@ pub struct OrderInfo {
     /// Order trades info (if "trades" input parameter is true)
     pub trades: Option<Vec<String>>,
     /// Unix timestamp of when order was closed
-    pub closetm: Option<u64>,
+    pub closetm: Option<Decimal>,
     /// Additional info on status (if any)
     pub reason: Option<String>,
 }
