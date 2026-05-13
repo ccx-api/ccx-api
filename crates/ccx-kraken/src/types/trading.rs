@@ -186,9 +186,9 @@ pub struct OrderInfo {
     /// Indicates if the order is funded on margin.
     pub margin: Option<bool>,
     /// Additional info on status (if any)
-    pub misc: String,
+    pub misc: Option<String>,
     /// For institutional accounts, identifies underlying sub-account/trader for Self Trade Prevention (STP).
-    pub sender_sub_id: String,
+    pub sender_sub_id: Option<String>,
     /// Comma delimited list of order flags
     #[serde_as(as = "Option<StringWithSeparator::<CommaSeparator, OrderFlag>>")]
     pub oflags: Option<Vec<OrderFlag>>,
